@@ -1,13 +1,36 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { runAudit, findLeads, saveLead, getLeads, saveReport } from "../actions";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { runAudit, findLeads, saveLead, getLeads, saveReport, updateLead, getStats } from "../actions";
 import { cn } from "@/lib/utils";
 import { DiscoveredBusiness } from "@/lib/discovery/types";
 import { generatePDF } from "@/lib/pdf-generator";
+import { generateColdEmail } from "@/lib/email-generator";
+import { DashboardShell } from "@/components/layout/DashboardShell";
+import { Users, Search, Activity, Download, RefreshCw, Mail } from "lucide-react";
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function Dashboard() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const tabParam = searchParams.get('tab');
     const [activeTab, setActiveTab] = useState<'scan' | 'find' | 'leads'>('find');
+
+    // Sync state with URL param
+    useEffect(() => {
+        if (tabParam === 'scan' || tabParam === 'find' || tabParam === 'leads') {
+            setActiveTab(tabParam);
+        }
+    }, [tabParam]);
+
+    // Helper to change tab and update URL
+    const changeTab = (tab: 'scan' | 'find' | 'leads') => {
+        setActiveTab(tab);
+        router.push(`${pathname}?tab=${tab}`);
+    };
 
     // Scan State
     const [url, setUrl] = useState("");
@@ -21,20 +44,49 @@ export default function Dashboard() {
     const [scanningLead, setScanningLead] = useState<string | null>(null);
     const [savingLead, setSavingLead] = useState<string | null>(null);
 
-    // My Leads State
+    // My Leads State (CRM)
     const [myLeads, setMyLeads] = useState<any[]>([]);
     const [loadingLeads, setLoadingLeads] = useState(false);
     const [currentLeadId, setCurrentLeadId] = useState<string | null>(null);
+    const [stats, setStats] = useState({ totalLeads: 0, auditsRun: 0, potentialValue: 0 });
+
+    // CRM Actions
+    async function handleStatusChange(leadId: string, newStatus: string) {
+        // Optimistic update
+        setMyLeads(leads => leads.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
+        await updateLead(leadId, { status: newStatus });
+    }
+
+    // Debounced notes save
+    const notesTimeouts = new Map<string, NodeJS.Timeout>();
+
+    function handleNotesChange(leadId: string, newNotes: string) {
+        // Optimistic update
+        setMyLeads(leads => leads.map(l => l.id === leadId ? { ...l, notes: newNotes } : l));
+
+        // Clear existing timeout
+        if (notesTimeouts.has(leadId)) {
+            clearTimeout(notesTimeouts.get(leadId)!);
+        }
+
+        // Set new timeout to save after 1 second
+        const timeout = setTimeout(async () => {
+            await updateLead(leadId, { notes: newNotes });
+            notesTimeouts.delete(leadId);
+        }, 1000);
+
+        notesTimeouts.set(leadId, timeout);
+    }
 
     async function handleSaveReport() {
         if (!currentLeadId || !report) return;
         const result = await saveReport(currentLeadId, report);
         if (result.success) {
-            alert("Report saved to database!");
+            toast.success('Report saved to database!');
             // Refresh leads to show updated status
             fetchLeads();
         } else {
-            alert("Failed to save report");
+            toast.error('Failed to save report');
         }
     }
 
@@ -42,7 +94,16 @@ export default function Dashboard() {
         if (activeTab === 'leads') {
             fetchLeads();
         }
+        // Fetch stats on mount and when switching tabs
+        fetchStats();
     }, [activeTab]);
+
+    async function fetchStats() {
+        const result = await getStats();
+        if (result.success && result.stats) {
+            setStats(result.stats);
+        }
+    }
 
     async function fetchLeads() {
         setLoadingLeads(true);
@@ -72,11 +133,11 @@ export default function Dashboard() {
             if (result.success) {
                 setReport(result.report);
             } else {
-                alert("Scan failed!");
+                toast.error('Scan failed!');
             }
         } catch (e) {
             console.error(e);
-            alert("Error running scan");
+            toast.error('Error running scan');
         } finally {
             setLoading(false);
         }
@@ -92,17 +153,20 @@ export default function Dashboard() {
             if (result.success) {
                 setLeads(result.results);
             } else {
-                alert("Failed to find leads");
+                toast.error('Failed to find leads');
             }
         } catch (e) {
-            alert("Error searching");
+            toast.error('Error searching');
         } finally {
             setFinding(false);
         }
     }
 
     async function quickAudit(lead: DiscoveredBusiness) {
-        if (!lead.website) return alert("No website to scan!");
+        if (!lead.website) {
+            toast.error('No website to scan!');
+            return;
+        }
         setScanningLead(lead.place_id);
         await handleScan(lead.website);
         setScanningLead(null);
@@ -112,98 +176,216 @@ export default function Dashboard() {
         setSavingLead(lead.place_id);
         const result = await saveLead(lead);
         if (result.success) {
-            alert("Lead Saved!");
+            toast.success('Lead saved successfully!');
+            // Refresh leads list if on My Leads tab
+            if (activeTab === 'leads') {
+                fetchLeads();
+            }
         } else {
-            alert("Failed to save: " + result.error);
+            toast.error('Failed to save: ' + result.error);
         }
         setSavingLead(null);
     }
 
     return (
-        <main className="flex min-h-screen flex-col items-center p-8 bg-gray-50">
-            <div className="z-10 max-w-5xl w-full flex flex-col items-center mb-12">
-                <div className="flex justify-between w-full items-center">
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        LeadScout <span className="text-blue-600">Dashboard</span>
-                    </h1>
-                    <div className="text-sm text-gray-500">
-                        Welcome back
+        <DashboardShell>
+            <Toaster position="top-right" />
+            {/* Top Stat Cards (Placeholder for now, consistent with Purity UI) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-gray-400 text-xs font-bold uppercase">Total Leads</p>
+                        <h3 className="text-2xl font-bold text-gray-800">{stats.totalLeads}</h3>
+                    </div>
+                    <div className="p-3 bg-teal-400 text-white rounded-xl">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                     </div>
                 </div>
-
-                <div className="flex gap-4 mt-8 bg-white p-1 rounded-lg border shadow-sm">
-                    <button
-                        onClick={() => setActiveTab('find')}
-                        className={cn("px-6 py-2 rounded-md font-medium transition-all", activeTab === 'find' ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-50")}
-                    >
-                        Find Leads
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('scan')}
-                        className={cn("px-6 py-2 rounded-md font-medium transition-all", activeTab === 'scan' ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-50")}
-                    >
-                        Direct Audit
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('leads')}
-                        className={cn("px-6 py-2 rounded-md font-medium transition-all", activeTab === 'leads' ? "bg-blue-100 text-blue-700" : "text-gray-600 hover:bg-gray-50")}
-                    >
-                        My Leads
-                    </button>
+                <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-gray-400 text-xs font-bold uppercase">Audits Run</p>
+                        <h3 className="text-2xl font-bold text-gray-800">{stats.auditsRun}</h3>
+                    </div>
+                    <div className="p-3 bg-teal-400 text-white rounded-xl">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-gray-400 text-xs font-bold uppercase">Potential Value</p>
+                        <h3 className="text-2xl font-bold text-gray-800">
+                            ${stats.potentialValue.toLocaleString()}
+                        </h3>
+                    </div>
+                    <div className="p-3 bg-teal-400 text-white rounded-xl">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                 </div>
             </div>
 
-            <div className="w-full max-w-4xl">
+            <div className="flex flex-col gap-6">
+                {/* Direct Scan - Centered Focus Mode */}
+                {activeTab === 'scan' && (
+                    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                        {!report ? (
+                            <div className="w-full max-w-2xl text-center space-y-8 animate-in fade-in zoom-in duration-500">
+                                <div className="space-y-2">
+                                    <h2 className="text-3xl font-bold text-gray-800">New Audit</h2>
+                                    <p className="text-gray-500">Enter a website URL to generate a comprehensive analysis.</p>
+                                </div>
+
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Search className="h-5 w-5 text-gray-400 group-focus-within:text-teal-500 transition-colors" />
+                                    </div>
+                                    <input
+                                        type="url"
+                                        placeholder="https://example.com"
+                                        value={url}
+                                        onChange={(e) => setUrl(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleScan()}
+                                        className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-lg transition-all"
+                                        autoFocus
+                                    />
+                                    <button
+                                        onClick={() => handleScan()}
+                                        disabled={loading || !url}
+                                        className="absolute inset-y-2 right-2 bg-teal-400 text-white px-6 rounded-xl font-bold hover:bg-teal-500 disabled:opacity-50 transition-all shadow-md active:scale-95"
+                                    >
+                                        {loading ? "Scanning..." : "Audit"}
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-400">
+                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-green-400" /> SEO Analysis</div>
+                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-400" /> Performance</div>
+                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-purple-400" /> Security</div>
+                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-orange-400" /> Mobile Friendly</div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-full space-y-6">
+                                {/* Report Header / Toolbar */}
+                                <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                                    <button onClick={() => setReport(null)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors">
+                                        &larr; Audit Another
+                                    </button>
+                                    <div className="flex gap-2">
+                                        {currentLeadId && (
+                                            <button onClick={handleSaveReport} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-black transition-colors">
+                                                <Activity size={16} /> Save to Lead
+                                            </button>
+                                        )}
+                                        <button onClick={() => generatePDF(report)} className="flex items-center gap-2 bg-teal-50 text-teal-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-teal-100 transition-colors">
+                                            <Download size={16} /> Download PDF
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Score Hero */}
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <div className="bg-teal-400 text-white p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-lg relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10"><Activity size={100} /></div>
+                                        <span className="text-7xl font-bold">{report.overallScore}</span>
+                                        <span className="text-sm font-medium uppercase tracking-wider opacity-90 mt-2">Overall Score</span>
+                                    </div>
+
+                                    <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {/* Quick Stats */}
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                            <p className="text-gray-400 text-xs font-bold uppercase mb-2">Analysis Target</p>
+                                            <p className="font-bold text-gray-800 truncate" title={report.url}>{report.url}</p>
+                                            <p className="text-xs text-gray-400 mt-1">{new Date(report.scannedAt).toLocaleDateString()}</p>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:border-teal-400 transition-colors group"
+                                            onClick={() => {
+                                                const { subject, body } = generateColdEmail(report.url, report.url, report);
+                                                navigator.clipboard.writeText(`${subject}\n\n${body}`);
+                                                toast.success('Email draft copied to clipboard!');
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Mail size={16} className="text-teal-500" />
+                                                <p className="text-gray-400 text-xs font-bold uppercase">Smart Outreach</p>
+                                            </div>
+                                            <p className="font-bold text-gray-800 group-hover:text-teal-600 transition-colors">Copy AI Email Pitch &rarr;</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Detailed Checks */}
+                                <div className="grid gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                    <h3 className="font-bold text-gray-800 mb-2">Audit Breakdown</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {Object.entries(report.checks).filter(([k]) => k !== 'seo').map(([key, result]: [string, any]) => (
+                                            <div key={key} className="p-4 rounded-xl border border-gray-100 hover:shadow-md transition-shadow flex gap-4 bg-gray-50/50">
+                                                <div className={cn("w-2 h-full rounded-full shrink-0",
+                                                    result.status === 'pass' ? "bg-teal-400" : result.status === 'warning' ? "bg-orange-400" : "bg-red-500"
+                                                )} />
+                                                <div className="flex-1">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <h4 className="font-bold text-gray-800 capitalize text-sm">{result.title}</h4>
+                                                        <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide",
+                                                            result.status === 'pass' ? "bg-teal-100 text-teal-700" : result.status === 'warning' ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
+                                                        )}>{result.status}</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 leading-relaxed">{result.description}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Search Tab (kept mostly same but wrapped in card) */}
                 {activeTab === 'find' && (
-                    <div className="space-y-6">
-                        <div className="flex gap-2">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm min-h-[500px]">
+                        <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                            <Search size={20} className="text-teal-500" /> Lead Discovery
+                        </h2>
+
+                        <div className="flex gap-4 mb-8">
                             <input
                                 type="text"
-                                placeholder="e.g. Dentists in New York"
+                                placeholder="Search businesses (e.g. Roofers in Austin)"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleFind()}
-                                className="flex-1 p-4 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-lg"
+                                className="flex-1 p-3 bg-gray-50 border-gray-100 rounded-xl focus:ring-2 focus:ring-teal-400 outline-none transition-all"
                             />
                             <button
                                 onClick={handleFind}
                                 disabled={finding}
-                                className="bg-blue-600 text-white px-8 py-4 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
+                                className="bg-teal-400 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-500 disabled:opacity-50 transition-all shadow-md active:scale-95"
                             >
-                                {finding ? "Searching..." : "Find Leads"}
+                                {finding ? "Searching..." : "Find"}
                             </button>
                         </div>
 
                         <div className="grid gap-4">
                             {leads.map((lead) => (
-                                <div key={lead.place_id} className="bg-white p-6 rounded-xl border hover:shadow-md transition-shadow flex items-center justify-between">
-                                    <div>
-                                        <h3 className="font-bold text-lg text-gray-900">{lead.name}</h3>
-                                        <p className="text-gray-500">{lead.formatted_address}</p>
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <span className="text-yellow-500">★ {lead.rating}</span>
-                                            <span className="text-gray-300">|</span>
+                                <div key={lead.place_id} className="p-4 rounded-xl border border-gray-100 hover:border-teal-200 hover:shadow-md transition-all flex items-center justify-between group">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 font-bold">
+                                            {lead.name.substring(0, 1)}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 group-hover:text-teal-600 transition-colors">{lead.name}</h3>
+                                            <p className="text-sm text-gray-500">{lead.formatted_address}</p>
                                             {lead.website ? (
-                                                <a href={lead.website} target="_blank" className="text-blue-500 hover:underline text-sm truncate max-w-[200px]">{lead.website}</a>
-                                            ) : (
-                                                <span className="text-red-400 text-sm">No Website</span>
-                                            )}
+                                                <a href={lead.website} target="_blank" className="text-teal-500 text-xs hover:underline mt-1 block">{lead.website}</a>
+                                            ) : <span className="text-xs text-red-400 mt-1 block">No Website</span>}
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handleSave(lead)}
-                                            disabled={savingLead === lead.place_id}
-                                            className="bg-white border text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium text-sm transition-colors"
-                                        >
+                                        <button onClick={() => handleSave(lead)} disabled={savingLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-teal-600 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors">
                                             {savingLead === lead.place_id ? "Saving..." : "Save Lead"}
                                         </button>
-                                        <button
-                                            onClick={() => quickAudit(lead)}
-                                            disabled={!lead.website || scanningLead === lead.place_id}
-                                            className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-lg font-medium disabled:opacity-30 disabled:border-gray-200"
-                                        >
-                                            {scanningLead === lead.place_id ? "Scanning..." : "Audit"}
+                                        <button onClick={() => quickAudit(lead)} disabled={!lead.website} className="px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors">
+                                            Audit
                                         </button>
                                     </div>
                                 </div>
@@ -215,142 +397,98 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                {activeTab === 'scan' && (
-                    <div className="space-y-4">
-                        <div className="flex gap-2">
-                            <input
-                                type="url"
-                                placeholder="https://example.com"
-                                value={url}
-                                onChange={(e) => setUrl(e.target.value)}
-                                className="flex-1 p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                            />
-                            <button
-                                onClick={() => handleScan()}
-                                disabled={loading}
-                                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                            >
-                                {loading ? "Scanning..." : "Audit Site"}
-                            </button>
+
+                {/* My Leads (Refactored Table Look) */}
+                {activeTab === 'leads' && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                <Users size={20} className="text-teal-500" /> My Leads Pipeline
+                            </h2>
+                            <span className="text-xs font-bold text-gray-400 bg-white px-2 py-1 rounded-md border">{myLeads.length} Records</span>
                         </div>
 
-                        {report && (
-                            <div className="mt-8 bg-white p-6 rounded-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="flex justify-between items-center mb-6 border-b pb-4">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-gray-900">{report.url}</h2>
-                                        <p className="text-gray-500 text-xs mt-1">Scanned at: {new Date(report.scannedAt).toLocaleString()}</p>
-                                    </div>
-                                    <div className={cn(
-                                        "text-3xl font-bold px-4 py-2 rounded-lg",
-                                        report.overallScore >= 80 ? "bg-green-100 text-green-700" :
-                                            report.overallScore >= 50 ? "bg-yellow-100 text-yellow-700" :
-                                                "bg-red-100 text-red-700"
-                                    )}>
-                                        {report.overallScore}
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-end mb-4 gap-2">
-                                    {currentLeadId && (
-                                        <button
-                                            onClick={handleSaveReport}
-                                            className="flex items-center gap-2 text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium transition-colors"
-                                        >
-                                            Save Report to DB
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={() => generatePDF(report)}
-                                        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                        Download Report PDF
-                                    </button>
-                                </div>
-
-                                <div className="grid gap-4">
-                                    {Object.entries(report.checks).filter(([k]) => k !== 'seo').map(([key, result]: [string, any]) => (
-                                        <div key={key} className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100 hover:border-blue-100 transition-colors">
-                                            <div className={cn(
-                                                "w-3 h-3 rounded-full mt-2 shrink-0",
-                                                result.status === 'pass' ? "bg-green-500" :
-                                                    result.status === 'warning' ? "bg-yellow-500" : "bg-red-500"
-                                            )} />
+                        <div className="divide-y divide-gray-100">
+                            {myLeads.map((lead) => (
+                                <div key={lead.id} className="p-6 hover:bg-gray-50 transition-colors group">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex gap-4">
+                                            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shadow-sm border",
+                                                lead.status === 'audited' ? "bg-teal-100 text-teal-600 border-teal-200" : "bg-gray-100 text-gray-500 border-gray-200"
+                                            )}>
+                                                {lead.business_name.substring(0, 1)}
+                                            </div>
                                             <div>
-                                                <h3 className="font-semibold capitalize text-gray-800">{result.title}</h3>
-                                                <p className="text-sm text-gray-600 mt-1">{result.description}</p>
+                                                <h3 className="font-bold text-gray-800 text-lg">{lead.business_name}</h3>
+                                                <a href={lead.website_url} target="_blank" className="text-sm text-gray-400 hover:text-teal-500 transition-colors">{lead.website_url}</a>
                                             </div>
-                                            {result.score > 0 && (
-                                                <div className="ml-auto font-mono text-sm text-gray-400">
-                                                    {result.score}/100
-                                                </div>
-                                            )}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
 
-
-                {activeTab === 'leads' && (
-                    <div className="space-y-6">
-                        <h2 className="text-xl font-bold text-gray-800">Saved Leads</h2>
-                        {loadingLeads ? (
-                            <div className="text-center py-10 text-gray-500">Loading your leads...</div>
-                        ) : (
-                            <div className="grid gap-4">
-                                {myLeads.map((lead) => (
-                                    <div key={lead.id} className="bg-white p-6 rounded-xl border hover:shadow-md transition-shadow flex items-center justify-between">
-                                        <div>
-                                            <h3 className="font-bold text-lg text-gray-900">{lead.business_name}</h3>
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <span className={cn(
-                                                    "text-xs font-semibold px-2 py-1 rounded-full uppercase",
-                                                    lead.status === 'new' ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700"
-                                                )}>
-                                                    {lead.status}
-                                                </span>
-                                                <span className="text-gray-300">|</span>
-                                                <a href={lead.website_url} target="_blank" className="text-blue-500 hover:underline text-sm truncate max-w-[200px]">
-                                                    {lead.website_url}
-                                                </a>
-                                            </div>
-                                            <p className="text-xs text-gray-400 mt-2">Saved: {new Date(lead.created_at).toLocaleDateString()}</p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    setActiveTab('scan');
-                                                    setCurrentLeadId(lead.id);
-                                                    setUrl(lead.website_url);
-                                                    handleScan(lead.website_url);
-                                                }}
-                                                className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-lg font-medium"
-                                            >
-                                                Audit Now
+                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => { changeTab('scan'); setCurrentLeadId(lead.id); setUrl(lead.website_url); handleScan(lead.website_url); }}
+                                                className="flex items-center gap-1 text-sm font-bold text-gray-600 hover:text-teal-600 bg-white border px-3 py-1.5 rounded-lg hover:border-teal-300 transition-all">
+                                                <RefreshCw size={14} /> Re-Audit
                                             </button>
                                         </div>
                                     </div>
-                                ))}
-                                {myLeads.length === 0 && (
-                                    <div className="text-center py-12 bg-white rounded-xl border border-dashed">
-                                        <p className="text-gray-500">You haven't saved any leads yet.</p>
-                                        <button
-                                            onClick={() => setActiveTab('find')}
-                                            className="mt-4 text-blue-600 font-medium hover:underline"
-                                        >
-                                            Find some leads now &rarr;
-                                        </button>
+
+                                    {/* Action Row */}
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                                        <div className="md:col-span-1">
+                                            <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Status</label>
+                                            <select
+                                                value={lead.status}
+                                                onChange={(e) => handleStatusChange(lead.id, e.target.value)}
+                                                className="w-full bg-white border border-gray-200 text-sm font-medium text-gray-700 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-teal-400 outline-none"
+                                            >
+                                                <option value="new">New</option>
+                                                <option value="auditing">Auditing</option>
+                                                <option value="audited">Audited</option>
+                                                <option value="contacted">Contacted</option>
+                                                <option value="closed">Closed</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="md:col-span-2">
+                                            <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Internal Notes</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Add a note..."
+                                                defaultValue={lead.notes || ''}
+                                                onBlur={(e) => handleNotesChange(lead.id, e.target.value)}
+                                                className="w-full bg-white border border-gray-200 text-sm rounded-lg px-3 py-1.5 focus:border-teal-400 outline-none transition-colors"
+                                            />
+                                        </div>
+
+                                        <div className="md:col-span-1">
+                                            <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Est. Value</label>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1.5 text-gray-400 text-sm">$</span>
+                                                <input
+                                                    type="number"
+                                                    defaultValue={lead.value || ''}
+                                                    onBlur={(e) => updateLead(lead.id, { value: parseInt(e.target.value) })}
+                                                    className="w-full pl-6 bg-white border border-gray-200 text-sm font-bold text-gray-700 rounded-lg px-2 py-1.5 focus:border-teal-400 outline-none"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        )}
+                                </div>
+                            ))}
+
+                            {myLeads.length === 0 && (
+                                <div className="text-center py-20">
+                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                        <Users size={32} />
+                                    </div>
+                                    <p className="text-gray-500 font-medium">No leads in your pipeline yet.</p>
+                                    <button onClick={() => changeTab('find')} className="mt-2 text-teal-500 font-bold hover:underline">Find Leads &rarr;</button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
-        </main>
+        </DashboardShell>
     );
 }

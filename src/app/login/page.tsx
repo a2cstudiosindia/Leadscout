@@ -1,74 +1,108 @@
-import { login, signup } from './actions'
+import { login, signup } from "./actions";
+import { Zap } from "lucide-react";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string, message?: string }> }) {
-    const { error, message } = await searchParams;
+export default async function LoginPage({
+    searchParams
+}: {
+    searchParams: Promise<{ message?: string; error?: string }>
+}) {
+    // Await searchParams before access
+    const { message, error } = await searchParams;
+
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg border">
-                <div className="text-center">
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                        LeadScout
-                    </h1>
-                    <h2 className="mt-2 text-xl font-semibold text-gray-900">Sign in to your account</h2>
-                    <p className="mt-2 text-sm text-gray-600">
-                        Start auditing businesses and closing deals.
+        <div className="min-h-screen flex bg-white font-sans">
+            {/* Left Side - Form */}
+            <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-24 relative">
+                <div className="absolute top-8 left-8 flex items-center gap-2">
+                    <div className="p-1.5 bg-teal-400 rounded-lg text-white">
+                        <Zap size={16} fill="currentColor" />
+                    </div>
+                    <span className="font-bold text-lg text-gray-800 tracking-tight">LeadScout</span>
+                </div>
+
+                <div className="w-full max-w-sm space-y-8">
+                    <div className="space-y-2">
+                        <h1 className="text-4xl font-bold text-teal-400 tracking-tight">Welcome Back</h1>
+                        <p className="text-gray-400 font-medium">Enter your email and password to sign in</p>
+                    </div>
+
+                    {message && (
+                        <div className="p-4 bg-teal-50 border border-teal-100 text-teal-700 text-sm rounded-xl flex items-center gap-2">
+                            <span className="font-bold">Info:</span> {message}
+                        </div>
+                    )}
+                    {error && (
+                        <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl flex items-center gap-2">
+                            <span className="font-bold">Error:</span> {error}
+                        </div>
+                    )}
+
+                    <form className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-gray-700 ml-1">Email</label>
+                            <input
+                                name="email"
+                                type="email"
+                                required
+                                placeholder="mail@example.com"
+                                className="w-full p-4 bg-gray-50 border-gray-100 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition-all placeholder:text-gray-300"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-gray-700 ml-1">Password</label>
+                            <input
+                                name="password"
+                                type="password"
+                                required
+                                placeholder="Min. 8 characters"
+                                className="w-full p-4 bg-gray-50 border-gray-100 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition-all placeholder:text-gray-300"
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm">
+                            <label className="flex items-center gap-2 text-gray-500 cursor-pointer">
+                                <input type="checkbox" className="rounded text-teal-400 focus:ring-teal-400 border-gray-300" />
+                                <span>Remember me</span>
+                            </label>
+                            <a href="#" className="font-bold text-teal-400 hover:text-teal-500">Forgot Password?</a>
+                        </div>
+
+                        <div className="pt-4 space-y-4">
+                            <button formAction={login} className="w-full py-4 bg-teal-400 text-white font-bold rounded-xl hover:bg-teal-500 transition-all shadow-lg shadow-teal-200 active:scale-95 text-sm uppercase tracking-wider">
+                                Sign In
+                            </button>
+                            <button formAction={signup} className="w-full py-4 bg-white border-2 border-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-50 hover:border-gray-200 transition-all active:scale-95 text-sm uppercase tracking-wider">
+                                Create Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <p className="text-center text-gray-400 text-sm">
+                        Don't have an account? <span className="font-bold text-teal-400 cursor-pointer">Sign up free</span>
                     </p>
                 </div>
 
-                {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center">
-                        {error}
-                    </div>
-                )}
+                <div className="absolute bottom-8 left-0 w-full text-center text-xs text-gray-300">
+                    &copy; 2024 LeadScout Inc.
+                </div>
+            </div>
 
-                {message && (
-                    <div className="bg-green-50 text-green-600 p-3 rounded-lg text-sm text-center">
-                        {message}
+            {/* Right Side - Image/Pattern */}
+            <div className="hidden md:block w-1/2 bg-teal-400 relative overflow-hidden">
+                {/* Abstract Shapes or Image */}
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-400 to-teal-600" />
+                <div className="absolute -top-24 -right-24 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl" />
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center p-12">
+                    <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-3xl mx-auto mb-8 flex items-center justify-center">
+                        <Zap size={48} fill="currentColor" />
                     </div>
-                )}
-
-                <form className="mt-8 space-y-6">
-                    <div className="rounded-md shadow-sm -space-y-px">
-                        <div>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                autoComplete="email"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Email address"
-                            />
-                        </div>
-                        <div>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                autoComplete="current-password"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Password"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex gap-4">
-                        <button
-                            formAction={login}
-                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                            Sign in
-                        </button>
-                        <button
-                            formAction={signup}
-                            className="group relative w-full flex justify-center py-3 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                            Sign up
-                        </button>
-                    </div>
-                </form>
+                    <h2 className="text-4xl font-bold mb-6">Automate Your Agency Growth</h2>
+                    <p className="text-lg text-teal-50 opacity-90 max-w-md mx-auto leading-relaxed">
+                        LeadScout helps you find qualified leads, audit their digital presence, and generate personalized outreach in seconds.
+                    </p>
+                </div>
+                <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-teal-900 opacity-10 rounded-full blur-3xl" />
             </div>
         </div>
-    )
+    );
 }

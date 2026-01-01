@@ -18,6 +18,8 @@ export interface Database {
                     google_place_id: string | null
                     status: 'new' | 'auditing' | 'audited' | 'contacted'
                     created_at: string
+                    notes: string | null
+                    value: number | null
                 }
                 Insert: {
                     id?: string
@@ -27,6 +29,8 @@ export interface Database {
                     google_place_id?: string | null
                     status?: 'new' | 'auditing' | 'audited' | 'contacted'
                     created_at?: string
+                    notes?: string | null
+                    value?: number | null
                 }
                 Update: {
                     id?: string
@@ -36,6 +40,8 @@ export interface Database {
                     google_place_id?: string | null
                     status?: 'new' | 'auditing' | 'audited' | 'contacted'
                     created_at?: string
+                    notes?: string | null
+                    value?: number | null
                 }
             }
             reports: {
@@ -59,6 +65,26 @@ export interface Database {
                     overall_score?: number
                     scan_data?: Json
                     created_at?: string
+                }
+            }
+            profiles: {
+                Row: {
+                    id: string
+                    agency_name: string | null
+                    agency_logo_url: string | null
+                    updated_at: string | null
+                }
+                Insert: {
+                    id: string
+                    agency_name?: string | null
+                    agency_logo_url?: string | null
+                    updated_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    agency_name?: string | null
+                    agency_logo_url?: string | null
+                    updated_at?: string | null
                 }
             }
         }
