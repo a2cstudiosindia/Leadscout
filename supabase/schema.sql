@@ -9,9 +9,12 @@ create table leads (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users not null,
   business_name text not null,
-  website_url text not null,
+  website_url text, -- Nullable to allow saving leads without websites
   google_place_id text,
   status lead_status default 'new',
+  notes text,
+  value integer,
+  last_contacted_at timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

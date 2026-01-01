@@ -30,3 +30,6 @@ add column if not exists last_contacted_at timestamp with time zone;
 
 -- Update status enum if not already compatible (optional, handled in app logic usually)
 -- For now we stick to text status and just manage it in frontend.
+
+-- 3. Make website_url nullable for leads without websites
+alter table leads alter column website_url drop not null;
