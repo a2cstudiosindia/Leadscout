@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 LeadScout
 
-## Getting Started
+**Automate Your Agency Growth.** LeadScout is a powerful, all-in-one platform designed for digital agencies to discover, audit, and convert leads with ease.
 
-First, run the development server:
+[![Live Demo](https://img.shields.io/badge/Live-Demo-teal.svg?style=for-the-badge)](https://lead-scout-zeta.vercel.app/)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 🔍 Lead Discovery
+- Search for any business niche in any location using **Google Places API**.
+- Get instant access to business names, addresses, and website URLs.
+- Filter and save high-potential leads directly to your CRM.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### ⚡ Digital Presence Audit
+- **One-Click Scanning**: Deep-dive into any business website.
+- **Comprehensive Scores**: Evaluate SEO, Performance, Security, and Accessibility.
+- **Detailed Insights**: Identify broken links, slow load times, and missing meta tags.
 
-## Learn More
+### 💼 Integrated CRM
+- **Lead Management**: Track leads through the funnel (New, Auditing, Audited, Contacted).
+- **Auto-Save Notes**: Debounced note-saving ensures you never lose a detail.
+- **KPI Dashboard**: Real-time tracking of Total Leads, Audits Run, and Potential Revenue.
 
-To learn more about Next.js, take a look at the following resources:
+### 📧 Outreach & Branding
+- **AI Cold Emails**: Generate personalized outreach drafts based on audit findings.
+- **PDF Reports**: Export professional audit summaries to share with prospects.
+- **Agency Branding**: Customize the platform with your agency's name and logo.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Tech Stack
 
-## Deploy on Vercel
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
+- **Authentication**: [Supabase Auth](https://supabase.com/auth)
+- **Database**: [Supabase PostgreSQL](https://supabase.com/database)
+- **Storage**: [Supabase Storage](https://supabase.com/storage) (for Agency Logos)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Notifications**: [React Hot Toast](https://react-hot-toast.com/)
+- **PDF Generation**: [jsPDF](https://github.com/parallax/jsPDF)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- pnpm / npm / yarn
+- A Supabase Project
+- Google Maps API Key
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/AbhishekRDJ/LeadScout.git
+   cd lead-scout
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pnpm install
+   ```
+
+3. **Set up environment variables**
+   Create a `.env` file in the root directory:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   GOOGLE_MAPS_API_KEY=your_google_maps_key
+   ```
+
+4. **Database Setup**
+   Run the SQL scripts provided in the `supabase/` directory in your Supabase SQL Editor:
+   - `schema.sql`: Core tables and RLS.
+   - `schema_phase3.sql`: CRM and Branding updates.
+   - `storage_setup.sql`: Storage bucket and policies.
+
+5. **Run the development server**
+   ```bash
+   pnpm run dev
+   ```
+
+---
+
+## 📸 Screenshots
+
+> [!NOTE]
+> Add your own screenshots here! (Dashboard, CRM, Audit Results)
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+Built with ❤️ by [AbhishekRDJ](https://github.com/AbhishekRDJ)
