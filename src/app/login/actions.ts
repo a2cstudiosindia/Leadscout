@@ -1,7 +1,6 @@
-'use server'
-
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '../../lib/supabase/server'
 
 export async function login(formData: FormData) {
@@ -15,7 +14,7 @@ export async function login(formData: FormData) {
     const { error } = await supabase.auth.signInWithPassword(data)
 
     if (error) {
-        redirect('/login?error=' + error.message)
+        redirect('/login?error=' + encodeURIComponent(error.message))
     }
 
     revalidatePath('/', 'layout')
@@ -24,13 +23,22 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
     const supabase = await createClient()
+    const headersList = await headers()
+    const host = headersList.get('host')
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const redirectUrl = `${protocol}://${host}/auth/callback`
 
     const data = {
         email: formData.get('email') as string,
         password: formData.get('password') as string,
     }
 
-    const { data: { session }, error } = await supabase.auth.signUp(data)
+    const { data: { session }, error } = await supabase.auth.signUp({
+        ...data,
+        options: {
+            emailRedirectTo: redirectUrl,
+        }
+    })
 
     if (error) {
         // Check if error is due to user already existing
@@ -47,12 +55,12 @@ export async function signup(formData: FormData) {
             redirect('/dashboard')
         }
 
-        redirect('/login?error=' + error.message)
+        redirect('/login?error=' + encodeURIComponent(error.message))
     }
 
     if (!session) {
         // Email confirmation enabled, or manual approval required
-        redirect('/login?message=Check your email to confirm your account')
+        redirect('/login?message=' + encodeURIComponent('Check your email to confirm your account'))
     }
 
     revalidatePath('/', 'layout')
