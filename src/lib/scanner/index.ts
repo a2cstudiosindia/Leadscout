@@ -30,9 +30,15 @@ export class Scanner {
 
         try {
             response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to load page:", error);
-            // Return a failed report
+            if (error.message.includes('ERR_NAME_NOT_RESOLVED') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+                const failedReport = this.generateFailedReport(url);
+                // Customize description for DNS error
+                failedReport.checks.security.description = "Domain does not exist or DNS failed (ERR_NAME_NOT_RESOLVED).";
+                return failedReport;
+            }
+            // Return a failed report for other errors
             return this.generateFailedReport(url);
         }
 

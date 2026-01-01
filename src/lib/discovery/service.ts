@@ -45,6 +45,7 @@ export class DiscoveryService {
 
         try {
             // Use Google Places Text Search (New)
+            console.log("DiscoveryService: 🟢 Using Real Google Places API");
             const url = `https://places.googleapis.com/v1/places:searchText`;
 
             const response = await fetch(url, {
