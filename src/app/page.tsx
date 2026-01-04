@@ -1,58 +1,292 @@
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { Zap, Search, BarChart3, FileText, Users, ArrowRight, Star, Shield } from "lucide-react";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
-      <nav className="border-b p-4 max-w-7xl mx-auto flex justify-between items-center">
-        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-          LeadScout
-        </h1>
-        <div className="flex gap-4">
-          <Link href="/login" className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium">Log in</Link>
-          <Link href="/login" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">Get Started</Link>
+      <nav className="p-4 max-w-7xl mx-auto flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-teal-400 rounded-lg text-white">
+            <Zap size={16} fill="currentColor" />
+          </div>
+          <span className="font-bold text-lg text-gray-800 tracking-tight">LeadScout</span>
+        </div>
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+          <a href="#features" className="hover:text-teal-500 transition-colors">Features</a>
+          <a href="#how-it-works" className="hover:text-teal-500 transition-colors">How It Works</a>
+          <a href="#testimonials" className="hover:text-teal-500 transition-colors">Testimonials</a>
+          <Link href="/pricing" className="hover:text-teal-500 transition-colors">Pricing</Link>
+        </div>
+        <div className="flex gap-3">
+          <Link href="/login" className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium text-sm">Log in</Link>
+          <Link href="/login" className="px-4 py-2 bg-teal-400 text-white rounded-lg font-medium hover:bg-teal-500 transition-all text-sm">Get Started Free</Link>
         </div>
       </nav>
 
-      {/* Hero */}
-      <main className="max-w-7xl mx-auto px-4 py-24 text-center">
-        <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight sm:text-6xl mb-6">
-          Find Clients Who Need You.<br />
-          <span className="text-blue-600">Automate Your Agency Sales.</span>
-        </h1>
-        <p className="text-xl text-gray-500 max-w-3xl mx-auto mb-10">
-          LeadScout scans thousands of local businesses to find websites that are losing money.
-          Generate professional audit reports in seconds and close more deals.
-        </p>
-        <div className="flex justify-center gap-4">
-          <Link href="/dashboard" className="px-8 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all">
-            Start Finding Leads
-          </Link>
-          <Link href="/login" className="px-8 py-4 bg-gray-50 text-gray-700 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all">
-            View Sample Report
-          </Link>
+      {/* Hero Section */}
+      <section className="max-w-7xl mx-auto px-4 py-20 md:py-28">
+        <div className="text-center max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-600 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <Zap size={14} />
+            Trusted by 500+ digital agencies worldwide
+          </div>
+          <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 tracking-tight mb-6 leading-tight">
+            Find Clients Who Need You.<br />
+            <span className="text-teal-400">Close Deals Faster.</span>
+          </h1>
+          <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+            LeadScout automatically discovers local businesses with underperforming websites.
+            Generate professional audit reports in seconds and convert prospects into paying clients.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/login" className="px-8 py-4 bg-teal-400 text-white rounded-xl font-bold text-lg hover:bg-teal-500 shadow-lg shadow-teal-200 hover:shadow-xl transition-all flex items-center justify-center gap-2">
+              Start Free Trial
+              <ArrowRight size={18} />
+            </Link>
+            <Link href="/login" className="px-8 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-bold text-lg hover:border-teal-400 hover:text-teal-500 transition-all">
+              Watch Demo
+            </Link>
+          </div>
+          <p className="text-sm text-gray-400 mt-4">No credit card required • Free 14-day trial</p>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="bg-gray-50 py-12 border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900">10K+</div>
+              <div className="text-sm text-gray-500 mt-1">Leads Generated</div>
+            </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900">500+</div>
+              <div className="text-sm text-gray-500 mt-1">Agencies Trust Us</div>
+            </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900">85%</div>
+              <div className="text-sm text-gray-500 mt-1">Conversion Rate</div>
+            </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-gray-900">4.9/5</div>
+              <div className="text-sm text-gray-500 mt-1">User Rating</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="max-w-7xl mx-auto px-4 py-24">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Everything You Need to Scale Your Agency</h2>
+          <p className="text-lg text-gray-500 max-w-2xl mx-auto">Powerful tools designed specifically for digital marketing agencies looking to automate their lead generation.</p>
         </div>
 
-        {/* Feature Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mt-24 text-left">
-          <div className="p-8 bg-gray-50 rounded-2xl border border-gray-100">
-            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-2xl mb-4">🔍</div>
-            <h3 className="font-bold text-xl mb-2">Automated Discovery</h3>
-            <p className="text-gray-600">Find "Dentists in New York" or "Gyms in Austin" instantly. We integrate with Google Places to find real businesses.</p>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 hover:border-teal-200 hover:shadow-xl transition-all group">
+            <div className="w-14 h-14 bg-teal-50 text-teal-500 rounded-xl flex items-center justify-center mb-6 group-hover:bg-teal-400 group-hover:text-white transition-colors">
+              <Search size={24} />
+            </div>
+            <h3 className="font-bold text-xl mb-3 text-gray-800">Smart Lead Discovery</h3>
+            <p className="text-gray-600 leading-relaxed">Find businesses by location and industry using Google Places integration. Discover "Dentists in New York" or "Restaurants in LA" instantly.</p>
           </div>
-          <div className="p-8 bg-gray-50 rounded-2xl border border-gray-100">
-            <div className="w-12 h-12 bg-green-100 text-green-600 rounded-lg flex items-center justify-center text-2xl mb-4">⚡</div>
-            <h3 className="font-bold text-xl mb-2">Smart Audits</h3>
-            <p className="text-gray-600">We check for "Money Losing" problems: Slow load speeds, broken social links, and outdated copyright years.</p>
+
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 hover:border-teal-200 hover:shadow-xl transition-all group">
+            <div className="w-14 h-14 bg-teal-50 text-teal-500 rounded-xl flex items-center justify-center mb-6 group-hover:bg-teal-400 group-hover:text-white transition-colors">
+              <BarChart3 size={24} />
+            </div>
+            <h3 className="font-bold text-xl mb-3 text-gray-800">Automated Website Audits</h3>
+            <p className="text-gray-600 leading-relaxed">Scan websites for performance issues, missing SEO elements, broken links, and mobile responsiveness problems in seconds.</p>
           </div>
-          <div className="p-8 bg-gray-50 rounded-2xl border border-gray-100">
-            <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-2xl mb-4">📄</div>
-            <h3 className="font-bold text-xl mb-2">White-Label Reports</h3>
-            <p className="text-gray-600">Download a professional PDF report with one click. Send it to the client to prove their need for your services.</p>
+
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 hover:border-teal-200 hover:shadow-xl transition-all group">
+            <div className="w-14 h-14 bg-teal-50 text-teal-500 rounded-xl flex items-center justify-center mb-6 group-hover:bg-teal-400 group-hover:text-white transition-colors">
+              <FileText size={24} />
+            </div>
+            <h3 className="font-bold text-xl mb-3 text-gray-800">White-Label Reports</h3>
+            <p className="text-gray-600 leading-relaxed">Generate professional PDF reports branded with your agency logo. Perfect for client meetings and cold outreach campaigns.</p>
+          </div>
+
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 hover:border-teal-200 hover:shadow-xl transition-all group">
+            <div className="w-14 h-14 bg-teal-50 text-teal-500 rounded-xl flex items-center justify-center mb-6 group-hover:bg-teal-400 group-hover:text-white transition-colors">
+              <Users size={24} />
+            </div>
+            <h3 className="font-bold text-xl mb-3 text-gray-800">Built-in CRM</h3>
+            <p className="text-gray-600 leading-relaxed">Manage your leads, track status, add notes, and monitor your sales pipeline all in one place. Never lose a potential client again.</p>
+          </div>
+
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 hover:border-teal-200 hover:shadow-xl transition-all group">
+            <div className="w-14 h-14 bg-teal-50 text-teal-500 rounded-xl flex items-center justify-center mb-6 group-hover:bg-teal-400 group-hover:text-white transition-colors">
+              <BarChart3 size={24} />
+            </div>
+            <h3 className="font-bold text-xl mb-3 text-gray-800">Analytics Dashboard</h3>
+            <p className="text-gray-600 leading-relaxed">Track your performance with detailed analytics. Monitor leads, conversion rates, and revenue potential at a glance.</p>
+          </div>
+
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 hover:border-teal-200 hover:shadow-xl transition-all group">
+            <div className="w-14 h-14 bg-teal-50 text-teal-500 rounded-xl flex items-center justify-center mb-6 group-hover:bg-teal-400 group-hover:text-white transition-colors">
+              <Shield size={24} />
+            </div>
+            <h3 className="font-bold text-xl mb-3 text-gray-800">API Access</h3>
+            <p className="text-gray-600 leading-relaxed">Integrate LeadScout with your existing tools using our REST API. Automate your workflow and scale your operations.</p>
           </div>
         </div>
-      </main>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="bg-gray-900 py-24">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">How LeadScout Works</h2>
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto">Three simple steps to start generating qualified leads for your agency.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-teal-400 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
+              <h3 className="font-bold text-xl mb-3 text-white">Search for Businesses</h3>
+              <p className="text-gray-400">Enter a business type and location. LeadScout searches Google Places to find real businesses in your target area.</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-teal-400 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
+              <h3 className="font-bold text-xl mb-3 text-white">Run Website Audits</h3>
+              <p className="text-gray-400">With one click, scan their website for issues like slow loading, missing SSL, poor mobile experience, and SEO problems.</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-teal-400 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
+              <h3 className="font-bold text-xl mb-3 text-white">Close the Deal</h3>
+              <p className="text-gray-400">Download a professional audit report, share it with the prospect, and show them exactly how you can help their business.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" className="max-w-7xl mx-auto px-4 py-24">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Loved by Agencies Worldwide</h2>
+          <p className="text-lg text-gray-500">See what our customers have to say about LeadScout.</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex gap-1 mb-4">
+              {[...Array(5)].map((_, i) => <Star key={i} size={16} className="text-yellow-400 fill-yellow-400" />)}
+            </div>
+            <p className="text-gray-600 mb-6 leading-relaxed">&quot;LeadScout has completely transformed how we find clients. We went from 5 leads per week to 50+. The audit reports are incredibly professional.&quot;</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 font-bold">JD</div>
+              <div>
+                <div className="font-bold text-gray-800">James Davis</div>
+                <div className="text-sm text-gray-500">CEO, Digital Growth Agency</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex gap-1 mb-4">
+              {[...Array(5)].map((_, i) => <Star key={i} size={16} className="text-yellow-400 fill-yellow-400" />)}
+            </div>
+            <p className="text-gray-600 mb-6 leading-relaxed">&quot;The white-label reports are a game changer. Clients are impressed before we even get on a call. Our close rate has increased by 40%.&quot;</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold">SM</div>
+              <div>
+                <div className="font-bold text-gray-800">Sarah Mitchell</div>
+                <div className="text-sm text-gray-500">Founder, WebPro Solutions</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex gap-1 mb-4">
+              {[...Array(5)].map((_, i) => <Star key={i} size={16} className="text-yellow-400 fill-yellow-400" />)}
+            </div>
+            <p className="text-gray-600 mb-6 leading-relaxed">&quot;Best investment we made this year. The API integration lets us automate our entire lead generation process. Saves us hours every week.&quot;</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">RK</div>
+              <div>
+                <div className="font-bold text-gray-800">Raj Kumar</div>
+                <div className="text-sm text-gray-500">Director, TechScale Marketing</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-gradient-to-r from-teal-400 to-teal-500 py-20">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Grow Your Agency?</h2>
+          <p className="text-lg text-teal-50 mb-8 max-w-2xl mx-auto">Join 500+ agencies using LeadScout to automate their lead generation. Start your free trial today.</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/login" className="px-8 py-4 bg-white text-teal-600 rounded-xl font-bold text-lg hover:bg-gray-50 shadow-lg transition-all flex items-center justify-center gap-2">
+              Start Free Trial
+              <ArrowRight size={18} />
+            </Link>
+            <Link href="/pricing" className="px-8 py-4 bg-teal-600 text-white rounded-xl font-bold text-lg hover:bg-teal-700 transition-all">
+              View Pricing
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 py-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-1.5 bg-teal-400 rounded-lg text-white">
+                  <Zap size={16} fill="currentColor" />
+                </div>
+                <span className="font-bold text-lg text-white">LeadScout</span>
+              </div>
+              <p className="text-gray-400 text-sm leading-relaxed">Automate your agency&apos;s lead generation with smart discovery, instant audits, and professional reports.</p>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-white mb-4">Product</h4>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li><a href="#features" className="hover:text-teal-400 transition-colors">Features</a></li>
+                <li><Link href="/pricing" className="hover:text-teal-400 transition-colors">Pricing</Link></li>
+                <li><a href="#" className="hover:text-teal-400 transition-colors">API Docs</a></li>
+                <li><a href="#" className="hover:text-teal-400 transition-colors">Changelog</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-white mb-4">Company</h4>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-teal-400 transition-colors">About Us</a></li>
+                <li><a href="#" className="hover:text-teal-400 transition-colors">Blog</a></li>
+                <li><a href="#" className="hover:text-teal-400 transition-colors">Careers</a></li>
+                <li><a href="#" className="hover:text-teal-400 transition-colors">Contact</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-white mb-4">Legal</h4>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-teal-400 transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-teal-400 transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-teal-400 transition-colors">Cookie Policy</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-500">© 2024 LeadScout Inc. All rights reserved.</p>
+            <div className="flex gap-6 text-sm text-gray-500">
+              <a href="#" className="hover:text-teal-400 transition-colors">Twitter</a>
+              <a href="#" className="hover:text-teal-400 transition-colors">LinkedIn</a>
+              <a href="#" className="hover:text-teal-400 transition-colors">GitHub</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
