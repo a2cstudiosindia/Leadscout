@@ -5,13 +5,14 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 // Note: Link import conflict with next/link, so we use full import for icon or rename.
 // Actually, Sidebar uses lucide-react efficiently. Let's just add CreditCard to the list.
-import { LayoutDashboard, Search, List, Settings, LogOut, Zap, CreditCard } from "lucide-react";
+import { LayoutDashboard, Search, List, Settings, LogOut, Zap, CreditCard, BarChart3, Key } from "lucide-react";
 
 const navigation = [
-    { name: "Dashboard", href: "/dashboard?tab=find", icon: LayoutDashboard }, // Default to Find
+    { name: "Dashboard", href: "/dashboard?tab=find", icon: LayoutDashboard },
     { name: "Find Leads", href: "/dashboard?tab=find", icon: Search },
     { name: "My Leads", href: "/dashboard?tab=leads", icon: List },
-    { name: "Direct Scan", href: "/dashboard?tab=scan", icon: Zap }, // Added Direct Scan explicitly to sidebar
+    { name: "Direct Scan", href: "/dashboard?tab=scan", icon: Zap },
+    { name: "Analytics", href: "/analytics", icon: BarChart3 },
     { name: "Plans & Pricing", href: "/pricing", icon: CreditCard },
 ];
 
@@ -65,6 +66,18 @@ export function Sidebar() {
                             <Settings size={16} />
                         </div>
                         Settings
+                    </Link>
+                    <Link
+                        href="/settings/api-keys"
+                        className={cn(
+                            "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group",
+                            "text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-md"
+                        )}
+                    >
+                        <div className="p-2 bg-gray-50 text-gray-500 rounded-lg group-hover:bg-gray-800 group-hover:text-white transition-colors shadow-sm">
+                            <Key size={16} />
+                        </div>
+                        API Keys
                     </Link>
                 </div>
             </nav>

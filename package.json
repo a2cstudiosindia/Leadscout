@@ -17,9 +17,12 @@
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
+    "razorpay": "^2.9.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hot-toast": "^2.6.0",
+    "recharts": "^3.6.0",
+    "stripe": "^20.1.0",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

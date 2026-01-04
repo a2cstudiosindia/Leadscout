@@ -4,12 +4,24 @@ import { Scanner } from "@/lib/scanner";
 import { DiscoveryService } from "@/lib/discovery/service";
 import { createClient } from "@/lib/supabase/server";
 import { DiscoveredBusiness } from "@/lib/discovery/types";
+import { checkLimit, incrementUsage, trackEvent } from "@/lib/subscription";
 
 export async function runAudit(url: string) {
+    // Check usage limit
+    const limitCheck = await checkLimit('audits');
+    if (!limitCheck.allowed) {
+        return { success: false, error: limitCheck.reason };
+    }
+
     const scanner = new Scanner();
     try {
         const report = await scanner.scan(url);
         await scanner.close();
+
+        // Track usage
+        await incrementUsage('audits');
+        await trackEvent('audit_run', { url, score: report.overallScore });
+
         return { success: true, report };
     } catch (error) {
         console.error("Audit failed:", error);
@@ -32,6 +44,12 @@ export async function findLeads(query: string) {
 
 
 export async function saveLead(lead: DiscoveredBusiness) {
+    // Check usage limit
+    const limitCheck = await checkLimit('leads');
+    if (!limitCheck.allowed) {
+        return { success: false, error: limitCheck.reason };
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -40,7 +58,7 @@ export async function saveLead(lead: DiscoveredBusiness) {
     const { error } = await supabase.from('leads').insert({
         user_id: user.id,
         business_name: lead.name,
-        website_url: lead.website || null, // Allow null website
+        website_url: lead.website || null,
         google_place_id: lead.place_id,
         status: 'new'
     });
@@ -49,6 +67,10 @@ export async function saveLead(lead: DiscoveredBusiness) {
         console.error("Save lead error:", error);
         return { success: false, error: "Failed to save lead" };
     }
+
+    // Track usage
+    await incrementUsage('leads');
+    await trackEvent('lead_saved', { name: lead.name, website: lead.website });
 
     return { success: true };
 }
