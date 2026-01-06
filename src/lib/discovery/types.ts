@@ -5,6 +5,7 @@ export interface DiscoveredBusiness {
     place_id: string;
     rating?: number;
     user_ratings_total?: number;
+    phone?: string;
     photos?: any[];
 }
 

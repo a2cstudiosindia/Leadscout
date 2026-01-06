@@ -17,13 +17,13 @@ export function getRazorpay(): Razorpay {
 export const RAZORPAY_PLANS = {
     pro: {
         name: 'Pro',
-        amount: 2499 * 100, // ₹2,499 in paise
+        amount: 99 * 100, // ₹99 in paise
         currency: 'INR',
         period: 'monthly',
     },
     enterprise: {
         name: 'Enterprise',
-        amount: 7999 * 100, // ₹7,999 in paise
+        amount: 169 * 100, // ₹169 in paise
         currency: 'INR',
         period: 'monthly',
     },

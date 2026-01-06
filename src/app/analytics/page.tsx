@@ -102,12 +102,12 @@ export default function AnalyticsPage() {
 
                 {/* Usage Bar (if subscription info available) */}
                 {subscription && (
-                    <div className="bg-gradient-to-r from-teal-400 to-teal-500 rounded-2xl p-6 text-white">
+                    <div className="bg-gradient-to-r from-teal-400 to-teal-500 rounded-2xl p-4 md:p-6 text-white" role="region" aria-label="Plan usage">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="font-bold text-lg">{subscription.planName} Plan</h3>
                             <span className="text-sm opacity-80">This Month</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                             <div>
                                 <p className="text-sm opacity-80 mb-1">Leads Used</p>
                                 <div className="flex items-center gap-2">
@@ -140,12 +140,28 @@ export default function AnalyticsPage() {
                                     </span>
                                 </div>
                             </div>
+                            <div>
+                                <p className="text-sm opacity-80 mb-1">Searches Used</p>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1 bg-white/20 rounded-full h-2">
+                                        <div
+                                            className="bg-white rounded-full h-2 transition-all"
+                                            style={{
+                                                width: `${Math.min(100, (subscription.usage.searches.current / (subscription.usage.searches.limit === Infinity ? 100 : subscription.usage.searches.limit)) * 100)}%`
+                                            }}
+                                        />
+                                    </div>
+                                    <span className="text-sm font-bold">
+                                        {subscription.usage.searches.current}/{subscription.usage.searches.limit === Infinity ? '∞' : subscription.usage.searches.limit}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {/* KPI Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6" role="region" aria-label="Key performance indicators">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-teal-50 text-teal-500 rounded-xl">

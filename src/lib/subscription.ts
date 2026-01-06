@@ -54,12 +54,13 @@ export async function getUsage() {
         period,
         leads: usage?.leads_count ?? 0,
         audits: usage?.audits_count ?? 0,
+        searches: usage?.searches_count ?? 0,
         apiCalls: usage?.api_calls ?? 0,
     };
 }
 
 // Check if user can perform action
-export async function checkLimit(action: 'leads' | 'audits' | 'api') {
+export async function checkLimit(action: 'leads' | 'audits' | 'searches' | 'api') {
     const subscription = await getSubscription();
     const usage = await getUsage();
 
@@ -90,6 +91,16 @@ export async function checkLimit(action: 'leads' | 'audits' | 'api') {
                 };
             }
             break;
+        case 'searches':
+            if (usage.searches >= limits.searches) {
+                return {
+                    allowed: false,
+                    reason: `You've reached your limit of ${limits.searches} searches this month. Upgrade for more!`,
+                    current: usage.searches,
+                    limit: limits.searches,
+                };
+            }
+            break;
         case 'api':
             if (!limits.apiAccess) {
                 return {
@@ -104,7 +115,7 @@ export async function checkLimit(action: 'leads' | 'audits' | 'api') {
 }
 
 // Increment usage counter
-export async function incrementUsage(action: 'leads' | 'audits' | 'api') {
+export async function incrementUsage(action: 'leads' | 'audits' | 'searches' | 'api') {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -115,7 +126,8 @@ export async function incrementUsage(action: 'leads' | 'audits' | 'api') {
     // Upsert usage record
     const column = action === 'leads' ? 'leads_count'
         : action === 'audits' ? 'audits_count'
-            : 'api_calls';
+            : action === 'searches' ? 'searches_count'
+                : 'api_calls';
 
     // First try to get existing record
     const { data: existing } = await supabase
@@ -172,6 +184,7 @@ export async function getSubscriptionInfo() {
         usage: {
             leads: { current: usage.leads, limit: subscription.limits.leads },
             audits: { current: usage.audits, limit: subscription.limits.audits },
+            searches: { current: usage.searches, limit: subscription.limits.searches },
         },
         features: {
             apiAccess: subscription.limits.apiAccess,

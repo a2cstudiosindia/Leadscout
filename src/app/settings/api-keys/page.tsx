@@ -103,15 +103,25 @@ export default function ApiKeysPage() {
                     <p className="text-gray-500 mt-1">Manage your API keys for programmatic access</p>
                 </div>
 
-                {/* API Access Warning */}
+                {/* Upgrade Prompt for Free Users */}
                 {!hasApiAccess && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4">
-                        <AlertCircle className="text-amber-500 shrink-0" size={24} />
-                        <div>
-                            <h3 className="font-bold text-amber-800">API Access Not Available</h3>
-                            <p className="text-amber-700 text-sm mt-1">
-                                API access requires a Pro or Enterprise plan. Upgrade to unlock this feature.
-                            </p>
+                    <div className="bg-gradient-to-r from-teal-400 to-teal-500 rounded-2xl p-8 text-white">
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <AlertCircle size={24} />
+                                    <h3 className="font-bold text-xl">Upgrade to Unlock API Access</h3>
+                                </div>
+                                <p className="text-teal-50 max-w-lg">
+                                    API access is available on Pro and Enterprise plans. Generate API keys to integrate LeadScout with your existing tools and automate your workflow.
+                                </p>
+                            </div>
+                            <a
+                                href="/pricing"
+                                className="px-6 py-3 bg-white text-teal-600 font-bold rounded-xl hover:bg-gray-50 transition-all shadow-lg whitespace-nowrap"
+                            >
+                                View Pricing Plans
+                            </a>
                         </div>
                     </div>
                 )}

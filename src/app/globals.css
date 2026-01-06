@@ -20,8 +20,10 @@
 }
 
 body {
-  background: #F7FAFC; /* Purity UI Light Gray */
-  color: #2D3748; /* Dark Gray text */
+  background: #F7FAFC;
+  /* Purity UI Light Gray */
+  color: #2D3748;
+  /* Dark Gray text */
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
@@ -30,13 +32,75 @@ body {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #CBD5E0;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #A0AEC0;
+}
+
+/* Clean Animated Gradient for Landing Page */
+@keyframes gradient-slide {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes soft-pulse {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Main gradient background with smooth animation */
+.landing-gradient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.landing-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(180deg,
+      rgba(45, 212, 191, 0.08) 0%,
+      rgba(56, 189, 248, 0.05) 30%,
+      transparent 60%);
+  animation: soft-pulse 6s ease-in-out infinite;
+}
+
+/* Smooth flowing gradient beam */
+.gradient-beam {
+  position: absolute;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(180deg,
+      transparent 0%,
+      rgba(45, 212, 191, 0.06) 20%,
+      rgba(56, 189, 248, 0.04) 50%,
+      rgba(45, 212, 191, 0.06) 80%,
+      transparent 100%);
+  animation: gradient-slide 12s linear infinite;
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check } from "lucide-react";
+import { Check, Crown } from "lucide-react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { getSubscriptionInfo } from "@/lib/subscription";
 import toast, { Toaster } from "react-hot-toast";
 
 declare global {
@@ -35,9 +36,18 @@ interface RazorpayResponse {
 
 export default function PricingPage() {
     const [loading, setLoading] = useState<string | null>(null);
+    const [currentPlan, setCurrentPlan] = useState<string>('free');
 
-    // Load Razorpay script
+    // Load subscription info and Razorpay script
     useEffect(() => {
+        // Fetch current plan
+        getSubscriptionInfo().then((info) => {
+            if (info) {
+                setCurrentPlan(info.plan);
+            }
+        });
+
+        // Load Razorpay script
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
         script.async = true;
@@ -46,6 +56,10 @@ export default function PricingPage() {
     }, []);
 
     async function handleCheckout(plan: 'pro' | 'enterprise') {
+        if (currentPlan === plan) {
+            toast.error('You are already on this plan');
+            return;
+        }
         setLoading(plan);
         try {
             // Create order
@@ -108,12 +122,12 @@ export default function PricingPage() {
             <div className="flex flex-col items-center justify-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="text-center max-w-2xl mb-16">
                     <h1 className="text-4xl font-bold text-gray-800 mb-4">Simple, Transparent Pricing</h1>
-                    <p className="text-gray-500 text-lg">Choose the plan that best fits your agency's needs. Scale as you grow.</p>
+                    <p className="text-gray-500 text-lg">Choose the plan that best fits your agency&apos;s needs. Scale as you grow.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl px-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl px-4" role="list" aria-label="Pricing plans">
                     {/* Free Plan */}
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group hover:border-teal-200 transition-all hover:shadow-lg">
+                    <article className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group hover:border-teal-200 transition-all hover:shadow-lg" role="listitem" aria-labelledby="free-plan-title">
                         <div className="mb-6">
                             <h3 className="text-lg font-bold text-gray-500 uppercase tracking-wide">Free</h3>
                             <div className="mt-4 flex items-baseline gap-1">
@@ -134,14 +148,25 @@ export default function PricingPage() {
                             </li>
                             <li className="flex items-center gap-3 text-sm text-gray-600">
                                 <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
+                                20 Searches per month
+                            </li>
+                            <li className="flex items-center gap-3 text-sm text-gray-600">
+                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
                                 Basic Lead Management
                             </li>
                         </ul>
 
-                        <button disabled className="w-full py-3 rounded-xl border border-gray-200 text-gray-400 font-bold cursor-not-allowed">
-                            Current Plan
-                        </button>
-                    </div>
+                        {currentPlan === 'free' ? (
+                            <button disabled className="w-full py-3 rounded-xl border border-gray-200 text-gray-400 font-bold cursor-not-allowed flex items-center justify-center gap-2">
+                                <Crown size={16} />
+                                Current Plan
+                            </button>
+                        ) : (
+                            <button disabled className="w-full py-3 rounded-xl border border-gray-200 text-gray-400 font-bold cursor-not-allowed">
+                                Free Plan
+                            </button>
+                        )}
+                    </article>
 
                     {/* Pro Plan */}
                     <div className="bg-gray-900 p-8 rounded-2xl shadow-xl flex flex-col relative overflow-hidden transform scale-105 z-10">
@@ -149,9 +174,10 @@ export default function PricingPage() {
                         <div className="mb-6">
                             <h3 className="text-lg font-bold text-teal-400 uppercase tracking-wide">Pro</h3>
                             <div className="mt-4 flex items-baseline gap-1">
-                                <span className="text-4xl font-bold text-white">₹2,499</span>
+                                <span className="text-4xl font-bold text-white">₹99</span>
                                 <span className="text-gray-400">/mo</span>
                             </div>
+                            <p className="text-xs text-gray-500 mt-1">≈ $1.19 USD</p>
                             <p className="text-sm text-gray-400 mt-2">For growing agencies running outreach.</p>
                         </div>
 
@@ -166,6 +192,10 @@ export default function PricingPage() {
                             </li>
                             <li className="flex items-center gap-3 text-sm text-gray-300">
                                 <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
+                                500 Searches per month
+                            </li>
+                            <li className="flex items-center gap-3 text-sm text-gray-300">
+                                <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
                                 API Access
                             </li>
                             <li className="flex items-center gap-3 text-sm text-gray-300">
@@ -174,13 +204,20 @@ export default function PricingPage() {
                             </li>
                         </ul>
 
-                        <button
-                            onClick={() => handleCheckout('pro')}
-                            disabled={loading === 'pro'}
-                            className="w-full py-3 rounded-xl bg-teal-400 text-white font-bold hover:bg-teal-500 transition-colors shadow-lg shadow-teal-900/50 disabled:opacity-50"
-                        >
-                            {loading === 'pro' ? 'Processing...' : 'Upgrade to Pro'}
-                        </button>
+                        {currentPlan === 'pro' ? (
+                            <button disabled className="w-full py-3 rounded-xl bg-teal-600 text-white font-bold cursor-not-allowed flex items-center justify-center gap-2">
+                                <Crown size={16} />
+                                Current Plan
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => handleCheckout('pro')}
+                                disabled={loading === 'pro'}
+                                className="w-full py-3 rounded-xl bg-teal-400 text-white font-bold hover:bg-teal-500 transition-colors shadow-lg shadow-teal-900/50 disabled:opacity-50"
+                            >
+                                {loading === 'pro' ? 'Processing...' : 'Upgrade to Pro'}
+                            </button>
+                        )}
                     </div>
 
                     {/* Enterprise Plan */}
@@ -188,9 +225,10 @@ export default function PricingPage() {
                         <div className="mb-6">
                             <h3 className="text-lg font-bold text-gray-500 uppercase tracking-wide">Enterprise</h3>
                             <div className="mt-4 flex items-baseline gap-1">
-                                <span className="text-4xl font-bold text-gray-800">₹7,999</span>
+                                <span className="text-4xl font-bold text-gray-800">₹169</span>
                                 <span className="text-gray-400">/mo</span>
                             </div>
+                            <p className="text-xs text-gray-500 mt-1">≈ $2.03 USD</p>
                             <p className="text-sm text-gray-400 mt-2">Unlimited power for large teams.</p>
                         </div>
 
@@ -205,6 +243,10 @@ export default function PricingPage() {
                             </li>
                             <li className="flex items-center gap-3 text-sm text-gray-600">
                                 <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
+                                Unlimited Searches
+                            </li>
+                            <li className="flex items-center gap-3 text-sm text-gray-600">
+                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
                                 Priority API Access
                             </li>
                             <li className="flex items-center gap-3 text-sm text-gray-600">
@@ -213,16 +255,23 @@ export default function PricingPage() {
                             </li>
                         </ul>
 
-                        <button
-                            onClick={() => handleCheckout('enterprise')}
-                            disabled={loading === 'enterprise'}
-                            className="w-full py-3 rounded-xl border border-teal-400 text-teal-500 font-bold hover:bg-teal-50 transition-colors disabled:opacity-50"
-                        >
-                            {loading === 'enterprise' ? 'Processing...' : 'Upgrade to Enterprise'}
-                        </button>
+                        {currentPlan === 'enterprise' ? (
+                            <button disabled className="w-full py-3 rounded-xl bg-teal-400 text-white font-bold cursor-not-allowed flex items-center justify-center gap-2">
+                                <Crown size={16} />
+                                Current Plan
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => handleCheckout('enterprise')}
+                                disabled={loading === 'enterprise'}
+                                className="w-full py-3 rounded-xl border border-teal-400 text-teal-500 font-bold hover:bg-teal-50 transition-colors disabled:opacity-50"
+                            >
+                                {loading === 'enterprise' ? 'Processing...' : 'Upgrade to Enterprise'}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
-        </DashboardShell>
+        </DashboardShell >
     );
 }

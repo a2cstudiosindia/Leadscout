@@ -1,46 +1,100 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Zap, Search, BarChart3, FileText, Users, ArrowRight, Star, Shield } from "lucide-react";
+import { Zap, Search, BarChart3, FileText, Users, ArrowRight, Star, Shield, Menu, X } from "lucide-react";
 
 export default function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Clean Animated Gradient - flows from top to bottom */}
+      <div className="landing-gradient z-0">
+        <div className="gradient-beam" />
+      </div>
+
       {/* Navbar */}
-      <nav className="p-4 max-w-7xl mx-auto flex justify-between items-center">
-        <div className="flex items-center gap-2">
+      <nav className="p-4 max-w-7xl mx-auto flex justify-between items-center relative z-10" role="navigation" aria-label="Main navigation">
+        <Link href="/" className="flex items-center gap-2" aria-label="LeadScout Home">
           <div className="p-1.5 bg-teal-400 rounded-lg text-white">
-            <Zap size={16} fill="currentColor" />
+            <Zap size={16} fill="currentColor" aria-hidden="true" />
           </div>
           <span className="font-bold text-lg text-gray-800 tracking-tight">LeadScout</span>
-        </div>
+        </Link>
+
+        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-          <a href="#features" className="hover:text-teal-500 transition-colors">Features</a>
-          <a href="#how-it-works" className="hover:text-teal-500 transition-colors">How It Works</a>
-          <a href="#testimonials" className="hover:text-teal-500 transition-colors">Testimonials</a>
-          <Link href="/pricing" className="hover:text-teal-500 transition-colors">Pricing</Link>
+          <a href="#features" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">Features</a>
+          <a href="#how-it-works" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">How It Works</a>
+          <a href="#testimonials" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">Testimonials</a>
+          <Link href="/pricing" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">Pricing</Link>
         </div>
-        <div className="flex gap-3">
-          <Link href="/login" className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium text-sm">Log in</Link>
-          <Link href="/login" className="px-4 py-2 bg-teal-400 text-white rounded-lg font-medium hover:bg-teal-500 transition-all text-sm">Get Started Free</Link>
+
+        {/* Desktop CTA */}
+        <div className="hidden md:flex gap-3">
+          <Link href="/login" className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 rounded-lg">Log in</Link>
+          <Link href="/login" className="px-4 py-2 bg-teal-400 text-white rounded-lg font-medium hover:bg-teal-500 transition-all text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2">Get Started Free</Link>
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-400"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-menu"
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+        >
+          {mobileMenuOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
+        </button>
       </nav>
 
+      {/* Mobile Navigation Menu */}
+      {mobileMenuOpen && (
+        <div
+          id="mobile-menu"
+          className="md:hidden fixed inset-0 bg-white z-50 pt-20 px-6 animate-in slide-in-from-top duration-300"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation"
+        >
+          <button
+            className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-400"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={24} aria-hidden="true" />
+          </button>
+          <nav className="flex flex-col gap-6 text-lg font-medium" aria-label="Mobile menu">
+            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-gray-800 hover:text-teal-500 py-2 border-b border-gray-100">Features</a>
+            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-gray-800 hover:text-teal-500 py-2 border-b border-gray-100">How It Works</a>
+            <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-gray-800 hover:text-teal-500 py-2 border-b border-gray-100">Testimonials</a>
+            <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="text-gray-800 hover:text-teal-500 py-2 border-b border-gray-100">Pricing</Link>
+            <div className="flex flex-col gap-3 mt-4">
+              <Link href="/login" className="text-center px-4 py-3 text-gray-600 border border-gray-200 rounded-xl font-medium">Log in</Link>
+              <Link href="/login" className="text-center px-4 py-3 bg-teal-400 text-white rounded-xl font-medium hover:bg-teal-500">Get Started Free</Link>
+            </div>
+          </nav>
+        </div>
+      )}
+
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 py-20 md:py-28">
+      <section className="max-w-7xl mx-auto px-4 py-20 md:py-28 relative z-10">
         <div className="text-center max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-600 px-4 py-2 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 bg-teal-50/80 backdrop-blur-sm text-teal-600 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-teal-100">
             <Zap size={14} />
             Trusted by 500+ digital agencies worldwide
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 tracking-tight mb-6 leading-tight">
             Find Clients Who Need You.<br />
-            <span className="text-teal-400">Close Deals Faster.</span>
+            <span className="bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-500 bg-clip-text text-transparent">Close Deals Faster.</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
             LeadScout automatically discovers local businesses with underperforming websites.
             Generate professional audit reports in seconds and convert prospects into paying clients.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/login" className="px-8 py-4 bg-teal-400 text-white rounded-xl font-bold text-lg hover:bg-teal-500 shadow-lg shadow-teal-200 hover:shadow-xl transition-all flex items-center justify-center gap-2">
+            <Link href="/login" className="px-8 py-4 bg-gradient-to-r from-teal-400 to-teal-500 text-white rounded-xl font-bold text-lg hover:from-teal-500 hover:to-teal-600 shadow-lg shadow-teal-200/50 hover:shadow-xl transition-all flex items-center justify-center gap-2">
               Start Free Trial
               <ArrowRight size={18} />
             </Link>

@@ -1,0 +1,10 @@
+# LeadScout Robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /settings/
+Disallow: /analytics/
+
+# Sitemap
+Sitemap: https://leadscout.app/sitemap.xml

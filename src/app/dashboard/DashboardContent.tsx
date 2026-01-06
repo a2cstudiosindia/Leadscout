@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { runAudit, findLeads, saveLead, getLeads, saveReport, updateLead, getStats } from "../actions";
+import { runAudit, findLeads, saveLead, getLeads, saveReport, updateLead, deleteLead, getStats, toggleFavorite, exportLeadsToExcel } from "../actions";
 import { cn } from "@/lib/utils";
 import { DiscoveredBusiness } from "@/lib/discovery/types";
 import { generatePDF } from "@/lib/pdf-generator";
 import { generateColdEmail } from "@/lib/email-generator";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { Users, Search, Activity, Download, RefreshCw, Mail } from "lucide-react";
+import { getSubscriptionInfo } from "@/lib/subscription";
+import { Users, Search, Activity, Download, RefreshCw, Mail, Star, Phone, FileSpreadsheet, MapPin, Trash2 } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -48,34 +49,75 @@ export default function Dashboard() {
     const [myLeads, setMyLeads] = useState<any[]>([]);
     const [loadingLeads, setLoadingLeads] = useState(false);
     const [currentLeadId, setCurrentLeadId] = useState<string | null>(null);
-    const [stats, setStats] = useState({ totalLeads: 0, auditsRun: 0, potentialValue: 0 });
+    const [stats, setStats] = useState({ totalLeads: 0, auditsRun: 0, potentialValue: 0, searchesUsed: 0, searchesLimit: 0 });
+
+    // Enterprise Features State
+    const [isEnterprise, setIsEnterprise] = useState(false);
+    const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
+    const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+    const [exporting, setExporting] = useState(false);
+
+    // Check Enterprise status on mount
+    useEffect(() => {
+        getSubscriptionInfo().then((info) => {
+            if (info) {
+                setIsEnterprise(info.plan === 'enterprise');
+            }
+        });
+    }, []);
 
     // CRM Actions
     async function handleStatusChange(leadId: string, newStatus: string) {
         // Optimistic update
         setMyLeads(leads => leads.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
-        await updateLead(leadId, { status: newStatus });
+        const result = await updateLead(leadId, { status: newStatus });
+        if (result.success) {
+            toast.success('Status updated!');
+        } else {
+            toast.error('Failed to update status');
+        }
     }
 
-    // Debounced notes save
-    const notesTimeouts = new Map<string, NodeJS.Timeout>();
-
-    function handleNotesChange(leadId: string, newNotes: string) {
+    // Notes save on blur
+    async function handleNotesChange(leadId: string, newNotes: string) {
         // Optimistic update
         setMyLeads(leads => leads.map(l => l.id === leadId ? { ...l, notes: newNotes } : l));
-
-        // Clear existing timeout
-        if (notesTimeouts.has(leadId)) {
-            clearTimeout(notesTimeouts.get(leadId)!);
+        const result = await updateLead(leadId, { notes: newNotes });
+        if (result.success) {
+            toast.success('Notes saved!');
+        } else {
+            toast.error('Failed to save notes');
         }
+    }
 
-        // Set new timeout to save after 1 second
-        const timeout = setTimeout(async () => {
-            await updateLead(leadId, { notes: newNotes });
-            notesTimeouts.delete(leadId);
-        }, 1000);
+    // Value save on blur
+    async function handleValueChange(leadId: string, valueStr: string) {
+        const value = valueStr ? parseInt(valueStr) : 0;
+        if (isNaN(value)) return;
+        setMyLeads(leads => leads.map(l => l.id === leadId ? { ...l, value } : l));
+        const result = await updateLead(leadId, { value });
+        if (result.success) {
+            toast.success('Value saved!');
+        } else {
+            toast.error('Failed to save value');
+        }
+    }
 
-        notesTimeouts.set(leadId, timeout);
+    // Delete leads
+    async function handleDeleteLeads(leadIds: string[]) {
+        if (leadIds.length === 0) return;
+        const confirmMsg = leadIds.length === 1 ? 'Delete this lead?' : `Delete ${leadIds.length} leads?`;
+        if (!confirm(confirmMsg)) return;
+
+        const result = await deleteLead(leadIds);
+        if (result.success) {
+            setMyLeads(leads => leads.filter(l => !leadIds.includes(l.id)));
+            setSelectedLeads(new Set());
+            toast.success(`${result.deletedCount} lead(s) deleted!`);
+            fetchStats();
+        } else {
+            toast.error(result.error || 'Failed to delete leads');
+        }
     }
 
     async function handleSaveReport() {
@@ -88,6 +130,57 @@ export default function Dashboard() {
         } else {
             toast.error('Failed to save report');
         }
+    }
+
+    // Toggle favorite (Enterprise only)
+    async function handleToggleFavorite(leadId: string) {
+        const result = await toggleFavorite(leadId);
+        if (result.success) {
+            setMyLeads(leads => leads.map(l =>
+                l.id === leadId ? { ...l, is_favorite: result.isFavorite } : l
+            ));
+            toast.success(result.isFavorite ? 'Added to favorites!' : 'Removed from favorites');
+        } else {
+            toast.error(result.error || 'Failed to update favorite');
+        }
+    }
+
+    // Export leads to Excel (Enterprise only)
+    async function handleExport(selectedOnly: boolean = false) {
+        setExporting(true);
+        const leadIds = selectedOnly ? Array.from(selectedLeads) : undefined;
+        const result = await exportLeadsToExcel(leadIds);
+
+        if (result.success && result.data) {
+            // Download the file
+            const blob = new Blob([Uint8Array.from(atob(result.data), c => c.charCodeAt(0))], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = result.filename || 'leads_export.xlsx';
+            a.click();
+            URL.revokeObjectURL(url);
+            toast.success(`${result.count || 'Leads'} leads exported with full audit data!`);
+            setSelectedLeads(new Set());
+        } else {
+            toast.error(result.error || 'Failed to export leads');
+        }
+        setExporting(false);
+    }
+
+    // Toggle lead selection
+    function toggleLeadSelection(leadId: string) {
+        setSelectedLeads(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(leadId)) {
+                newSet.delete(leadId);
+            } else {
+                newSet.add(leadId);
+            }
+            return newSet;
+        });
     }
 
     useEffect(() => {
@@ -190,8 +283,8 @@ export default function Dashboard() {
     return (
         <DashboardShell>
             <Toaster position="top-right" />
-            {/* Top Stat Cards (Placeholder for now, consistent with Purity UI) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Top Stat Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8" role="region" aria-label="Dashboard statistics">
                 <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-gray-400 text-xs font-bold uppercase">Total Leads</p>
@@ -208,6 +301,20 @@ export default function Dashboard() {
                     </div>
                     <div className="p-3 bg-teal-400 text-white rounded-xl">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-gray-400 text-xs font-bold uppercase">Searches</p>
+                        <h3 className="text-2xl font-bold text-gray-800">
+                            {stats.searchesUsed}
+                            <span className="text-sm font-medium text-gray-400">
+                                /{stats.searchesLimit === Infinity ? '∞' : stats.searchesLimit}
+                            </span>
+                        </h3>
+                    </div>
+                    <div className="p-3 bg-blue-400 text-white rounded-xl">
+                        <Search className="w-6 h-6" />
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
@@ -374,7 +481,21 @@ export default function Dashboard() {
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-gray-900 group-hover:text-teal-600 transition-colors">{lead.name}</h3>
-                                            <p className="text-sm text-gray-500">{lead.formatted_address}</p>
+                                            <a
+                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.formatted_address)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-sm text-gray-500 flex items-center gap-1 hover:text-teal-600 hover:underline cursor-pointer transition-colors group/address"
+                                            >
+                                                <MapPin size={12} className="text-gray-400 group-hover/address:text-teal-500 transition-colors" />
+                                                {lead.formatted_address}
+                                            </a>
+                                            {lead.phone && (
+                                                <p className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
+                                                    <Phone size={12} className="text-teal-500" />
+                                                    {lead.phone}
+                                                </p>
+                                            )}
                                             {lead.website ? (
                                                 <a href={lead.website} target="_blank" className="text-teal-500 text-xs hover:underline mt-1 block">{lead.website}</a>
                                             ) : <span className="text-xs text-red-400 mt-1 block">No Website</span>}
@@ -405,29 +526,134 @@ export default function Dashboard() {
                             <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                                 <Users size={20} className="text-teal-500" /> My Leads Pipeline
                             </h2>
-                            <span className="text-xs font-bold text-gray-400 bg-white px-2 py-1 rounded-md border">{myLeads.length} Records</span>
+                            <div className="flex items-center gap-3">
+                                {/* Export All Button - visible to all, action checks permission */}
+                                <button
+                                    onClick={() => handleExport(false)}
+                                    disabled={exporting}
+                                    className="flex items-center gap-2 text-sm font-bold bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors shadow-sm disabled:opacity-50"
+                                    aria-label="Export all leads to Excel"
+                                >
+                                    <FileSpreadsheet size={16} />
+                                    {exporting ? 'Exporting...' : 'Export All Leads'}
+                                </button>
+
+                                {isEnterprise && (
+                                    <>
+                                        <button
+                                            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                                            className={cn(
+                                                "flex items-center gap-1 text-sm font-bold px-3 py-1.5 rounded-lg border transition-all",
+                                                showFavoritesOnly
+                                                    ? "bg-yellow-50 text-yellow-600 border-yellow-200"
+                                                    : "bg-white text-gray-500 hover:text-yellow-600 hover:border-yellow-200"
+                                            )}
+                                        >
+                                            <Star size={14} fill={showFavoritesOnly ? "currentColor" : "none"} />
+                                            Favorites
+                                        </button>
+                                        {selectedLeads.size > 0 && (
+                                            <>
+                                                <button
+                                                    onClick={() => handleExport(true)}
+                                                    disabled={exporting}
+                                                    className="flex items-center gap-1 text-sm font-bold bg-teal-50 text-teal-600 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition-colors"
+                                                >
+                                                    <FileSpreadsheet size={14} />
+                                                    {exporting ? 'Exporting...' : `Export ${selectedLeads.size} Selected`}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteLeads(Array.from(selectedLeads))}
+                                                    className="flex items-center gap-1 text-sm font-bold bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
+                                                >
+                                                    <Trash2 size={14} />
+                                                    Delete {selectedLeads.size} Selected
+                                                </button>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                                <span className="text-xs font-bold text-gray-400 bg-white px-2 py-1 rounded-md border">{myLeads.filter(l => !showFavoritesOnly || l.is_favorite).length} Records</span>
+                            </div>
                         </div>
 
                         <div className="divide-y divide-gray-100">
-                            {myLeads.map((lead) => (
+                            {myLeads.filter(l => !showFavoritesOnly || l.is_favorite).map((lead) => (
                                 <div key={lead.id} className="p-6 hover:bg-gray-50 transition-colors group">
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className="flex gap-4">
+                                        <div className="flex gap-4 items-start">
+                                            {/* Checkbox for selection (Enterprise) */}
+                                            {isEnterprise && (
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedLeads.has(lead.id)}
+                                                    onChange={() => toggleLeadSelection(lead.id)}
+                                                    className="w-5 h-5 rounded border-gray-300 text-teal-500 focus:ring-teal-400 mt-3"
+                                                />
+                                            )}
                                             <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shadow-sm border",
                                                 lead.status === 'audited' ? "bg-teal-100 text-teal-600 border-teal-200" : "bg-gray-100 text-gray-500 border-gray-200"
                                             )}>
                                                 {lead.business_name.substring(0, 1)}
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-gray-800 text-lg">{lead.business_name}</h3>
-                                                <a href={lead.website_url} target="_blank" className="text-sm text-gray-400 hover:text-teal-500 transition-colors">{lead.website_url}</a>
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="font-bold text-gray-800 text-lg">{lead.business_name}</h3>
+                                                    {/* Favorite Star (Enterprise) */}
+                                                    {isEnterprise && (
+                                                        <button
+                                                            onClick={() => handleToggleFavorite(lead.id)}
+                                                            className={cn(
+                                                                "p-1 rounded transition-colors",
+                                                                lead.is_favorite ? "text-yellow-500" : "text-gray-300 hover:text-yellow-400"
+                                                            )}
+                                                        >
+                                                            <Star size={16} fill={lead.is_favorite ? "currentColor" : "none"} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                {lead.website_url ? (
+                                                    <a href={lead.website_url} target="_blank" className="text-sm text-gray-400 hover:text-teal-500 transition-colors">{lead.website_url}</a>
+                                                ) : (
+                                                    <span className="text-sm text-red-400">No website</span>
+                                                )}
+                                                {/* Phone & Address */}
+                                                {(lead.phone || lead.address) && (
+                                                    <div className="flex flex-wrap gap-4 mt-1 text-sm text-gray-500">
+                                                        {lead.phone && (
+                                                            <span className="flex items-center gap-1">
+                                                                <Phone size={12} className="text-teal-500" />
+                                                                {lead.phone}
+                                                            </span>
+                                                        )}
+                                                        {lead.address && (
+                                                            <a
+                                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.address)}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center gap-1 hover:text-teal-600 hover:underline cursor-pointer transition-colors group/address"
+                                                            >
+                                                                <MapPin size={12} className="text-gray-400 group-hover/address:text-teal-500 transition-colors" />
+                                                                {lead.address}
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
                                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => { changeTab('scan'); setCurrentLeadId(lead.id); setUrl(lead.website_url); handleScan(lead.website_url); }}
-                                                className="flex items-center gap-1 text-sm font-bold text-gray-600 hover:text-teal-600 bg-white border px-3 py-1.5 rounded-lg hover:border-teal-300 transition-all">
-                                                <RefreshCw size={14} /> Re-Audit
+                                            {lead.website_url && (
+                                                <button onClick={() => { changeTab('scan'); setCurrentLeadId(lead.id); setUrl(lead.website_url); handleScan(lead.website_url); }}
+                                                    className="flex items-center gap-1 text-sm font-bold text-gray-600 hover:text-teal-600 bg-white border px-3 py-1.5 rounded-lg hover:border-teal-300 transition-all">
+                                                    <RefreshCw size={14} /> Re-Audit
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => handleDeleteLeads([lead.id])}
+                                                className="flex items-center gap-1 text-sm font-bold text-gray-600 hover:text-red-600 bg-white border px-3 py-1.5 rounded-lg hover:border-red-300 transition-all"
+                                            >
+                                                <Trash2 size={14} /> Delete
                                             </button>
                                         </div>
                                     </div>
@@ -467,7 +693,7 @@ export default function Dashboard() {
                                                 <input
                                                     type="number"
                                                     defaultValue={lead.value || ''}
-                                                    onBlur={(e) => updateLead(lead.id, { value: parseInt(e.target.value) })}
+                                                    onBlur={(e) => handleValueChange(lead.id, e.target.value)}
                                                     className="w-full pl-6 bg-white border border-gray-200 text-sm font-bold text-gray-700 rounded-lg px-2 py-1.5 focus:border-teal-400 outline-none"
                                                 />
                                             </div>

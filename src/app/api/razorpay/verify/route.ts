@@ -42,14 +42,17 @@ export async function POST(request: NextRequest) {
     const currentPeriodEnd = new Date();
     currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
 
-    // Update subscription in database
-    const { error } = await supabase.from('subscriptions').upsert({
-        user_id: user.id,
-        plan: plan,
-        stripe_customer_id: null, // Not using Stripe
-        stripe_subscription_id: razorpay_payment_id, // Store Razorpay payment ID here
-        current_period_end: currentPeriodEnd.toISOString(),
-    });
+    // Update subscription in database (upsert with conflict on user_id)
+    const { error } = await supabase.from('subscriptions').upsert(
+        {
+            user_id: user.id,
+            plan: plan,
+            stripe_customer_id: null, // Not using Stripe
+            stripe_subscription_id: razorpay_payment_id, // Store Razorpay payment ID here
+            current_period_end: currentPeriodEnd.toISOString(),
+        },
+        { onConflict: 'user_id' }
+    );
 
     if (error) {
         console.error('Failed to update subscription:', error);

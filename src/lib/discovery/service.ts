@@ -53,7 +53,7 @@ export class DiscoveryService {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Goog-Api-Key': this.apiKey,
-                    'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.websiteUri,places.id,places.rating,places.userRatingCount'
+                    'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.websiteUri,places.id,places.rating,places.userRatingCount,places.nationalPhoneNumber'
                 },
                 body: JSON.stringify({
                     textQuery: query
@@ -72,7 +72,8 @@ export class DiscoveryService {
                 formatted_address: place.formattedAddress,
                 place_id: place.id,
                 rating: place.rating,
-                user_ratings_total: place.userRatingCount
+                user_ratings_total: place.userRatingCount,
+                phone: place.nationalPhoneNumber
             }));
 
             return { results };

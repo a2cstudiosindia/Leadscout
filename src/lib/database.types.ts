@@ -21,6 +21,9 @@ export interface Database {
                     notes: string | null
                     value: number | null
                     last_contacted_at: string | null
+                    phone: string | null
+                    address: string | null
+                    is_favorite: boolean
                 }
                 Insert: {
                     id?: string
@@ -33,6 +36,9 @@ export interface Database {
                     notes?: string | null
                     value?: number | null
                     last_contacted_at?: string | null
+                    phone?: string | null
+                    address?: string | null
+                    is_favorite?: boolean
                 }
                 Update: {
                     id?: string
@@ -45,6 +51,9 @@ export interface Database {
                     notes?: string | null
                     value?: number | null
                     last_contacted_at?: string | null
+                    phone?: string | null
+                    address?: string | null
+                    is_favorite?: boolean
                 }
             }
             reports: {
