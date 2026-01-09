@@ -10,6 +10,7 @@ export const PLANS = {
         pdfExport: false,
         excelExport: false,
         advancedLeadData: false,
+        api: 0,
     },
     pro: {
         name: 'Pro',
@@ -21,6 +22,7 @@ export const PLANS = {
         excelExport: false,
         advancedLeadData: false,
         price: 29,
+        api: 1000,
     },
     enterprise: {
         name: 'Enterprise',
@@ -32,6 +34,7 @@ export const PLANS = {
         excelExport: true,
         advancedLeadData: true,
         price: 99,
+        api: 10000,
     },
 } as const;
 

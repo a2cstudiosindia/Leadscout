@@ -1,42 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateApiKey } from '@/lib/api-keys';
-import { checkLimit, incrementUsage } from '@/lib/subscription';
+import { withApiAuth, ApiContext } from '@/lib/api-middleware';
 import { Scanner } from '@/lib/scanner';
 
 // POST /api/v1/audit - Run a website audit
-export async function POST(request: NextRequest) {
-    // Validate API key
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return NextResponse.json(
-            { error: 'Missing or invalid Authorization header' },
-            { status: 401 }
-        );
-    }
-
-    const apiKey = authHeader.replace('Bearer ', '');
-    const { valid, userId } = await validateApiKey(apiKey);
-
-    if (!valid || !userId) {
-        return NextResponse.json(
-            { error: 'Invalid API key' },
-            { status: 401 }
-        );
-    }
-
-    // Check usage limit
-    const limitCheck = await checkLimit('audits');
-    if (!limitCheck.allowed) {
-        return NextResponse.json(
-            { error: limitCheck.reason },
-            { status: 429 }
-        );
-    }
-
-    // Parse request body
+export const POST = withApiAuth(async (req: NextRequest, context: ApiContext) => {
     let body;
     try {
-        body = await request.json();
+        body = await req.json();
     } catch {
         return NextResponse.json(
             { error: 'Invalid JSON body' },
@@ -69,10 +39,6 @@ export async function POST(request: NextRequest) {
         const report = await scanner.scan(url);
         await scanner.close();
 
-        // Increment usage
-        await incrementUsage('audits');
-        await incrementUsage('api');
-
         return NextResponse.json({
             success: true,
             data: {
@@ -90,4 +56,4 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
-}
+}, { action: 'audits' }); // Checks 'audits' limit + 'api' limit

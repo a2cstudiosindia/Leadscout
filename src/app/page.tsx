@@ -29,6 +29,7 @@ export default function LandingPage() {
           <a href="#how-it-works" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">How It Works</a>
           <a href="#testimonials" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">Testimonials</a>
           <Link href="/pricing" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">Pricing</Link>
+          <Link href="/docs/api" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">API Docs</Link>
         </div>
 
         {/* Desktop CTA */}
@@ -79,30 +80,189 @@ export default function LandingPage() {
       )}
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 py-20 md:py-28 relative z-10">
-        <div className="text-center max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-teal-50/80 backdrop-blur-sm text-teal-600 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-teal-100">
-            <Zap size={14} />
-            Trusted by 500+ digital agencies worldwide
+      <section className="max-w-7xl mx-auto px-4 py-12 md:py-20 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Left Column - Text Content */}
+          <div className="text-center lg:text-left order-2 lg:order-1">
+            <div className="inline-flex items-center gap-2 bg-teal-50/80 backdrop-blur-sm text-teal-600 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-teal-100">
+              <Zap size={14} />
+              Trusted by 500+ digital agencies worldwide
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight mb-6 leading-tight">
+              Find Clients Who Need You.<br />
+              <span className="bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-500 bg-clip-text text-transparent">Close Deals Faster.</span>
+            </h1>
+            <p className="text-lg md:text-xl text-gray-500 max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
+              LeadScout automatically discovers local businesses with underperforming websites.
+              Generate professional audit reports in seconds and convert prospects into paying clients.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+              <Link href="/login" className="px-8 py-4 bg-gradient-to-r from-teal-400 to-teal-500 text-white rounded-xl font-bold text-lg hover:from-teal-500 hover:to-teal-600 shadow-lg shadow-teal-200/50 hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                Start Free Trial
+                <ArrowRight size={18} />
+              </Link>
+              <Link href="/login" className="px-8 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-bold text-lg hover:border-teal-400 hover:text-teal-500 transition-all">
+                Watch Demo
+              </Link>
+            </div>
+            <p className="text-sm text-gray-400 mt-4">No credit card required • Free 14-day trial</p>
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 tracking-tight mb-6 leading-tight">
-            Find Clients Who Need You.<br />
-            <span className="bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-500 bg-clip-text text-transparent">Close Deals Faster.</span>
-          </h1>
-          <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-            LeadScout automatically discovers local businesses with underperforming websites.
-            Generate professional audit reports in seconds and convert prospects into paying clients.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/login" className="px-8 py-4 bg-gradient-to-r from-teal-400 to-teal-500 text-white rounded-xl font-bold text-lg hover:from-teal-500 hover:to-teal-600 shadow-lg shadow-teal-200/50 hover:shadow-xl transition-all flex items-center justify-center gap-2">
-              Start Free Trial
-              <ArrowRight size={18} />
-            </Link>
-            <Link href="/login" className="px-8 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-bold text-lg hover:border-teal-400 hover:text-teal-500 transition-all">
-              Watch Demo
-            </Link>
+
+          {/* Right Column - Circuit Board Tech Animation */}
+          <div className="order-1 lg:order-2 flex justify-center">
+            <div className="circuit-board w-full max-w-md aspect-square relative">
+              {/* Main Circuit Lines - SVG with animated energy flow */}
+
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 400" fill="none">
+                {/* Base circuit lines (static, dimmer) */}
+                <line x1="200" y1="200" x2="50" y2="200" stroke="#2DD4BF" strokeWidth="2" opacity="0.2" />
+                <line x1="200" y1="200" x2="350" y2="200" stroke="#2DD4BF" strokeWidth="2" opacity="0.2" />
+                <path d="M 200 200 L 120 200 L 80 160 L 30 160" stroke="#2DD4BF" strokeWidth="2" fill="none" opacity="0.15" />
+                <path d="M 200 200 L 150 200 L 100 150 L 100 80" stroke="#2DD4BF" strokeWidth="2" fill="none" opacity="0.15" />
+                <path d="M 200 200 L 280 200 L 320 160 L 370 160" stroke="#2DD4BF" strokeWidth="2" fill="none" opacity="0.15" />
+                <path d="M 200 200 L 250 200 L 300 150 L 300 80" stroke="#2DD4BF" strokeWidth="2" fill="none" opacity="0.15" />
+                <path d="M 200 200 L 120 200 L 80 240 L 30 240" stroke="#2DD4BF" strokeWidth="2" fill="none" opacity="0.15" />
+                <path d="M 200 200 L 150 200 L 100 250 L 100 320" stroke="#2DD4BF" strokeWidth="2" fill="none" opacity="0.15" />
+                <path d="M 200 200 L 280 200 L 320 240 L 370 240" stroke="#2DD4BF" strokeWidth="2" fill="none" opacity="0.15" />
+                <path d="M 200 200 L 250 200 L 300 250 L 300 320" stroke="#2DD4BF" strokeWidth="2" fill="none" opacity="0.15" />
+                <line x1="200" y1="200" x2="200" y2="60" stroke="#2DD4BF" strokeWidth="2" opacity="0.15" />
+                <line x1="200" y1="200" x2="200" y2="340" stroke="#2DD4BF" strokeWidth="2" opacity="0.15" />
+
+                {/* Animated energy waves - Horizontal Left */}
+                <line x1="200" y1="200" x2="50" y2="200" stroke="url(#pulseGradientH)" strokeWidth="3" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 150;150 0;0 150" dur="2s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" />
+                </line>
+
+                {/* Animated energy waves - Horizontal Right */}
+                <line x1="200" y1="200" x2="350" y2="200" stroke="url(#pulseGradientH)" strokeWidth="3" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 150;150 0;0 150" dur="2s" repeatCount="indefinite" begin="0.5s" />
+                  <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" begin="0.5s" />
+                </line>
+
+                {/* Animated wave - Top Left angled */}
+                <path d="M 200 200 L 120 200 L 80 160 L 30 160" stroke="url(#pulseGradientH)" strokeWidth="3" fill="none" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 250;60 190;120 130;180 70;250 0" dur="2.5s" repeatCount="indefinite" begin="0.2s" />
+                  <animate attributeName="opacity" values="0;1;1;1;0" dur="2.5s" repeatCount="indefinite" begin="0.2s" />
+                </path>
+
+                {/* Animated wave - Top Right angled */}
+                <path d="M 200 200 L 280 200 L 320 160 L 370 160" stroke="url(#pulseGradientH)" strokeWidth="3" fill="none" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 250;60 190;120 130;180 70;250 0" dur="2.5s" repeatCount="indefinite" begin="0.7s" />
+                  <animate attributeName="opacity" values="0;1;1;1;0" dur="2.5s" repeatCount="indefinite" begin="0.7s" />
+                </path>
+
+                {/* Animated wave - Bottom Left angled */}
+                <path d="M 200 200 L 120 200 L 80 240 L 30 240" stroke="url(#pulseGradientH)" strokeWidth="3" fill="none" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 250;60 190;120 130;180 70;250 0" dur="2.5s" repeatCount="indefinite" begin="1.2s" />
+                  <animate attributeName="opacity" values="0;1;1;1;0" dur="2.5s" repeatCount="indefinite" begin="1.2s" />
+                </path>
+
+                {/* Animated wave - Bottom Right angled */}
+                <path d="M 200 200 L 280 200 L 320 240 L 370 240" stroke="url(#pulseGradientH)" strokeWidth="3" fill="none" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 250;60 190;120 130;180 70;250 0" dur="2.5s" repeatCount="indefinite" begin="1.7s" />
+                  <animate attributeName="opacity" values="0;1;1;1;0" dur="2.5s" repeatCount="indefinite" begin="1.7s" />
+                </path>
+
+                {/* Animated wave - Vertical Up */}
+                <line x1="200" y1="200" x2="200" y2="60" stroke="url(#pulseGradientV)" strokeWidth="3" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 140;140 0;0 140" dur="2s" repeatCount="indefinite" begin="0.3s" />
+                  <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" begin="0.3s" />
+                </line>
+
+                {/* Animated wave - Vertical Down */}
+                <line x1="200" y1="200" x2="200" y2="340" stroke="url(#pulseGradientV)" strokeWidth="3" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 140;140 0;0 140" dur="2s" repeatCount="indefinite" begin="0.8s" />
+                  <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" begin="0.8s" />
+                </line>
+
+                {/* Animated wave - Top Left vertical branch */}
+                <path d="M 200 200 L 150 200 L 100 150 L 100 80" stroke="url(#pulseGradientH)" strokeWidth="3" fill="none" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 220;55 165;110 110;165 55;220 0" dur="3s" repeatCount="indefinite" begin="0.4s" />
+                  <animate attributeName="opacity" values="0;1;1;1;0" dur="3s" repeatCount="indefinite" begin="0.4s" />
+                </path>
+
+                {/* Animated wave - Top Right vertical branch */}
+                <path d="M 200 200 L 250 200 L 300 150 L 300 80" stroke="url(#pulseGradientH)" strokeWidth="3" fill="none" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 220;55 165;110 110;165 55;220 0" dur="3s" repeatCount="indefinite" begin="0.9s" />
+                  <animate attributeName="opacity" values="0;1;1;1;0" dur="3s" repeatCount="indefinite" begin="0.9s" />
+                </path>
+
+                {/* Animated wave - Bottom Left vertical branch */}
+                <path d="M 200 200 L 150 200 L 100 250 L 100 320" stroke="url(#pulseGradientH)" strokeWidth="3" fill="none" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 220;55 165;110 110;165 55;220 0" dur="3s" repeatCount="indefinite" begin="1.4s" />
+                  <animate attributeName="opacity" values="0;1;1;1;0" dur="3s" repeatCount="indefinite" begin="1.4s" />
+                </path>
+
+                {/* Animated wave - Bottom Right vertical branch */}
+                <path d="M 200 200 L 250 200 L 300 250 L 300 320" stroke="url(#pulseGradientH)" strokeWidth="3" fill="none" strokeLinecap="round">
+                  <animate attributeName="stroke-dasharray" values="0 220;55 165;110 110;165 55;220 0" dur="3s" repeatCount="indefinite" begin="1.9s" />
+                  <animate attributeName="opacity" values="0;1;1;1;0" dur="3s" repeatCount="indefinite" begin="1.9s" />
+                </path>
+
+                {/* Gradient definitions */}
+                <defs>
+                  <linearGradient id="pulseGradientH" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0" />
+                    <stop offset="30%" stopColor="#2DD4BF" stopOpacity="1" />
+                    <stop offset="50%" stopColor="#5EEAD4" stopOpacity="1" />
+                    <stop offset="70%" stopColor="#2DD4BF" stopOpacity="1" />
+                    <stop offset="100%" stopColor="#2DD4BF" stopOpacity="0" />
+                  </linearGradient>
+                  <linearGradient id="pulseGradientV" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0" />
+                    <stop offset="30%" stopColor="#2DD4BF" stopOpacity="1" />
+                    <stop offset="50%" stopColor="#5EEAD4" stopOpacity="1" />
+                    <stop offset="70%" stopColor="#2DD4BF" stopOpacity="1" />
+                    <stop offset="100%" stopColor="#2DD4BF" stopOpacity="0" />
+                  </linearGradient>
+                  {/* Glowing filter */}
+                  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+              </svg>
+
+              {/* Circuit Nodes */}
+              <div className="circuit-node" style={{ top: '38%', left: '7%', animationDelay: '0s' }} />
+              <div className="circuit-node" style={{ top: '38%', right: '7%', animationDelay: '0.5s' }} />
+              <div className="circuit-node" style={{ bottom: '38%', left: '7%', animationDelay: '1s' }} />
+              <div className="circuit-node" style={{ bottom: '38%', right: '7%', animationDelay: '1.5s' }} />
+
+              {/* Ring Nodes */}
+              <div className="circuit-ring" style={{ top: '17%', left: '23%', animationDelay: '0.3s' }} />
+              <div className="circuit-ring" style={{ top: '17%', right: '23%', animationDelay: '0.8s' }} />
+              <div className="circuit-ring" style={{ bottom: '17%', left: '23%', animationDelay: '1.3s' }} />
+              <div className="circuit-ring" style={{ bottom: '17%', right: '23%', animationDelay: '1.8s' }} />
+              <div className="circuit-ring" style={{ top: '12%', left: '48%', animationDelay: '0.2s' }} />
+              <div className="circuit-ring" style={{ bottom: '12%', left: '48%', animationDelay: '1.2s' }} />
+
+              {/* Floating Particles */}
+              <div className="tech-particle" style={{ top: '25%', left: '15%', animationDelay: '0s' }} />
+              <div className="tech-particle" style={{ top: '30%', right: '20%', animationDelay: '1s' }} />
+              <div className="tech-particle" style={{ bottom: '25%', left: '20%', animationDelay: '2s' }} />
+              <div className="tech-particle" style={{ bottom: '30%', right: '15%', animationDelay: '3s' }} />
+              <div className="tech-particle" style={{ top: '45%', left: '10%', animationDelay: '1.5s' }} />
+              <div className="tech-particle" style={{ top: '45%', right: '10%', animationDelay: '2.5s' }} />
+
+              {/* Hexagon decorations */}
+              <div className="hex-shape" style={{ top: '8%', left: '8%', animationDelay: '0s' }} />
+              <div className="hex-shape" style={{ top: '8%', right: '8%', animationDelay: '2.5s', animationDirection: 'reverse' }} />
+              <div className="hex-shape" style={{ bottom: '8%', left: '8%', animationDelay: '5s' }} />
+              <div className="hex-shape" style={{ bottom: '8%', right: '8%', animationDelay: '7.5s', animationDirection: 'reverse' }} />
+
+              {/* Central Icon */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="circuit-icon-container">
+                  <Zap size={56} className="text-white drop-shadow-[0_0_15px_rgba(45,212,191,0.8)]" fill="white" />
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-gray-400 mt-4">No credit card required • Free 14-day trial</p>
         </div>
       </section>
 

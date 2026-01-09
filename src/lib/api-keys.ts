@@ -106,5 +106,5 @@ export async function validateApiKey(apiKey: string) {
         .update({ last_used: new Date().toISOString() })
         .eq('id', keyRecord.id);
 
-    return { valid: true, userId: keyRecord.user_id };
+    return { valid: true, userId: keyRecord.user_id, keyId: keyRecord.id };
 }

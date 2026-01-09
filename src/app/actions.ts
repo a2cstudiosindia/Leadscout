@@ -349,28 +349,10 @@ export async function exportLeadsToExcel(leadIds?: string[]) {
         return { success: false, error: "Excel export is an Enterprise feature. Please upgrade to access this." };
     }
 
-    // Fetch leads with their latest reports using a join
+    // Fetch leads
     let query = supabase
         .from('leads')
-        .select(`
-            id,
-            business_name,
-            website_url,
-            google_place_id,
-            phone,
-            address,
-            status,
-            notes,
-            value,
-            is_favorite,
-            last_contacted_at,
-            created_at,
-            reports (
-                overall_score,
-                scan_data,
-                created_at
-            )
-        `)
+        .select('id, business_name, website_url, google_place_id, phone, address, status, notes, value, is_favorite, last_contacted_at, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -385,28 +367,48 @@ export async function exportLeadsToExcel(leadIds?: string[]) {
         return { success: false, error: "Failed to fetch leads" };
     }
 
-    // Convert to Excel format using xlsx
+    // Fetch reports separately for all leads
+    const leadIdList = leads.map((l) => l.id);
+    const { data: allReports } = await supabase
+        .from('reports')
+        .select('lead_id, overall_score, scan_data, created_at')
+        .in('lead_id', leadIdList.length > 0 ? leadIdList : ['']);
+
+    // Create a map of lead_id to latest report
+    const reportsMap = new Map<string, { lead_id: string; overall_score: number; scan_data: any; created_at: string }>();
+    if (allReports) {
+        allReports.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        for (const report of allReports) {
+            if (!reportsMap.has(report.lead_id)) {
+                reportsMap.set(report.lead_id, report);
+            }
+        }
+    }
+
+    console.log(`Export: Found ${leads.length} leads, ${allReports?.length || 0} reports`);
+
+    // Convert to Excel format
     const XLSX = await import('xlsx');
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const exportData = leads.map((lead: any) => {
-        // Get the latest report if exists
-        const latestReport = lead.reports?.sort((a: { created_at: string }, b: { created_at: string }) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )[0];
-
+    const exportData = leads.map((lead) => {
+        const latestReport = reportsMap.get(lead.id);
         const scanData = latestReport?.scan_data || {};
+        const checks = scanData.checks || {};
 
-        // Extract individual scores from scan_data
-        const performanceScore = scanData.categories?.performance?.score ?? '';
-        const seoScore = scanData.categories?.seo?.score ?? '';
-        const accessibilityScore = scanData.categories?.accessibility?.score ?? '';
-        const bestPracticesScore = scanData.categories?.['best-practices']?.score ?? '';
+        // Extract individual scores
+        const securityScore = checks.security?.score ?? '';
+        const mobileScore = checks.mobile?.score ?? '';
+        const performanceScore = checks.performance?.score ?? '';
+        const seoScore = checks.seo?.score ?? '';
+        const businessScore = checks.business?.score ?? '';
+        const contentScore = checks.content?.score ?? '';
+        const socialScore = checks.social?.score ?? '';
 
-        // Count issues
-        const issuesCount = scanData.issues?.length || 0;
-        const criticalIssues = scanData.issues?.filter((i: { severity: string }) => i.severity === 'critical')?.length || 0;
-        const warningIssues = scanData.issues?.filter((i: { severity: string }) => i.severity === 'warning')?.length || 0;
+        // Count by status
+        const allChecksArray = Object.values(checks) as Array<{ status?: string }>;
+        const passCount = allChecksArray.filter(c => c?.status === 'pass').length;
+        const failCount = allChecksArray.filter(c => c?.status === 'fail').length;
+        const warningCount = allChecksArray.filter(c => c?.status === 'warning').length;
 
         return {
             'Business Name': lead.business_name || '',
@@ -420,49 +422,35 @@ export async function exportLeadsToExcel(leadIds?: string[]) {
             'Favorite': lead.is_favorite ? 'Yes' : 'No',
             'Last Contacted': lead.last_contacted_at ? new Date(lead.last_contacted_at).toLocaleDateString() : '',
             'Lead Created': new Date(lead.created_at).toLocaleDateString(),
-            // Audit Report Data
             'Overall Score': latestReport?.overall_score ?? '',
-            'Performance Score': performanceScore ? Math.round(performanceScore * 100) : '',
-            'SEO Score': seoScore ? Math.round(seoScore * 100) : '',
-            'Accessibility Score': accessibilityScore ? Math.round(accessibilityScore * 100) : '',
-            'Best Practices Score': bestPracticesScore ? Math.round(bestPracticesScore * 100) : '',
-            'Total Issues': issuesCount,
-            'Critical Issues': criticalIssues,
-            'Warning Issues': warningIssues,
+            'Security Score': securityScore,
+            'Mobile Score': mobileScore,
+            'Performance Score': performanceScore,
+            'SEO Score': seoScore,
+            'Business Info Score': businessScore,
+            'Content Score': contentScore,
+            'Social Score': socialScore,
+            'Checks Passed': passCount,
+            'Checks Failed': failCount,
+            'Checks Warning': warningCount,
             'Audit Date': latestReport?.created_at ? new Date(latestReport.created_at).toLocaleDateString() : '',
+            'Website Scanned': scanData.url || '',
         };
     });
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
 
-    // Set column widths for better readability
     worksheet['!cols'] = [
-        { wch: 25 }, // Business Name
-        { wch: 35 }, // Website URL
-        { wch: 15 }, // Phone
-        { wch: 40 }, // Address
-        { wch: 30 }, // Google Place ID
-        { wch: 12 }, // Status
-        { wch: 40 }, // Notes
-        { wch: 15 }, // Estimated Value
-        { wch: 10 }, // Favorite
-        { wch: 14 }, // Last Contacted
-        { wch: 14 }, // Lead Created
-        { wch: 12 }, // Overall Score
-        { wch: 15 }, // Performance
-        { wch: 10 }, // SEO
-        { wch: 15 }, // Accessibility
-        { wch: 15 }, // Best Practices
-        { wch: 12 }, // Total Issues
-        { wch: 14 }, // Critical Issues
-        { wch: 14 }, // Warning Issues
-        { wch: 12 }, // Audit Date
+        { wch: 25 }, { wch: 35 }, { wch: 15 }, { wch: 40 }, { wch: 30 },
+        { wch: 12 }, { wch: 40 }, { wch: 15 }, { wch: 10 }, { wch: 14 },
+        { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+        { wch: 10 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+        { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 35 },
     ];
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
 
-    // Generate buffer
     const buffer = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' });
 
     await trackEvent('leads_exported', { count: leads.length, includesReports: true });
@@ -477,3 +465,4 @@ export async function exportLeadsToExcel(leadIds?: string[]) {
 
 // Helper to check Enterprise features
 import { getSubscription } from "@/lib/subscription";
+

@@ -1,39 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateApiKey } from '@/lib/api-keys';
-import { checkLimit, incrementUsage } from '@/lib/subscription';
+import { withApiAuth, ApiContext } from '@/lib/api-middleware';
 import { createClient } from '@/lib/supabase/server';
 
 // GET /api/v1/leads - List user's leads
-export async function GET(request: NextRequest) {
-    // Validate API key
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return NextResponse.json(
-            { error: 'Missing or invalid Authorization header' },
-            { status: 401 }
-        );
-    }
-
-    const apiKey = authHeader.replace('Bearer ', '');
-    const { valid, userId } = await validateApiKey(apiKey);
-
-    if (!valid || !userId) {
-        return NextResponse.json(
-            { error: 'Invalid API key' },
-            { status: 401 }
-        );
-    }
-
-    // Increment API call usage
-    await incrementUsage('api');
-
-    // Fetch leads
+export const GET = withApiAuth(async (req: NextRequest, context: ApiContext) => {
     const supabase = await createClient();
-    const { data: leads, error } = await supabase
+    const { searchParams } = new URL(req.url);
+
+    // Filters
+    const status = searchParams.get('status');
+    const isFavorite = searchParams.get('favorite');
+    const fromDate = searchParams.get('from');
+    const toDate = searchParams.get('to');
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = parseInt(searchParams.get('offset') || '0');
+
+    // Build query
+    let query = supabase
         .from('leads')
-        .select('id, business_name, website_url, status, notes, value, created_at')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .select('id, business_name, website_url, status, notes, value, phone, address, is_favorite, created_at', { count: 'exact' })
+        .eq('user_id', context.userId);
+
+    // Apply filters
+    if (status) query = query.eq('status', status);
+    if (isFavorite === 'true') query = query.eq('is_favorite', true);
+    if (fromDate) query = query.gte('created_at', fromDate);
+    if (toDate) query = query.lte('created_at', toDate);
+
+    // Pagination
+    query = query
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+    const { data: leads, error, count } = await query;
 
     if (error) {
         return NextResponse.json(
@@ -45,44 +44,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
         success: true,
         data: leads,
-        count: leads.length,
+        meta: {
+            total: count,
+            limit,
+            offset,
+        }
     });
-}
+}, { action: 'api' }); // Just general API limit check for listing
 
 // POST /api/v1/leads - Create a new lead
-export async function POST(request: NextRequest) {
-    // Validate API key
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return NextResponse.json(
-            { error: 'Missing or invalid Authorization header' },
-            { status: 401 }
-        );
-    }
-
-    const apiKey = authHeader.replace('Bearer ', '');
-    const { valid, userId } = await validateApiKey(apiKey);
-
-    if (!valid || !userId) {
-        return NextResponse.json(
-            { error: 'Invalid API key' },
-            { status: 401 }
-        );
-    }
-
-    // Check usage limit
-    const limitCheck = await checkLimit('leads');
-    if (!limitCheck.allowed) {
-        return NextResponse.json(
-            { error: limitCheck.reason },
-            { status: 429 }
-        );
-    }
-
-    // Parse request body
+export const POST = withApiAuth(async (req: NextRequest, context: ApiContext) => {
     let body;
     try {
-        body = await request.json();
+        body = await req.json();
     } catch {
         return NextResponse.json(
             { error: 'Invalid JSON body' },
@@ -90,7 +64,7 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    const { business_name, website_url, notes, value } = body;
+    const { business_name, website_url, notes, value, phone, address } = body;
 
     if (!business_name) {
         return NextResponse.json(
@@ -99,16 +73,17 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    // Create lead
     const supabase = await createClient();
     const { data: lead, error } = await supabase
         .from('leads')
         .insert({
-            user_id: userId,
+            user_id: context.userId,
             business_name,
             website_url: website_url || null,
             notes: notes || null,
             value: value || null,
+            phone: phone || null,
+            address: address || null,
             status: 'new',
         })
         .select()
@@ -122,12 +97,9 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    // Increment usage
-    await incrementUsage('leads');
-    await incrementUsage('api');
-
     return NextResponse.json({
         success: true,
         data: lead,
     }, { status: 201 });
-}
+
+}, { action: 'leads' }); // Checks 'leads' limit + 'api' limit

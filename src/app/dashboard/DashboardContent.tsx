@@ -207,16 +207,16 @@ export default function Dashboard() {
         setLoadingLeads(false);
     }
 
-    async function handleScan(targetUrl: string = url) {
+    async function handleScan(targetUrl: string = url, leadId?: string) {
         if (!targetUrl) return;
         setLoading(true);
         setReport(null);
-        // Only clear ID if we are NOT coming from the leads tab (which sets it before calling this)
-        // Actually, simpler: if called via manual input, we might want to clear it. 
-        // But for safety, let's just let the caller handle it or keep it if it's the same URL?
-        // Let's safe-guard: if the URL changes manually, we should probably clear the ID.
-        // For now, let's assume if the user types a new URL, they are auditing something else.
-        if (targetUrl !== url) setCurrentLeadId(null);
+
+        // If a leadId is passed (from My Leads), use it
+        const scanLeadId = leadId || currentLeadId;
+        if (leadId) setCurrentLeadId(leadId);
+        // If URL changes manually without a leadId, clear the current lead
+        else if (targetUrl !== url) setCurrentLeadId(null);
 
         setActiveTab('scan');
         setUrl(targetUrl);
@@ -225,6 +225,19 @@ export default function Dashboard() {
             const result = await runAudit(targetUrl);
             if (result.success) {
                 setReport(result.report);
+
+                // Auto-save report if we're auditing a saved lead
+                if (scanLeadId && result.report) {
+                    const saveResult = await saveReport(scanLeadId, result.report);
+                    if (saveResult.success) {
+                        toast.success('Audit completed & saved!');
+                        fetchLeads(); // Refresh leads to show updated status
+                    } else {
+                        toast.success('Audit completed!');
+                    }
+                } else {
+                    toast.success('Audit completed!');
+                }
             } else {
                 toast.error('Scan failed!');
             }
@@ -644,7 +657,7 @@ export default function Dashboard() {
 
                                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             {lead.website_url && (
-                                                <button onClick={() => { changeTab('scan'); setCurrentLeadId(lead.id); setUrl(lead.website_url); handleScan(lead.website_url); }}
+                                                <button onClick={() => handleScan(lead.website_url, lead.id)}
                                                     className="flex items-center gap-1 text-sm font-bold text-gray-600 hover:text-teal-600 bg-white border px-3 py-1.5 rounded-lg hover:border-teal-300 transition-all">
                                                     <RefreshCw size={14} /> Re-Audit
                                                 </button>
