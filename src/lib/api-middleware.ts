@@ -18,11 +18,11 @@ type ApiOptions = {
     enterpriseOnly?: boolean;
 };
 
-export async function withApiAuth(
+export function withApiAuth(
     handler: ApiHandler,
     options: ApiOptions = { action: 'api' }
 ) {
-    return async (req: NextRequest, { params }: { params?: any } = {}) => {
+    return async (req: NextRequest, context: { params?: Promise<any> } = {}) => {
         try {
             // 1. Validate API Key
             const authHeader = req.headers.get('authorization');
@@ -104,7 +104,7 @@ export async function withApiAuth(
             }
             await incrementUsage('api');
 
-            return await handler(req, { userId, apiKeyId: keyId! }, params);
+            return await handler(req, { userId, apiKeyId: keyId! }, context);
 
         } catch (error) {
             console.error('API Middleware Error:', error);
