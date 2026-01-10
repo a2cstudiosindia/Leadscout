@@ -97,8 +97,9 @@ export default function ApiDocsPage() {
                                     All API requests should be made to the following base URL:
                                 </p>
                                 <div className="bg-gray-100 rounded-lg p-3 inline-block">
-                                    <code className="text-gray-800 font-mono">http://localhost:3000/api/v1</code>
+                                    <code className="text-gray-800 font-mono">https://your-domain.com/api/v1</code>
                                 </div>
+                                <p className="text-sm text-gray-500 mt-2">Replace <code className="bg-gray-100 px-1 rounded">your-domain.com</code> with your actual deployment domain.</p>
                             </div>
                         </section>
 

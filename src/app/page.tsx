@@ -346,6 +346,31 @@ export default function LandingPage() {
             <p className="text-gray-600 leading-relaxed">Integrate LeadScout with your existing tools using our REST API. Automate your workflow and scale your operations.</p>
           </div>
         </div>
+
+        {/* Coming Soon Feature Highlight */}
+        <div className="mt-12 p-8 bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 rounded-2xl border border-purple-100 relative overflow-hidden">
+          <div className="absolute top-4 right-4">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white animate-pulse">
+              COMING SOON
+            </span>
+          </div>
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl flex items-center justify-center text-white shadow-lg">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.3" />
+              </svg>
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="font-bold text-2xl mb-2 text-gray-900">AI Auto-Call Handling</h3>
+              <p className="text-gray-600 text-lg leading-relaxed max-w-2xl">
+                Let AI make outbound calls to your leads for qualification, follow-up, and appointment scheduling.
+                Our intelligent voice agents will help you convert more prospects while you focus on closing deals.
+              </p>
+              <p className="text-purple-600 font-medium mt-4">Available exclusively for Enterprise customers</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* How It Works Section */}
@@ -484,7 +509,7 @@ export default function LandingPage() {
             <div>
               <h4 className="font-bold text-white mb-4">Legal</h4>
               <ul className="space-y-3 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-teal-400 transition-colors">Privacy Policy</a></li>
+                <li><Link href="/privacy-policy" className="hover:text-teal-400 transition-colors">Privacy Policy</Link></li>
                 <li><a href="#" className="hover:text-teal-400 transition-colors">Terms of Service</a></li>
                 <li><a href="#" className="hover:text-teal-400 transition-colors">Cookie Policy</a></li>
               </ul>
@@ -492,7 +517,7 @@ export default function LandingPage() {
           </div>
 
           <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-500">© 2024 LeadScout Inc. All rights reserved.</p>
+            <p className="text-sm text-gray-500">© 2026 LeadScout Inc. All rights reserved.</p>
             <div className="flex gap-6 text-sm text-gray-500">
               <a href="#" className="hover:text-teal-400 transition-colors">Twitter</a>
               <a href="#" className="hover:text-teal-400 transition-colors">LinkedIn</a>

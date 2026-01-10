@@ -83,7 +83,7 @@ export default async function LoginPage({
                 </div>
 
                 <div className="absolute bottom-8 left-0 w-full text-center text-xs text-gray-300">
-                    &copy; 2024 LeadScout Inc.
+                    &copy; 2026 LeadScout Inc.
                 </div>
             </div>
 
