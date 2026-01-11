@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, STRIPE_PRICES } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 // POST /api/stripe/checkout - Create a checkout session
 export async function POST(request: NextRequest) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const session = await auth.api.getSession({ headers: await headers() });
 
-    if (!user) {
+    if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const user = session.user;
+    const supabase = await createClient();
 
     let body;
     try {
@@ -63,7 +67,7 @@ export async function POST(request: NextRequest) {
     const origin = request.headers.get('origin') || 'http://localhost:3000';
 
     // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    const stripeSession = await stripe.checkout.sessions.create({
         customer: customerId,
         mode: 'subscription',
         payment_method_types: ['card'],
@@ -73,5 +77,5 @@ export async function POST(request: NextRequest) {
         metadata: { user_id: user.id, plan },
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: stripeSession.url });
 }

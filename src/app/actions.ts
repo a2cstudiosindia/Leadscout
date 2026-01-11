@@ -3,8 +3,9 @@
 import { Scanner } from "@/lib/scanner";
 import { DiscoveryService } from "@/lib/discovery/service";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth-session";
 import { DiscoveredBusiness } from "@/lib/discovery/types";
-import { checkLimit, incrementUsage, trackEvent, getSubscriptionInfo } from "@/lib/subscription";
+import { checkLimit, incrementUsage, trackEvent, getSubscriptionInfo, getSubscription } from "@/lib/subscription";
 
 export async function runAudit(url: string) {
     // Check usage limit
@@ -61,11 +62,10 @@ export async function saveLead(lead: DiscoveredBusiness) {
         return { success: false, error: limitCheck.reason };
     }
 
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
 
+    const supabase = await createClient();
     const { error } = await supabase.from('leads').insert({
         user_id: user.id,
         business_name: lead.name,
@@ -89,12 +89,15 @@ export async function saveLead(lead: DiscoveredBusiness) {
 }
 
 export async function getLeads() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
 
-    const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
     if (error) {
         return { success: false, error: "Failed to fetch leads" };
@@ -104,11 +107,10 @@ export async function getLeads() {
 }
 
 export async function saveReport(leadId: string, report: any) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
 
+    const supabase = await createClient();
     const { error } = await supabase.from('reports').insert({
         lead_id: leadId,
         overall_score: report.overallScore,
@@ -127,11 +129,10 @@ export async function saveReport(leadId: string, report: any) {
 }
 
 export async function updateLead(leadId: string, updates: { status?: string; notes?: string; value?: number }) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
 
+    const supabase = await createClient();
     const { error } = await supabase.from('leads').update(updates).eq('id', leadId).eq('user_id', user.id);
 
     if (error) {
@@ -143,11 +144,10 @@ export async function updateLead(leadId: string, updates: { status?: string; not
 }
 
 export async function deleteLead(leadIds: string | string[]) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
 
+    const supabase = await createClient();
     const ids = Array.isArray(leadIds) ? leadIds : [leadIds];
 
     const { error } = await supabase
@@ -166,10 +166,10 @@ export async function deleteLead(leadIds: string | string[]) {
 
 
 export async function getProfile() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
 
+    const supabase = await createClient();
     const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
     // If no profile exists, return defaults (or empty)
@@ -181,10 +181,10 @@ export async function getProfile() {
 }
 
 export async function updateProfile(data: { agency_name: string; agency_logo_url: string }) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
 
+    const supabase = await createClient();
     const { error } = await supabase.from('profiles').upsert({
         id: user.id,
         agency_name: data.agency_name,
@@ -201,10 +201,10 @@ export async function updateProfile(data: { agency_name: string; agency_logo_url
 }
 
 export async function getStats() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
+
+    const supabase = await createClient();
 
     // Get total leads count
     const { count: leadsCount } = await supabase
@@ -251,11 +251,10 @@ export async function getStats() {
 }
 
 export async function uploadLogo(formData: FormData) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
 
+    const supabase = await createClient();
     const file = formData.get('logo') as File;
     if (!file) return { success: false, error: "No file provided" };
 
@@ -298,10 +297,10 @@ export async function uploadLogo(formData: FormData) {
 
 // Toggle favorite status for a lead (Enterprise only)
 export async function toggleFavorite(leadId: string) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
+
+    const supabase = await createClient();
 
     // Check if user has Enterprise plan
     const subscription = await getSubscription();
@@ -338,10 +337,10 @@ export async function toggleFavorite(leadId: string) {
 
 // Export leads to Excel/CSV with complete data (Enterprise only)
 export async function exportLeadsToExcel(leadIds?: string[]) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
+
+    const supabase = await createClient();
 
     // Check if user has Enterprise plan
     const subscription = await getSubscription();
@@ -462,7 +461,3 @@ export async function exportLeadsToExcel(leadIds?: string[]) {
         count: leads.length
     };
 }
-
-// Helper to check Enterprise features
-import { getSubscription } from "@/lib/subscription";
-

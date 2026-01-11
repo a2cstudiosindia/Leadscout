@@ -1,16 +1,16 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth-session';
 import { PLANS, type PlanType, getCurrentPeriod } from '@/lib/plans';
 
 
 // Get user's subscription
 export async function getSubscription() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return null;
 
+    const supabase = await createClient();
     const { data: subscription } = await supabase
         .from('subscriptions')
         .select('*')
@@ -36,11 +36,10 @@ export async function getSubscription() {
 
 // Get current usage
 export async function getUsage() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return null;
 
+    const supabase = await createClient();
     const period = getCurrentPeriod();
 
     const { data: usage } = await supabase
@@ -116,11 +115,10 @@ export async function checkLimit(action: 'leads' | 'audits' | 'searches' | 'api'
 
 // Increment usage counter
 export async function incrementUsage(action: 'leads' | 'audits' | 'searches' | 'api') {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return;
 
+    const supabase = await createClient();
     const period = getCurrentPeriod();
 
     // Upsert usage record
@@ -157,11 +155,10 @@ export async function incrementUsage(action: 'leads' | 'audits' | 'searches' | '
 
 // Track analytics event
 export async function trackEvent(event: string, metadata?: Record<string, unknown>) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return;
 
+    const supabase = await createClient();
     await supabase.from('events').insert({
         user_id: user.id,
         event,

@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRazorpay, RAZORPAY_PLANS } from '@/lib/razorpay';
-import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 // POST /api/razorpay/order - Create a Razorpay order
 export async function POST(request: NextRequest) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const session = await auth.api.getSession({ headers: await headers() });
 
-    if (!user) {
+    if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const user = session.user;
 
     let body;
     try {

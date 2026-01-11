@@ -1,14 +1,15 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth-session';
 import crypto from 'crypto';
 
 // Generate a new API key
 export async function generateApiKey(name: string = 'Default Key') {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: 'Unauthorized' };
+
+    const supabase = await createClient();
 
     // Check if user has API access (Pro or Enterprise plan)
     const { data: subscription } = await supabase
@@ -44,11 +45,10 @@ export async function generateApiKey(name: string = 'Default Key') {
 
 // List user's API keys (without the actual keys)
 export async function listApiKeys() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: 'Unauthorized', keys: [] };
 
+    const supabase = await createClient();
     const { data: keys, error } = await supabase
         .from('api_keys')
         .select('id, name, last_used, created_at')
@@ -64,11 +64,10 @@ export async function listApiKeys() {
 
 // Revoke an API key
 export async function revokeApiKey(keyId: string) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: 'Unauthorized' };
 
+    const supabase = await createClient();
     const { error } = await supabase
         .from('api_keys')
         .delete()

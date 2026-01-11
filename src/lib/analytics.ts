@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth-session';
 
 export interface AnalyticsData {
     overview: {
@@ -27,10 +28,10 @@ export interface AnalyticsData {
 }
 
 export async function getAnalytics(): Promise<{ success: boolean; data?: AnalyticsData; error?: string }> {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getCurrentUser();
     if (!user) return { success: false, error: 'Unauthorized' };
+
+    const supabase = await createClient();
 
     // Get total leads
     const { count: totalLeads } = await supabase

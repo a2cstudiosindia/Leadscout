@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 import crypto from 'crypto';
 
 // Force dynamic rendering
@@ -7,12 +9,14 @@ export const dynamic = 'force-dynamic';
 
 // POST /api/razorpay/verify - Verify payment and update subscription
 export async function POST(request: NextRequest) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const session = await auth.api.getSession({ headers: await headers() });
 
-    if (!user) {
+    if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const user = session.user;
+    const supabase = await createClient();
 
     let body;
     try {
