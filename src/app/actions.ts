@@ -14,6 +14,40 @@ export async function runAudit(url: string) {
         return { success: false, error: limitCheck.reason };
     }
 
+    // Use external Scanner API if configured (for production/Vercel)
+    const scannerApiUrl = process.env.SCANNER_API_URL;
+
+    if (scannerApiUrl) {
+        // Call external Scanner API
+        try {
+            console.log(`[AUDIT] Calling external scanner: ${scannerApiUrl}/scan`);
+            const response = await fetch(`${scannerApiUrl}/scan`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                console.error('[AUDIT] External scanner error:', data.error);
+                return { success: false, error: data.error || 'Scanner API error' };
+            }
+
+            // Track usage
+            await incrementUsage('audits');
+            await trackEvent('audit_run', { url, score: data.report.overallScore });
+
+            return { success: true, report: data.report };
+        } catch (error) {
+            console.error('[AUDIT] Failed to call Scanner API:', error);
+            return { success: false, error: 'Scanner service unavailable' };
+        }
+    }
+
+    // Fallback: Use local Playwright scanner (for development)
+    console.log('[AUDIT] Using LOCAL Playwright scanner (SCANNER_API_URL not set)');
+    console.log('[AUDIT] Scanning URL:', url);
     const scanner = new Scanner();
     try {
         const report = await scanner.scan(url);
@@ -30,6 +64,7 @@ export async function runAudit(url: string) {
         return { success: false, error: "Failed to scan website" };
     }
 }
+
 
 export async function findLeads(query: string) {
     // Check search limit

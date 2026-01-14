@@ -1,5 +1,7 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
+import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth";
+import { Polar } from "@polar-sh/sdk";
 
 // Better-Auth requires actual values at initialization time.
 // During build, env vars may not be set. We use fallbacks to allow build to complete,
@@ -12,8 +14,20 @@ const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || "http://localhost:3000";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
 
+// Polar configuration
+const POLAR_ACCESS_TOKEN = process.env.POLAR_ACCESS_TOKEN || "";
+const POLAR_PRO_PRODUCT_ID = process.env.POLAR_PRO_PRODUCT_ID || "";
+const POLAR_ENTERPRISE_PRODUCT_ID = process.env.POLAR_ENTERPRISE_PRODUCT_ID || "";
+const POLAR_WEBHOOK_SECRET = process.env.POLAR_WEBHOOK_SECRET || "";
+
 // Check if we're in build mode (DATABASE_URL will be placeholder)
 const isBuildTime = DATABASE_URL.includes('placeholder');
+
+// Initialize Polar client
+const polarClient = new Polar({
+    accessToken: POLAR_ACCESS_TOKEN,
+    server: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
+});
 
 export const auth = betterAuth({
     database: new Pool({
@@ -36,7 +50,32 @@ export const auth = betterAuth({
         expiresIn: 60 * 60 * 24 * 7, // 7 days
         updateAge: 60 * 60 * 24, // 1 day
     },
+    plugins: [
+        polar({
+            client: polarClient,
+            createCustomerOnSignUp: true,
+            use: [
+                checkout({
+                    products: [
+                        { productId: POLAR_PRO_PRODUCT_ID, slug: "pro" },
+                        { productId: POLAR_ENTERPRISE_PRODUCT_ID, slug: "enterprise" }
+                    ],
+                    successUrl: "/dashboard?checkout=success",
+                    authenticatedUsersOnly: true
+                }),
+                portal(),
+                webhooks({
+                    secret: POLAR_WEBHOOK_SECRET,
+                    onPayload: async (payload) => {
+                        // Handle webhook events
+                        console.log('Polar webhook received:', payload.type);
+                    }
+                })
+            ]
+        })
+    ]
 });
 
 // Type export for use in other files
 export type Session = typeof auth.$Infer.Session;
+

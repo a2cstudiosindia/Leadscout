@@ -189,3 +189,37 @@ export async function getSubscriptionInfo() {
         },
     };
 }
+
+// Update subscription from Polar webhook
+export async function updateSubscriptionFromPolar(
+    userId: string,
+    plan: PlanType,
+    polarSubscriptionId: string,
+    polarCustomerId?: string
+) {
+    const supabase = await createClient();
+
+    // Calculate period end (30 days from now)
+    const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    await supabase
+        .from('subscriptions')
+        .upsert({
+            user_id: userId,
+            plan: plan,
+            polar_subscription_id: polarSubscriptionId,
+            polar_customer_id: polarCustomerId,
+            current_period_end: periodEnd.toISOString(),
+        }, { onConflict: 'user_id' });
+}
+
+// Cancel subscription from Polar webhook
+export async function cancelSubscriptionFromPolar(userId: string) {
+    const supabase = await createClient();
+
+    await supabase
+        .from('subscriptions')
+        .update({ plan: 'free' })
+        .eq('user_id', userId);
+}
+

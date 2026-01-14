@@ -4,41 +4,14 @@ import { useState, useEffect } from "react";
 import { Check, Crown } from "lucide-react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { getSubscriptionInfo } from "@/lib/subscription";
+import { checkout } from "@/lib/auth-client";
 import toast, { Toaster } from "react-hot-toast";
-
-declare global {
-    interface Window {
-        Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
-    }
-}
-
-interface RazorpayOptions {
-    key: string;
-    amount: number;
-    currency: string;
-    name: string;
-    description: string;
-    order_id: string;
-    handler: (response: RazorpayResponse) => void;
-    prefill?: { email?: string };
-    theme?: { color?: string };
-}
-
-interface RazorpayInstance {
-    open: () => void;
-}
-
-interface RazorpayResponse {
-    razorpay_order_id: string;
-    razorpay_payment_id: string;
-    razorpay_signature: string;
-}
 
 export default function PricingPage() {
     const [loading, setLoading] = useState<string | null>(null);
     const [currentPlan, setCurrentPlan] = useState<string>('free');
 
-    // Load subscription info and Razorpay script
+    // Load subscription info
     useEffect(() => {
         // Fetch current plan
         getSubscriptionInfo().then((info) => {
@@ -46,13 +19,6 @@ export default function PricingPage() {
                 setCurrentPlan(info.plan);
             }
         });
-
-        // Load Razorpay script
-        const script = document.createElement('script');
-        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        script.async = true;
-        document.body.appendChild(script);
-        return () => { document.body.removeChild(script); };
     }, []);
 
     async function handleCheckout(plan: 'pro' | 'enterprise') {
@@ -62,54 +28,7 @@ export default function PricingPage() {
         }
         setLoading(plan);
         try {
-            // Create order
-            const res = await fetch('/api/razorpay/order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plan }),
-            });
-            const data = await res.json();
-
-            if (!data.orderId) {
-                toast.error(data.error || 'Failed to create order');
-                setLoading(null);
-                return;
-            }
-
-            // Open Razorpay checkout
-            const options: RazorpayOptions = {
-                key: data.keyId,
-                amount: data.amount,
-                currency: data.currency,
-                name: 'LeadScout',
-                description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan Subscription`,
-                order_id: data.orderId,
-                handler: async (response: RazorpayResponse) => {
-                    // Verify payment
-                    const verifyRes = await fetch('/api/razorpay/verify', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            plan,
-                        }),
-                    });
-                    const verifyData = await verifyRes.json();
-
-                    if (verifyData.success) {
-                        toast.success('Payment successful! Your plan is now active.');
-                        setTimeout(() => window.location.href = '/dashboard', 1500);
-                    } else {
-                        toast.error(verifyData.error || 'Payment verification failed');
-                    }
-                },
-                theme: { color: '#38B2AC' },
-            };
-
-            const razorpay = new window.Razorpay(options);
-            razorpay.open();
+            await checkout(plan);
         } catch {
             toast.error('Something went wrong');
         }
@@ -131,7 +50,7 @@ export default function PricingPage() {
                         <div className="mb-6">
                             <h3 className="text-lg font-bold text-gray-500 uppercase tracking-wide">Free</h3>
                             <div className="mt-4 flex items-baseline gap-1">
-                                <span className="text-4xl font-bold text-gray-800">₹0</span>
+                                <span className="text-4xl font-bold text-gray-800">$0</span>
                                 <span className="text-gray-400">/mo</span>
                             </div>
                             <p className="text-sm text-gray-400 mt-2">Perfect for trying out LeadScout.</p>
@@ -174,10 +93,9 @@ export default function PricingPage() {
                         <div className="mb-6">
                             <h3 className="text-lg font-bold text-teal-400 uppercase tracking-wide">Pro</h3>
                             <div className="mt-4 flex items-baseline gap-1">
-                                <span className="text-4xl font-bold text-white">₹99</span>
+                                <span className="text-4xl font-bold text-white">$29</span>
                                 <span className="text-gray-400">/mo</span>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">≈ $1.19 USD</p>
                             <p className="text-sm text-gray-400 mt-2">For growing agencies running outreach.</p>
                         </div>
 
@@ -225,10 +143,9 @@ export default function PricingPage() {
                         <div className="mb-6">
                             <h3 className="text-lg font-bold text-gray-500 uppercase tracking-wide">Enterprise</h3>
                             <div className="mt-4 flex items-baseline gap-1">
-                                <span className="text-4xl font-bold text-gray-800">₹169</span>
+                                <span className="text-4xl font-bold text-gray-800">$79</span>
                                 <span className="text-gray-400">/mo</span>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">≈ $2.03 USD</p>
                             <p className="text-sm text-gray-400 mt-2">Unlimited power for large teams.</p>
                         </div>
 
@@ -287,3 +204,4 @@ export default function PricingPage() {
         </DashboardShell >
     );
 }
+
