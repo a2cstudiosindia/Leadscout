@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth-session';
+import { getSubscription } from '@/lib/subscription';
 import crypto from 'crypto';
 
 // Generate a new API key
@@ -9,19 +10,14 @@ export async function generateApiKey(name: string = 'Default Key') {
     const user = await getCurrentUser();
     if (!user) return { success: false, error: 'Unauthorized' };
 
-    const supabase = await createClient();
-
     // Check if user has API access (Pro or Enterprise plan)
-    const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('plan')
-        .eq('user_id', user.id)
-        .single();
-
-    const plan = subscription?.plan || 'free';
-    if (plan === 'free') {
+    // This respects TEST_MODE_PLAN from .env
+    const subscription = await getSubscription();
+    if (!subscription || !subscription.limits.apiAccess) {
         return { success: false, error: 'API access requires a Pro or Enterprise plan.' };
     }
+
+    const supabase = await createClient();
 
     // Generate random API key
     const rawKey = `sk_live_${crypto.randomBytes(24).toString('hex')}`;

@@ -4,11 +4,24 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth-session';
 import { PLANS, type PlanType, getCurrentPeriod } from '@/lib/plans';
 
+// TEST MODE: Set TEST_MODE_PLAN in .env to override subscription for testing
+// Valid values: 'pro' or 'enterprise'
+// Example: TEST_MODE_PLAN=enterprise
 
 // Get user's subscription
 export async function getSubscription() {
     const user = await getCurrentUser();
     if (!user) return null;
+
+    // TEST MODE: Override subscription for testing Pro/Enterprise features
+    const testModePlan = process.env.TEST_MODE_PLAN as PlanType | undefined;
+    if (testModePlan && (testModePlan === 'pro' || testModePlan === 'enterprise')) {
+        console.log(`[SUBSCRIPTION] 🧪 TEST MODE: Using ${testModePlan} plan`);
+        return {
+            plan: testModePlan,
+            limits: PLANS[testModePlan],
+        };
+    }
 
     const supabase = await createClient();
     const { data: subscription } = await supabase

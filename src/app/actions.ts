@@ -438,6 +438,15 @@ export async function exportLeadsToExcel(leadIds?: string[]) {
         const contentScore = checks.content?.score ?? '';
         const socialScore = checks.social?.score ?? '';
 
+        // Extract recommendations
+        const securityRec = checks.security?.recommendation ?? '';
+        const mobileRec = checks.mobile?.recommendation ?? '';
+        const performanceRec = checks.performance?.recommendation ?? '';
+        const seoRec = checks.seo?.recommendation ?? '';
+        const businessRec = checks.business?.recommendation ?? '';
+        const contentRec = checks.content?.recommendation ?? '';
+        const socialRec = checks.social?.recommendation ?? '';
+
         // Count by status
         const allChecksArray = Object.values(checks) as Array<{ status?: string }>;
         const passCount = allChecksArray.filter(c => c?.status === 'pass').length;
@@ -458,12 +467,19 @@ export async function exportLeadsToExcel(leadIds?: string[]) {
             'Lead Created': new Date(lead.created_at).toLocaleDateString(),
             'Overall Score': latestReport?.overall_score ?? '',
             'Security Score': securityScore,
+            'Security Recommendation': securityRec,
             'Mobile Score': mobileScore,
+            'Mobile Recommendation': mobileRec,
             'Performance Score': performanceScore,
+            'Performance Recommendation': performanceRec,
             'SEO Score': seoScore,
+            'SEO Recommendation': seoRec,
             'Business Info Score': businessScore,
+            'Business Recommendation': businessRec,
             'Content Score': contentScore,
+            'Content Recommendation': contentRec,
             'Social Score': socialScore,
+            'Social Recommendation': socialRec,
             'Checks Passed': passCount,
             'Checks Failed': failCount,
             'Checks Warning': warningCount,
@@ -475,11 +491,37 @@ export async function exportLeadsToExcel(leadIds?: string[]) {
     const worksheet = XLSX.utils.json_to_sheet(exportData);
 
     worksheet['!cols'] = [
-        { wch: 25 }, { wch: 35 }, { wch: 15 }, { wch: 40 }, { wch: 30 },
-        { wch: 12 }, { wch: 40 }, { wch: 15 }, { wch: 10 }, { wch: 14 },
-        { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
-        { wch: 10 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
-        { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 35 },
+        { wch: 25 }, // Business Name
+        { wch: 35 }, // Website URL
+        { wch: 15 }, // Phone
+        { wch: 40 }, // Address
+        { wch: 30 }, // Google Place ID
+        { wch: 12 }, // Status
+        { wch: 40 }, // Notes
+        { wch: 15 }, // Estimated Value
+        { wch: 10 }, // Favorite
+        { wch: 14 }, // Last Contacted
+        { wch: 14 }, // Lead Created
+        { wch: 12 }, // Overall Score
+        { wch: 12 }, // Security Score
+        { wch: 50 }, // Security Recommendation
+        { wch: 12 }, // Mobile Score
+        { wch: 50 }, // Mobile Recommendation
+        { wch: 12 }, // Performance Score
+        { wch: 50 }, // Performance Recommendation
+        { wch: 12 }, // SEO Score
+        { wch: 50 }, // SEO Recommendation
+        { wch: 15 }, // Business Info Score
+        { wch: 50 }, // Business Recommendation
+        { wch: 12 }, // Content Score
+        { wch: 50 }, // Content Recommendation
+        { wch: 12 }, // Social Score
+        { wch: 50 }, // Social Recommendation
+        { wch: 12 }, // Checks Passed
+        { wch: 12 }, // Checks Failed
+        { wch: 12 }, // Checks Warning
+        { wch: 12 }, // Audit Date
+        { wch: 35 }, // Website Scanned
     ];
 
     const workbook = XLSX.utils.book_new();
@@ -495,4 +537,67 @@ export async function exportLeadsToExcel(leadIds?: string[]) {
         filename: `leadscout_export_${new Date().toISOString().split('T')[0]}.xlsx`,
         count: leads.length
     };
+}
+
+// Generate cold email for a lead
+export async function generateEmail(leadId: string) {
+    const user = await getCurrentUser();
+    if (!user) return { success: false, error: "Unauthorized" };
+
+    const supabase = await createClient();
+
+    // Get lead info
+    const { data: lead } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('id', leadId)
+        .eq('user_id', user.id)
+        .single();
+
+    if (!lead) {
+        return { success: false, error: "Lead not found" };
+    }
+
+    // Get latest audit report for this lead
+    const { data: report } = await supabase
+        .from('reports')
+        .select('*')
+        .eq('lead_id', leadId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+    if (!report?.scan_data) {
+        return { success: false, error: "No audit data found. Please run an audit first." };
+    }
+
+    // Get user's agency profile for branding
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('agency_name')
+        .eq('id', user.id)
+        .single();
+
+    // Import and use email generator
+    const { generateColdEmail } = await import('@/lib/ai-email-generator');
+
+    const email = await generateColdEmail({
+        businessName: lead.business_name || 'this business',
+        websiteUrl: lead.website_url || '',
+        ownerName: undefined, // Could be added to lead data later
+        industry: undefined,
+        city: lead.address?.split(',').pop()?.trim(),
+        overallScore: report.overall_score || 0,
+        checks: report.scan_data.checks || {},
+        agencyName: profile?.agency_name || undefined,
+        agencyEmail: user.email || undefined,
+    });
+
+    if (!email) {
+        return { success: false, error: "Failed to generate email" };
+    }
+
+    await trackEvent('email_generated', { leadId, businessName: lead.business_name });
+
+    return { success: true, email };
 }

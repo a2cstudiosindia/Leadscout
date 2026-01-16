@@ -3,6 +3,7 @@ export interface AuditResult {
     title: string;
     description: string;
     status: 'pass' | 'fail' | 'warning';
+    recommendation?: string; // Actionable suggestion for improvement
     details?: Record<string, any>;
 }
 

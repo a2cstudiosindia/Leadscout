@@ -1,5 +1,16 @@
 import { chromium, Browser, Page } from 'playwright';
 import { ScanReport, AuditResult } from './types';
+import { generateAIRecommendations, getStaticRecommendation } from '../ai-recommendations';
+import {
+    checkMetaTags,
+    checkHeadingStructure,
+    checkAccessibility,
+    checkContactInfo,
+    checkFavicon,
+    checkTechnicalSEO,
+    checkImageOptimization,
+    checkHTTPSRedirect
+} from './advanced-checks';
 
 export class Scanner {
     private browser: Browser | null = null;
@@ -34,22 +45,22 @@ export class Scanner {
             console.error("Failed to load page:", error);
             if (error.message.includes('ERR_NAME_NOT_RESOLVED') || error.message.includes('ERR_CONNECTION_REFUSED')) {
                 const failedReport = this.generateFailedReport(url);
-                // Customize description for DNS error
                 failedReport.checks.security.description = "Domain does not exist or DNS failed (ERR_NAME_NOT_RESOLVED).";
                 return failedReport;
             }
-            // Return a failed report for other errors
             return this.generateFailedReport(url);
         }
 
-        // -- RUN CHECKS --
+        console.log('[SCANNER] Running comprehensive audit on', url);
+
+        // -- RUN ORIGINAL CHECKS --
         const security = await this.checkSecurity(page, response, url);
         const mobile = await this.checkMobile(page);
         const business = await this.checkBusiness(page);
         const content = await this.checkContent(page);
         const social = await this.checkSocial(page);
 
-        // Performance: Measure Time to Interactive roughly
+        // Performance check
         const loadTime = Date.now() - startTime;
         const performance: AuditResult = {
             score: loadTime < 1500 ? 100 : loadTime < 3000 ? 50 : 0,
@@ -59,25 +70,99 @@ export class Scanner {
             details: { loadTimeMs: loadTime }
         };
 
-        // Calculate simple average score for now
-        const validScores = [security, mobile, business, content, social, performance].map(c => c.score);
-        const score = Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length);
+        // -- RUN NEW ADVANCED CHECKS --
+        console.log('[SCANNER] Running advanced checks...');
+
+        // Run advanced checks in parallel for speed
+        const [metaTags, headings, accessibility, contactInfo, favicon, images] = await Promise.all([
+            checkMetaTags(page).catch(() => this.createFailedCheck('Meta Tags')),
+            checkHeadingStructure(page).catch(() => this.createFailedCheck('Headings')),
+            checkAccessibility(page).catch(() => this.createFailedCheck('Accessibility')),
+            checkContactInfo(page).catch(() => this.createFailedCheck('Contact Info')),
+            checkFavicon(page).catch(() => this.createFailedCheck('Favicon')),
+            checkImageOptimization(page).catch(() => this.createFailedCheck('Images')),
+        ]);
+
+        // Run URL-based checks (don't need page)
+        const [technicalSEO, httpsRedirect] = await Promise.all([
+            checkTechnicalSEO(url).catch(() => this.createFailedCheck('Technical SEO')),
+            checkHTTPSRedirect(url).catch(() => this.createFailedCheck('HTTPS Redirect')),
+        ]);
+
+        // SEO check now combines meta tags and headings
+        const seoScore = Math.round((metaTags.score + headings.score) / 2);
+        const seo: AuditResult = {
+            score: seoScore,
+            status: seoScore >= 80 ? 'pass' : seoScore >= 50 ? 'warning' : 'fail',
+            title: seoScore >= 80 ? 'SEO Optimized' : 'SEO Needs Work',
+            description: `Meta tags (${metaTags.score}/100), Headings (${headings.score}/100)`,
+        };
 
         await mobileContext.close();
+
+        // Calculate overall score from all checks
+        const allScores = [
+            security.score, mobile.score, performance.score, seo.score,
+            business.score, content.score, social.score,
+            accessibility.score, contactInfo.score, favicon.score,
+            technicalSEO.score, images.score, httpsRedirect.score
+        ];
+        const overallScore = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+
+        // Build checks object for AI
+        const checks = {
+            security, mobile, performance, seo, business, content, social,
+            metaTags, headings, accessibility, contactInfo, favicon,
+            technicalSEO, images, httpsRedirect
+        };
+
+        // Generate AI recommendations
+        console.log('[SCANNER] Generating AI recommendations...');
+        const aiRecs = await generateAIRecommendations(url, checks as any, overallScore);
+
+        // Apply recommendations
+        if (aiRecs) {
+            console.log('[SCANNER] AI recommendations generated successfully');
+            security.recommendation = aiRecs.security;
+            mobile.recommendation = aiRecs.mobile;
+            performance.recommendation = aiRecs.performance;
+            seo.recommendation = aiRecs.seo;
+            business.recommendation = aiRecs.business;
+            content.recommendation = aiRecs.content;
+            social.recommendation = aiRecs.social;
+        } else {
+            console.log('[SCANNER] Using static recommendations');
+            security.recommendation = getStaticRecommendation('security', security.status, security.description);
+            mobile.recommendation = getStaticRecommendation('mobile', mobile.status, mobile.description);
+            performance.recommendation = getStaticRecommendation('performance', performance.status, performance.description);
+            seo.recommendation = getStaticRecommendation('seo', seo.status, seo.description);
+            business.recommendation = getStaticRecommendation('business', business.status, business.description);
+            content.recommendation = getStaticRecommendation('content', content.status, content.description);
+            social.recommendation = getStaticRecommendation('social', social.status, social.description);
+        }
+
+        console.log(`[SCANNER] Audit complete. Score: ${overallScore}/100`);
 
         return {
             url,
             scannedAt: new Date().toISOString(),
-            overallScore: score,
+            overallScore,
             checks: {
-                security,
-                mobile,
-                performance,
-                seo: { score: 0, status: 'warning', title: 'SEO', description: 'Pending' },
-                business,
-                content,
-                social
-            }
+                security, mobile, performance, seo, business, content, social,
+                metaTags, headings, accessibility, contactInfo, favicon,
+                technicalSEO, images, httpsRedirect
+            },
+            aiSummary: aiRecs?.summary,
+            priorityFixes: aiRecs?.priorityFixes
+        };
+    }
+
+    private createFailedCheck(name: string): AuditResult {
+        return {
+            score: 0,
+            status: 'warning',
+            title: name,
+            description: 'Check could not be completed'
         };
     }
 
@@ -106,18 +191,42 @@ export class Scanner {
         // const hsts = headers['strict-transport-security']; // Advanced check
 
         if (!isHttps) {
-            return { score: 0, status: 'fail', title: 'SSL Missing', description: 'Website is not using HTTPS. Visitors see "Not Secure".' };
+            return {
+                score: 0,
+                status: 'fail',
+                title: 'SSL Missing',
+                description: 'Website is not using HTTPS. Visitors see "Not Secure".',
+                recommendation: 'Install an SSL certificate (free via Let\'s Encrypt) and redirect all HTTP traffic to HTTPS. This is critical for trust and SEO rankings.'
+            };
         }
-        return { score: 100, status: 'pass', title: 'SSL Secure', description: 'Website is served over HTTPS.' };
+        return {
+            score: 100,
+            status: 'pass',
+            title: 'SSL Secure',
+            description: 'Website is served over HTTPS.',
+            recommendation: 'Great! Keep your SSL certificate up to date and consider enabling HSTS for additional security.'
+        };
     }
 
     private async checkMobile(page: Page): Promise<AuditResult> {
         // Check if viewport meta tag exists
         const viewport = await page.$('meta[name="viewport"]');
         if (!viewport) {
-            return { score: 0, status: 'fail', title: 'Not Mobile Friendly', description: 'Missing viewport tag. Site will look tiny on phones.' };
+            return {
+                score: 0,
+                status: 'fail',
+                title: 'Not Mobile Friendly',
+                description: 'Missing viewport tag. Site will look tiny on phones.',
+                recommendation: 'Add <meta name="viewport" content="width=device-width, initial-scale=1"> to your HTML head. 60%+ of visitors are on mobile - this is critical!'
+            };
         }
-        return { score: 100, status: 'pass', title: 'Mobile Optimized', description: 'Mobile viewport tag is present.' };
+        return {
+            score: 100,
+            status: 'pass',
+            title: 'Mobile Optimized',
+            description: 'Mobile viewport tag is present.',
+            recommendation: 'Great! Test your site on multiple devices and screen sizes. Consider adding touch-friendly buttons and larger tap targets.'
+        };
     }
 
     private async checkBusiness(page: Page): Promise<AuditResult> {
@@ -130,9 +239,21 @@ export class Scanner {
         const trackingScore = (hasGTM || hasFB || hasGA) ? 100 : 0;
 
         if (trackingScore === 0) {
-            return { score: 0, status: 'warning', title: 'No Tracking Detected', description: 'No Google Analytics or Facebook Pixel found. You are flying blind.' };
+            return {
+                score: 0,
+                status: 'warning',
+                title: 'No Tracking Detected',
+                description: 'No Google Analytics or Facebook Pixel found. You are flying blind.',
+                recommendation: 'Install Google Analytics 4 and/or Facebook Pixel to track visitors, conversions, and ROI. Use Google Tag Manager for easier management.'
+            };
         }
-        return { score: 100, status: 'pass', title: 'Tracking Active', description: 'Analytics tools detected.' };
+        return {
+            score: 100,
+            status: 'pass',
+            title: 'Tracking Active',
+            description: 'Analytics tools detected.',
+            recommendation: 'Excellent! Set up conversion goals, funnels, and remarketing audiences to maximize your tracking data.'
+        };
     }
 
     private async checkContent(page: Page): Promise<AuditResult> {
@@ -141,9 +262,21 @@ export class Scanner {
         const hasCurrentYear = text.includes(currentYear.toString()) || text.includes((currentYear - 1).toString());
 
         if (!hasCurrentYear) {
-            return { score: 50, status: 'warning', title: 'Outdated Content', description: `Copyright year is old or missing. Shows neglect.` };
+            return {
+                score: 50,
+                status: 'warning',
+                title: 'Outdated Content',
+                description: `Copyright year is old or missing. Shows neglect.`,
+                recommendation: `Update the copyright year to ${currentYear}. Add a blog with fresh content. Consider updating testimonials and case studies regularly.`
+            };
         }
-        return { score: 100, status: 'pass', title: 'Content Fresh', description: 'Copyright year is current.' };
+        return {
+            score: 100,
+            status: 'pass',
+            title: 'Content Fresh',
+            description: 'Copyright year is current.',
+            recommendation: 'Good job keeping content current! Add new blog posts monthly and update key pages quarterly for best SEO results.'
+        };
     }
 
     private async checkSocial(page: Page): Promise<AuditResult> {
@@ -155,13 +288,31 @@ export class Scanner {
         const brokenLinks = socialLinks.filter(href => href.endsWith('#') || href.endsWith('facebook.com/') || href.endsWith('instagram.com/'));
 
         if (brokenLinks.length > 0) {
-            return { score: 0, status: 'fail', title: 'Broken Social Links', description: 'Social icons link to nowhere. Looks unprofessional.' };
+            return {
+                score: 0,
+                status: 'fail',
+                title: 'Broken Social Links',
+                description: 'Social icons link to nowhere. Looks unprofessional.',
+                recommendation: 'Fix broken social media links immediately. Either remove the icons or link them to active business profiles.'
+            };
         }
 
         if (socialLinks.length === 0) {
-            return { score: 50, status: 'warning', title: 'No Social Presence', description: 'No social media links found on homepage.' };
+            return {
+                score: 50,
+                status: 'warning',
+                title: 'No Social Presence',
+                description: 'No social media links found on homepage.',
+                recommendation: 'Add links to your active social profiles (Facebook, Instagram, LinkedIn). Social proof increases trust and conversions by 15-20%.'
+            };
         }
 
-        return { score: 100, status: 'pass', title: 'Social Connected', description: `${socialLinks.length} social profiles active.` };
+        return {
+            score: 100,
+            status: 'pass',
+            title: 'Social Connected',
+            description: `${socialLinks.length} social profiles active.`,
+            recommendation: 'Great social presence! Consider adding social sharing buttons on blog posts and embedding a live feed for engagement.'
+        };
     }
 }
