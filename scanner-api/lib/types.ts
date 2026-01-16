@@ -19,7 +19,18 @@ export interface ScanReport {
         business: AuditResult;
         content: AuditResult;
         social: AuditResult;
+        // Advanced checks
+        metaTags: AuditResult;
+        headings: AuditResult;
+        accessibility: AuditResult;
+        contactInfo: AuditResult;
+        favicon: AuditResult;
+        technicalSEO: AuditResult;
+        images: AuditResult;
+        httpsRedirect: AuditResult;
     };
+    aiSummary?: string;
+    priorityFixes?: string[];
 }
 
 export interface ScannerOptions {

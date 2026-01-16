@@ -1,5 +1,15 @@
 import { chromium, Browser, Page } from 'playwright';
 import { ScanReport, AuditResult } from './types';
+import {
+    checkMetaTags,
+    checkHeadingStructure,
+    checkAccessibility,
+    checkContactInfo,
+    checkFavicon,
+    checkTechnicalSEO,
+    checkImageOptimization,
+    checkHTTPSRedirect
+} from './advanced-checks';
 
 export class Scanner {
     private browser: Browser | null = null;
@@ -40,14 +50,16 @@ export class Scanner {
             return this.generateFailedReport(url);
         }
 
-        // -- RUN CHECKS --
+        console.log('[SCANNER] Running comprehensive audit on', url);
+
+        // -- RUN ORIGINAL CHECKS --
         const security = await this.checkSecurity(page, response, url);
         const mobile = await this.checkMobile(page);
         const business = await this.checkBusiness(page);
         const content = await this.checkContent(page);
         const social = await this.checkSocial(page);
 
-        // Performance: Measure Time to Interactive roughly
+        // Performance check
         const loadTime = Date.now() - startTime;
         const performanceRecommendation = loadTime < 1500
             ? 'Excellent speed! Consider lazy loading images and using a CDN to maintain this performance.'
@@ -64,42 +76,93 @@ export class Scanner {
             details: { loadTimeMs: loadTime }
         };
 
-        // Calculate simple average score for now
-        const validScores = [security, mobile, business, content, social, performance].map(c => c.score);
-        const score = Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length);
+        // -- RUN ADVANCED CHECKS --
+        console.log('[SCANNER] Running advanced checks...');
+
+        // Run advanced checks in parallel for speed
+        const [metaTags, headings, accessibility, contactInfo, favicon, images] = await Promise.all([
+            checkMetaTags(page).catch(() => this.createFailedCheck('Meta Tags')),
+            checkHeadingStructure(page).catch(() => this.createFailedCheck('Headings')),
+            checkAccessibility(page).catch(() => this.createFailedCheck('Accessibility')),
+            checkContactInfo(page).catch(() => this.createFailedCheck('Contact Info')),
+            checkFavicon(page).catch(() => this.createFailedCheck('Favicon')),
+            checkImageOptimization(page).catch(() => this.createFailedCheck('Images')),
+        ]);
+
+        // Run URL-based checks (don't need page)
+        const [technicalSEO, httpsRedirect] = await Promise.all([
+            checkTechnicalSEO(url).catch(() => this.createFailedCheck('Technical SEO')),
+            checkHTTPSRedirect(url).catch(() => this.createFailedCheck('HTTPS Redirect')),
+        ]);
+
+        // SEO check now combines meta tags and headings
+        const seoScore = Math.round((metaTags.score + headings.score) / 2);
+        const seo: AuditResult = {
+            score: seoScore,
+            status: seoScore >= 80 ? 'pass' : seoScore >= 50 ? 'warning' : 'fail',
+            title: seoScore >= 80 ? 'SEO Optimized' : 'SEO Needs Work',
+            description: `Meta tags (${metaTags.score}/100), Headings (${headings.score}/100)`,
+            recommendation: 'Add meta title, meta description, heading tags (H1-H6), alt text for images, and structured data markup.'
+        };
 
         await mobileContext.close();
+
+        // Calculate overall score from all checks
+        const allScores = [
+            security.score, mobile.score, performance.score, seo.score,
+            business.score, content.score, social.score,
+            accessibility.score, contactInfo.score, favicon.score,
+            technicalSEO.score, images.score, httpsRedirect.score
+        ];
+        const overallScore = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+
+        console.log(`[SCANNER] Audit complete. Score: ${overallScore}/100`);
 
         return {
             url,
             scannedAt: new Date().toISOString(),
-            overallScore: score,
+            overallScore,
             checks: {
-                security,
-                mobile,
-                performance,
-                seo: { score: 0, status: 'warning', title: 'SEO', description: 'Pending', recommendation: 'Add meta title, meta description, heading tags (H1-H6), alt text for images, and structured data markup.' },
-                business,
-                content,
-                social
+                security, mobile, performance, seo, business, content, social,
+                metaTags, headings, accessibility, contactInfo, favicon,
+                technicalSEO, images, httpsRedirect
             }
+        };
+    }
+
+    private createFailedCheck(name: string): AuditResult {
+        return {
+            score: 0,
+            status: 'warning',
+            title: name,
+            description: 'Check could not be completed'
         };
     }
 
     private generateFailedReport(url: string): ScanReport {
         const failedRec = 'Verify the domain is correct and the website is online. Check DNS settings and server status.';
+        const failedCheck: AuditResult = { score: 0, status: 'fail', title: 'Site Unreachable', description: 'Could not load website', recommendation: failedRec };
+
         return {
             url,
             scannedAt: new Date().toISOString(),
             overallScore: 0,
             checks: {
-                security: { score: 0, status: 'fail', title: 'Site Unreachable', description: 'Could not load website', recommendation: failedRec },
-                mobile: { score: 0, status: 'fail', title: 'Site Unreachable', description: 'Could not load website', recommendation: failedRec },
-                performance: { score: 0, status: 'fail', title: 'Site Unreachable', description: 'Could not load website', recommendation: failedRec },
-                seo: { score: 0, status: 'fail', title: 'Site Unreachable', description: 'Could not load website', recommendation: failedRec },
-                business: { score: 0, status: 'fail', title: 'Site Unreachable', description: 'Could not load website', recommendation: failedRec },
-                content: { score: 0, status: 'fail', title: 'Site Unreachable', description: 'Could not load website', recommendation: failedRec },
-                social: { score: 0, status: 'fail', title: 'Site Unreachable', description: 'Could not load website', recommendation: failedRec }
+                security: failedCheck,
+                mobile: failedCheck,
+                performance: failedCheck,
+                seo: failedCheck,
+                business: failedCheck,
+                content: failedCheck,
+                social: failedCheck,
+                metaTags: failedCheck,
+                headings: failedCheck,
+                accessibility: failedCheck,
+                contactInfo: failedCheck,
+                favicon: failedCheck,
+                technicalSEO: failedCheck,
+                images: failedCheck,
+                httpsRedirect: failedCheck
             }
         }
     }
