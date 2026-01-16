@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentUser } from '@/lib/auth-session';
 import { PLANS, type PlanType, getCurrentPeriod } from '@/lib/plans';
 
@@ -47,20 +48,24 @@ export async function getSubscription() {
     };
 }
 
-// Get current usage
+// Get current usage (uses admin client to bypass RLS)
 export async function getUsage() {
     const user = await getCurrentUser();
     if (!user) return null;
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const period = getCurrentPeriod();
 
-    const { data: usage } = await supabase
+    const { data: usage, error } = await supabase
         .from('usage')
         .select('*')
         .eq('user_id', user.id)
         .eq('period', period)
         .single();
+
+    if (error && error.code !== 'PGRST116') {
+        console.error('[USAGE] Error fetching usage:', error);
+    }
 
     return {
         period,
@@ -126,57 +131,83 @@ export async function checkLimit(action: 'leads' | 'audits' | 'searches' | 'api'
     return { allowed: true };
 }
 
-// Increment usage counter
+// Increment usage counter (uses admin client to bypass RLS)
 export async function incrementUsage(action: 'leads' | 'audits' | 'searches' | 'api') {
     const user = await getCurrentUser();
-    if (!user) return;
+    if (!user) {
+        console.error('[USAGE] No user found for incrementUsage');
+        return;
+    }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const period = getCurrentPeriod();
 
-    // Upsert usage record
+    // Map action to column name
     const column = action === 'leads' ? 'leads_count'
         : action === 'audits' ? 'audits_count'
             : action === 'searches' ? 'searches_count'
                 : 'api_calls';
 
+    console.log(`[USAGE] Incrementing ${action} for user ${user.id}, period ${period}`);
+
     // First try to get existing record
-    const { data: existing } = await supabase
+    const { data: existing, error: selectError } = await supabase
         .from('usage')
         .select('*')
         .eq('user_id', user.id)
         .eq('period', period)
         .single();
 
+    if (selectError && selectError.code !== 'PGRST116') {
+        console.error('[USAGE] Error fetching usage record:', selectError);
+    }
+
     if (existing) {
-        // Update existing
-        await supabase
+        // Update existing record
+        const newValue = (existing[column] ?? 0) + 1;
+        const { error: updateError } = await supabase
             .from('usage')
-            .update({ [column]: (existing[column] ?? 0) + 1 })
+            .update({ [column]: newValue })
             .eq('id', existing.id);
+
+        if (updateError) {
+            console.error('[USAGE] Error updating usage:', updateError);
+        } else {
+            console.log(`[USAGE] Updated ${action} to ${newValue}`);
+        }
     } else {
-        // Insert new
-        await supabase
+        // Insert new record
+        const { error: insertError } = await supabase
             .from('usage')
             .insert({
                 user_id: user.id,
                 period,
                 [column]: 1,
             });
+
+        if (insertError) {
+            console.error('[USAGE] Error inserting usage:', insertError);
+        } else {
+            console.log(`[USAGE] Created new usage record for ${action}`);
+        }
     }
 }
 
-// Track analytics event
+// Track analytics event (uses admin client to bypass RLS)
 export async function trackEvent(event: string, metadata?: Record<string, unknown>) {
     const user = await getCurrentUser();
     if (!user) return;
 
-    const supabase = await createClient();
-    await supabase.from('events').insert({
+    const supabase = createAdminClient();
+    const { error } = await supabase.from('events').insert({
         user_id: user.id,
         event,
         metadata: metadata ?? {},
     });
+
+    if (error) {
+        console.error('[EVENTS] Error tracking event:', error);
+    }
 }
 
 // Get subscription info for display
