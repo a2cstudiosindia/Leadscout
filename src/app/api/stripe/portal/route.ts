@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
     }
 
     const user = session.user;
-    const supabase = await createClient();
+    const { createAdminClient } = await import('@/lib/supabase/admin');
+    const supabase = createAdminClient();
 
     // Get customer ID
     const { data: subscription } = await supabase

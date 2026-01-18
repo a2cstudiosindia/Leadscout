@@ -11,8 +11,8 @@ export const GET = withApiAuth(async (req: NextRequest, context: ApiContext) => 
     // However, since this is an API call with an API key, we might need to mock the user context
     // or manually query the usage table. Let's do a manual query to be robust.
 
-    const { createClient } = require('@/lib/supabase/server');
-    const supabase = await createClient();
+    const { createAdminClient } = require('@/lib/supabase/admin');
+    const supabase = createAdminClient();
     const { getCurrentPeriod } = require('@/lib/plans');
     const period = getCurrentPeriod();
 

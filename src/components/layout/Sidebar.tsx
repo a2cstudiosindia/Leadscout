@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Search, List, Settings, Zap, CreditCard, BarChart3, Key, Menu, X } from "lucide-react";
+import { LayoutDashboard, Search, List, Settings, Zap, CreditCard, BarChart3, Key, Menu, X, Crown, Sparkles } from "lucide-react";
+import { getSubscriptionInfo } from "@/lib/subscription";
 
 const navigation = [
     { name: "Dashboard", href: "/dashboard?tab=find", icon: LayoutDashboard },
@@ -17,6 +18,15 @@ const navigation = [
 
 export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
     const pathname = usePathname();
+    const [plan, setPlan] = useState<string | null>(null);
+
+    useEffect(() => {
+        getSubscriptionInfo().then((info) => {
+            if (info && info.plan !== 'free') {
+                setPlan(info.plan);
+            }
+        });
+    }, []);
 
     return (
         <>
@@ -42,7 +52,20 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
                         <div className="p-2 bg-teal-400 rounded-lg text-white">
                             <Zap size={20} fill="currentColor" />
                         </div>
-                        <span className="font-bold text-lg text-gray-800 tracking-tight">LeadScout</span>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-lg text-gray-800 tracking-tight">LeadScout</span>
+                            {plan && (
+                                <span className={cn(
+                                    "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 w-fit",
+                                    plan === 'enterprise'
+                                        ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-white"
+                                        : "bg-gradient-to-r from-purple-500 to-indigo-500 text-white"
+                                )}>
+                                    {plan === 'enterprise' ? <Crown size={10} /> : <Sparkles size={10} />}
+                                    {plan}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     {/* Mobile close button */}
                     <button

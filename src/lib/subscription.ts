@@ -24,12 +24,16 @@ export async function getSubscription() {
         };
     }
 
-    const supabase = await createClient();
-    const { data: subscription } = await supabase
+    const supabase = createAdminClient();
+    const { data: subscription, error } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .single();
+
+    if (error && error.code !== 'PGRST116') {
+        console.error('[SUBSCRIPTION] Error fetching subscription:', error);
+    }
 
     // Return free plan if no subscription exists
     if (!subscription) {
@@ -241,12 +245,12 @@ export async function updateSubscriptionFromPolar(
     polarSubscriptionId: string,
     polarCustomerId?: string
 ) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Calculate period end (30 days from now)
     const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    await supabase
+    const { error } = await supabase
         .from('subscriptions')
         .upsert({
             user_id: userId,
@@ -255,15 +259,23 @@ export async function updateSubscriptionFromPolar(
             polar_customer_id: polarCustomerId,
             current_period_end: periodEnd.toISOString(),
         }, { onConflict: 'user_id' });
+
+    if (error) {
+        console.error('[SUBSCRIPTION] Error updating subscription from Polar:', error);
+    }
 }
 
 // Cancel subscription from Polar webhook
 export async function cancelSubscriptionFromPolar(userId: string) {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
-    await supabase
+    const { error } = await supabase
         .from('subscriptions')
         .update({ plan: 'free' })
         .eq('user_id', userId);
+
+    if (error) {
+        console.error('[SUBSCRIPTION] Error canceling subscription from Polar:', error);
+    }
 }
 
