@@ -23,11 +23,12 @@ const POLAR_WEBHOOK_SECRET = process.env.POLAR_WEBHOOK_SECRET || "";
 // Check if we're in build mode (DATABASE_URL will be placeholder)
 const isBuildTime = DATABASE_URL.includes('placeholder');
 
-// Initialize Polar client
-const polarClient = new Polar({
-    accessToken: POLAR_ACCESS_TOKEN,
-    server: 'production'
-});
+const polarEnabled = Boolean(POLAR_ACCESS_TOKEN && POLAR_PRO_PRODUCT_ID && POLAR_ENTERPRISE_PRODUCT_ID);
+const createPolarCustomerOnSignUp = process.env.POLAR_CREATE_CUSTOMER_ON_SIGNUP === 'true';
+
+const polarClient = polarEnabled
+    ? new Polar({ accessToken: POLAR_ACCESS_TOKEN, server: 'production' })
+    : null;
 
 export const auth = betterAuth({
     database: new Pool({
@@ -50,30 +51,32 @@ export const auth = betterAuth({
         expiresIn: 60 * 60 * 24 * 7, // 7 days
         updateAge: 60 * 60 * 24, // 1 day
     },
-    plugins: [
-        polar({
-            client: polarClient,
-            createCustomerOnSignUp: true,
-            use: [
-                checkout({
-                    products: [
-                        { productId: POLAR_PRO_PRODUCT_ID, slug: "pro" },
-                        { productId: POLAR_ENTERPRISE_PRODUCT_ID, slug: "enterprise" }
-                    ],
-                    successUrl: "/dashboard?checkout=success",
-                    authenticatedUsersOnly: true
-                }),
-                portal(),
-                webhooks({
-                    secret: POLAR_WEBHOOK_SECRET,
-                    onPayload: async (payload) => {
-                        // Handle webhook events
-                        console.log('Polar webhook received:', payload.type);
-                    }
-                })
-            ]
-        })
-    ]
+    plugins: polarEnabled && polarClient
+        ? [
+            polar({
+                client: polarClient,
+                // Off by default — expired Polar tokens block Google/email sign-up
+                createCustomerOnSignUp: createPolarCustomerOnSignUp,
+                use: [
+                    checkout({
+                        products: [
+                            { productId: POLAR_PRO_PRODUCT_ID, slug: "pro" },
+                            { productId: POLAR_ENTERPRISE_PRODUCT_ID, slug: "enterprise" }
+                        ],
+                        successUrl: "/dashboard?checkout=success",
+                        authenticatedUsersOnly: true
+                    }),
+                    portal(),
+                    webhooks({
+                        secret: POLAR_WEBHOOK_SECRET,
+                        onPayload: async (payload) => {
+                            console.log('Polar webhook received:', payload.type);
+                        }
+                    })
+                ]
+            })
+        ]
+        : [],
 });
 
 // Type export for use in other files

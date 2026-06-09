@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { runAudit, findLeads, saveLead, getLeads, saveReport, updateLead, deleteLead, getStats, toggleFavorite, exportLeadsToExcel } from "../actions";
+import { runAudit, findLeads, saveLead, getLeads, saveReport, updateLead, deleteLead, getStats, toggleFavorite, exportLeadsToExcel, exportLeadsToCSV, getJobStatus, getScanJobs, generateEmail } from "../actions";
 import { cn } from "@/lib/utils";
-import { DiscoveredBusiness } from "@/lib/discovery/types";
+import { DiscoveredBusiness, BUSINESS_CATEGORIES } from "@/lib/discovery/types";
 import { generatePDF } from "@/lib/pdf-generator";
 import { generateColdEmail } from "@/lib/email-generator";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { getSubscriptionInfo } from "@/lib/subscription";
-import { Users, Search, Activity, Download, RefreshCw, Mail, Star, Phone, FileSpreadsheet, MapPin, Trash2, Zap } from "lucide-react";
+import { getPriorityBadge } from "@/lib/lead-scoring";
+import { EMAIL_TEMPLATES, type EmailTemplateVariant } from "@/lib/ai-email-generator";
+import { Users, Search, Activity, Download, RefreshCw, Mail, Star, Phone, FileSpreadsheet, MapPin, Trash2, Zap, LayoutGrid, List, X, Copy, Clock } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -40,10 +42,25 @@ export default function Dashboard() {
 
     // Discovery State
     const [query, setQuery] = useState("");
+    const [category, setCategory] = useState("all");
     const [finding, setFinding] = useState(false);
     const [leads, setLeads] = useState<DiscoveredBusiness[]>([]);
+    const [sortBy, setSortBy] = useState<'score' | 'date' | 'name'>('score');
     const [scanningLead, setScanningLead] = useState<string | null>(null);
     const [savingLead, setSavingLead] = useState<string | null>(null);
+
+    // Async job state
+    const [activeJobId, setActiveJobId] = useState<string | null>(null);
+    const [recentJobs, setRecentJobs] = useState<any[]>([]);
+
+    // Outreach state
+    const [emailModal, setEmailModal] = useState<{ subject: string; body: string; leadName: string } | null>(null);
+    const [generatingEmail, setGeneratingEmail] = useState<string | null>(null);
+    const [emailTemplate, setEmailTemplate] = useState<EmailTemplateVariant>('friendly_audit');
+
+    // CRM view state
+    const [leadsView, setLeadsView] = useState<'list' | 'kanban'>('list');
+    const [isPro, setIsPro] = useState(false);
 
     // My Leads State (CRM)
     const [myLeads, setMyLeads] = useState<any[]>([]);
@@ -57,14 +74,55 @@ export default function Dashboard() {
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [exporting, setExporting] = useState(false);
 
-    // Check Enterprise status on mount
     useEffect(() => {
         getSubscriptionInfo().then((info) => {
             if (info) {
                 setIsEnterprise(info.plan === 'enterprise');
+                setIsPro(info.plan === 'pro' || info.plan === 'enterprise');
             }
         });
+        fetchRecentJobs();
     }, []);
+
+    useEffect(() => {
+        if (!activeJobId) return;
+        const interval = setInterval(async () => {
+            const result = await getJobStatus(activeJobId);
+            if (!result.success || !result.job) return;
+
+            if (result.job.status === 'completed' && result.job.report) {
+                setReport(result.job.report);
+                setLoading(false);
+                setActiveJobId(null);
+                toast.success('Audit completed!');
+                if (result.job.leadId) fetchLeads();
+                fetchRecentJobs();
+                clearInterval(interval);
+            } else if (result.job.status === 'failed') {
+                setLoading(false);
+                setActiveJobId(null);
+                toast.error(result.job.error || 'Scan failed');
+                fetchRecentJobs();
+                clearInterval(interval);
+            }
+        }, 2000);
+        return () => clearInterval(interval);
+    }, [activeJobId]);
+
+    async function fetchRecentJobs() {
+        const result = await getScanJobs();
+        if (result.success) setRecentJobs(result.jobs || []);
+    }
+
+    function getSortedLeads(list: DiscoveredBusiness[]) {
+        const sorted = [...list];
+        if (sortBy === 'score') {
+            sorted.sort((a, b) => (b.lead_score ?? 0) - (a.lead_score ?? 0));
+        } else if (sortBy === 'name') {
+            sorted.sort((a, b) => a.name.localeCompare(b.name));
+        }
+        return sorted;
+    }
 
     // CRM Actions
     async function handleStatusChange(leadId: string, newStatus: string) {
@@ -212,32 +270,27 @@ export default function Dashboard() {
         setLoading(true);
         setReport(null);
 
-        // If a leadId is passed (from My Leads), use it
         const scanLeadId = leadId || currentLeadId;
         if (leadId) setCurrentLeadId(leadId);
-        // If URL changes manually without a leadId, clear the current lead
         else if (targetUrl !== url) setCurrentLeadId(null);
 
         setActiveTab('scan');
         setUrl(targetUrl);
 
         try {
-            const result = await runAudit(targetUrl);
-            if (result.success) {
-                setReport(result.report);
-
-                // Auto-save report if we're auditing a saved lead
-                if (scanLeadId && result.report) {
-                    const saveResult = await saveReport(scanLeadId, result.report);
-                    if (saveResult.success) {
-                        toast.success('Audit completed & saved!');
-                        fetchLeads(); // Refresh leads to show updated status
-                    } else {
-                        toast.success('Audit completed!');
-                    }
-                } else {
-                    toast.success('Audit completed!');
+            const result = await runAudit(targetUrl, scanLeadId || undefined);
+            if (result.success && result.jobId) {
+                setActiveJobId(result.jobId);
+                toast.success(result.message || "Scan queued — we'll notify you when done");
+                fetchRecentJobs();
+            } else if (result.success && (result as any).report) {
+                setReport((result as any).report);
+                setLoading(false);
+                if (scanLeadId && (result as any).report) {
+                    await saveReport(scanLeadId, (result as any).report);
+                    fetchLeads();
                 }
+                toast.success('Audit completed!');
             } else {
                 // Check if it's a limit exceeded error
                 const errorMsg = result.error || 'Scan failed';
@@ -272,7 +325,6 @@ export default function Dashboard() {
         } catch (e) {
             console.error(e);
             toast.error('Error running scan');
-        } finally {
             setLoading(false);
         }
     }
@@ -283,7 +335,7 @@ export default function Dashboard() {
         setLeads([]);
 
         try {
-            const result = await findLeads(query);
+            const result = await findLeads(query, category !== 'all' ? category : undefined);
             if (result.success) {
                 setLeads(result.results);
             } else {
@@ -334,15 +386,45 @@ export default function Dashboard() {
         setScanningLead(null);
     }
 
+    async function handleGenerateEmail(leadId: string, leadName: string, isFollowUp = false) {
+        setGeneratingEmail(leadId);
+        const result = await generateEmail(leadId, emailTemplate, isFollowUp);
+        if (result.success && result.email) {
+            setEmailModal({ subject: result.email.subject, body: result.email.body, leadName });
+        } else {
+            toast.error(result.error || 'Failed to generate email');
+        }
+        setGeneratingEmail(null);
+    }
+
+    async function handleExportCSV(selectedOnly = false) {
+        setExporting(true);
+        const leadIds = selectedOnly ? Array.from(selectedLeads) : undefined;
+        const result = await exportLeadsToCSV(leadIds);
+        if (result.success && result.data) {
+            const blob = new Blob([atob(result.data)], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = result.filename || 'leads_export.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            toast.success(`${result.count} leads exported to CSV!`);
+        } else {
+            toast.error(result.error || 'Failed to export');
+        }
+        setExporting(false);
+    }
+
     async function handleSave(lead: DiscoveredBusiness) {
         setSavingLead(lead.place_id);
         const result = await saveLead(lead);
         if (result.success) {
-            toast.success('Lead saved successfully!');
-            // Refresh leads list if on My Leads tab
-            if (activeTab === 'leads') {
-                fetchLeads();
+            if (result.duplicateWarning) {
+                toast(result.duplicateWarning, { icon: '⚠️', duration: 5000 });
             }
+            toast.success('Lead saved successfully!');
+            if (activeTab === 'leads') fetchLeads();
         } else {
             // Check if it's a limit exceeded error
             const errorMsg = result.error || 'Failed to save lead';
@@ -456,7 +538,7 @@ export default function Dashboard() {
                                         disabled={loading || !url}
                                         className="absolute inset-y-2 right-2 bg-teal-400 text-white px-6 rounded-xl font-bold hover:bg-teal-500 disabled:opacity-50 transition-all shadow-md active:scale-95"
                                     >
-                                        {loading ? "Scanning..." : "Audit"}
+                                        {loading ? (activeJobId ? "Queued..." : "Scanning...") : "Audit"}
                                     </button>
                                 </div>
 
@@ -551,7 +633,24 @@ export default function Dashboard() {
                             <Search size={20} className="text-teal-500" /> Lead Discovery
                         </h2>
 
-                        <div className="flex gap-4 mb-8">
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {BUSINESS_CATEGORIES.map((cat) => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setCategory(cat.id)}
+                                    className={cn(
+                                        "px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                                        category === cat.id
+                                            ? "bg-teal-400 text-white"
+                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    )}
+                                >
+                                    {cat.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex gap-4 mb-4">
                             <input
                                 type="text"
                                 placeholder="Search businesses (e.g. Roofers in Austin)"
@@ -560,6 +659,15 @@ export default function Dashboard() {
                                 onKeyDown={(e) => e.key === 'Enter' && handleFind()}
                                 className="flex-1 p-3 bg-gray-50 border-gray-100 rounded-xl focus:ring-2 focus:ring-teal-400 outline-none transition-all"
                             />
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as 'score' | 'date' | 'name')}
+                                className="px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm font-medium"
+                            >
+                                <option value="score">By Score</option>
+                                <option value="name">By Name</option>
+                                <option value="date">By Date</option>
+                            </select>
                             <button
                                 onClick={handleFind}
                                 disabled={finding}
@@ -569,15 +677,51 @@ export default function Dashboard() {
                             </button>
                         </div>
 
+                        {recentJobs.length > 0 && (
+                            <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                    <Clock size={14} /> Recent Scans
+                                </h3>
+                                <div className="space-y-2">
+                                    {recentJobs.slice(0, 5).map((job) => (
+                                        <div key={job.id} className="flex items-center justify-between text-sm">
+                                            <span className="text-gray-600 truncate max-w-[60%]">{job.url}</span>
+                                            <span className={cn(
+                                                "px-2 py-0.5 rounded-full text-xs font-bold",
+                                                job.status === 'completed' ? "bg-green-100 text-green-700" :
+                                                job.status === 'failed' ? "bg-red-100 text-red-700" :
+                                                job.status === 'running' ? "bg-blue-100 text-blue-700" :
+                                                "bg-yellow-100 text-yellow-700"
+                                            )}>
+                                                {job.status}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="grid gap-4">
-                            {leads.map((lead) => (
+                            {getSortedLeads(leads).map((lead) => {
+                                const badge = lead.priority ? getPriorityBadge(lead.priority) : null;
+                                return (
                                 <div key={lead.place_id} className="p-4 rounded-xl border border-gray-100 hover:border-teal-200 hover:shadow-md transition-all flex items-center justify-between group">
                                     <div className="flex items-start gap-4">
                                         <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 font-bold">
                                             {lead.name.substring(0, 1)}
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900 group-hover:text-teal-600 transition-colors">{lead.name}</h3>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-bold text-gray-900 group-hover:text-teal-600 transition-colors">{lead.name}</h3>
+                                                {badge && (
+                                                    <span
+                                                        className={cn("px-2 py-0.5 rounded-full text-xs font-bold border", badge.className)}
+                                                        title={lead.score_reasons?.join('\n') || `Score: ${lead.lead_score}`}
+                                                    >
+                                                        {badge.emoji} {badge.label} ({lead.lead_score})
+                                                    </span>
+                                                )}
+                                            </div>
                                             <a
                                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.formatted_address)}`}
                                                 target="_blank"
@@ -602,12 +746,13 @@ export default function Dashboard() {
                                         <button onClick={() => handleSave(lead)} disabled={savingLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-teal-600 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors">
                                             {savingLead === lead.place_id ? "Saving..." : "Save Lead"}
                                         </button>
-                                        <button onClick={() => quickAudit(lead)} disabled={!lead.website} className="px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors">
-                                            Audit
+                                        <button onClick={() => quickAudit(lead)} disabled={!lead.website || scanningLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50">
+                                            {scanningLead === lead.place_id ? 'Queuing...' : 'Audit'}
                                         </button>
                                     </div>
                                 </div>
-                            ))}
+                            );
+                            })}
                             {leads.length === 0 && !finding && query && (
                                 <div className="text-center text-gray-400 py-12">No leads found. Try a different search.</div>
                             )}
@@ -624,7 +769,34 @@ export default function Dashboard() {
                                 <Users size={20} className="text-teal-500" /> My Leads Pipeline
                             </h2>
                             <div className="flex items-center gap-3">
-                                {/* Export All Button - visible to all, action checks permission */}
+                                <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                                    <button
+                                        onClick={() => setLeadsView('list')}
+                                        className={cn("p-2 transition-colors", leadsView === 'list' ? "bg-teal-50 text-teal-600" : "text-gray-400 hover:text-gray-600")}
+                                        title="List view"
+                                    >
+                                        <List size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => setLeadsView('kanban')}
+                                        className={cn("p-2 transition-colors", leadsView === 'kanban' ? "bg-teal-50 text-teal-600" : "text-gray-400 hover:text-gray-600")}
+                                        title="Kanban view"
+                                    >
+                                        <LayoutGrid size={16} />
+                                    </button>
+                                </div>
+
+                                {isPro && (
+                                    <button
+                                        onClick={() => handleExportCSV(false)}
+                                        disabled={exporting}
+                                        className="flex items-center gap-2 text-sm font-bold bg-white border border-teal-400 text-teal-600 px-4 py-2 rounded-lg hover:bg-teal-50 transition-colors disabled:opacity-50"
+                                    >
+                                        <Download size={16} />
+                                        {exporting ? 'Exporting...' : 'Export CSV'}
+                                    </button>
+                                )}
+
                                 <button
                                     onClick={() => handleExport(false)}
                                     disabled={exporting}
@@ -632,7 +804,7 @@ export default function Dashboard() {
                                     aria-label="Export all leads to Excel"
                                 >
                                     <FileSpreadsheet size={16} />
-                                    {exporting ? 'Exporting...' : 'Export All Leads'}
+                                    {exporting ? 'Exporting...' : 'Export Excel'}
                                 </button>
 
                                 {isEnterprise && (
@@ -674,6 +846,32 @@ export default function Dashboard() {
                             </div>
                         </div>
 
+                        {leadsView === 'kanban' ? (
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                                {(['new', 'contacted', 'audited', 'closed'] as const).map((status) => {
+                                    const columnLeads = myLeads.filter(l =>
+                                        (!showFavoritesOnly || l.is_favorite) &&
+                                        (status === 'audited' ? (l.status === 'audited' || l.status === 'auditing') : l.status === status)
+                                    );
+                                    return (
+                                        <div key={status} className="bg-gray-50 rounded-xl p-3 min-h-[300px]">
+                                            <h3 className="text-xs font-bold uppercase text-gray-500 mb-3 capitalize">{status}</h3>
+                                            <div className="space-y-2">
+                                                {columnLeads.map((lead) => (
+                                                    <div key={lead.id} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                                                        <p className="font-bold text-sm text-gray-800">{lead.business_name}</p>
+                                                        {lead.lead_score > 0 && (
+                                                            <span className="text-xs text-teal-600 font-bold">Score: {lead.lead_score}</span>
+                                                        )}
+                                                        <p className="text-xs text-gray-400 mt-1 truncate">{lead.website_url || 'No website'}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
                         <div className="divide-y divide-gray-100">
                             {myLeads.filter(l => !showFavoritesOnly || l.is_favorite).map((lead) => (
                                 <div key={lead.id} className="p-6 hover:bg-gray-50 transition-colors group">
@@ -740,6 +938,15 @@ export default function Dashboard() {
                                         </div>
 
                                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {lead.status === 'audited' && (
+                                                <button
+                                                    onClick={() => handleGenerateEmail(lead.id, lead.business_name)}
+                                                    disabled={generatingEmail === lead.id}
+                                                    className="flex items-center gap-1 text-sm font-bold text-teal-600 hover:text-teal-700 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-lg transition-all"
+                                                >
+                                                    <Mail size={14} /> {generatingEmail === lead.id ? 'Generating...' : 'Outreach'}
+                                                </button>
+                                            )}
                                             {lead.website_url && (
                                                 <button onClick={() => handleScan(lead.website_url, lead.id)}
                                                     className="flex items-center gap-1 text-sm font-bold text-gray-600 hover:text-teal-600 bg-white border px-3 py-1.5 rounded-lg hover:border-teal-300 transition-all">
@@ -809,9 +1016,66 @@ export default function Dashboard() {
                                 </div>
                             )}
                         </div>
+                        )}
                     </div>
                 )}
             </div>
+
+            {emailModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 className="font-bold text-lg text-gray-800">Outreach Email — {emailModal.leadName}</h3>
+                            <button onClick={() => setEmailModal(null)} className="text-gray-400 hover:text-gray-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="flex flex-wrap gap-2">
+                                {Object.entries(EMAIL_TEMPLATES).map(([key, tmpl]) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => setEmailTemplate(key as EmailTemplateVariant)}
+                                        className={cn(
+                                            "px-3 py-1.5 rounded-lg text-xs font-bold border transition-all",
+                                            emailTemplate === key
+                                                ? "bg-teal-400 text-white border-teal-400"
+                                                : "bg-white text-gray-600 border-gray-200 hover:border-teal-300"
+                                        )}
+                                    >
+                                        {tmpl.name}
+                                    </button>
+                                ))}
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 uppercase">Subject</label>
+                                <p className="mt-1 p-3 bg-gray-50 rounded-lg text-sm font-medium">{emailModal.subject}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 uppercase">Body</label>
+                                <pre className="mt-1 p-3 bg-gray-50 rounded-lg text-sm whitespace-pre-wrap font-sans">{emailModal.body}</pre>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(`${emailModal.subject}\n\n${emailModal.body}`);
+                                        toast.success('Copied to clipboard!');
+                                    }}
+                                    className="flex items-center gap-2 bg-teal-400 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-teal-500"
+                                >
+                                    <Copy size={14} /> Copy Email
+                                </button>
+                                <button
+                                    onClick={() => setEmailModal(null)}
+                                    className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DashboardShell>
     );
 }

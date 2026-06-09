@@ -33,6 +33,12 @@ export interface ScanReport {
     // AI-generated summary (optional)
     aiSummary?: string;
     priorityFixes?: string[];
+    lighthouse?: {
+        performance: number;
+        accessibility: number;
+        bestPractices: number;
+        seo: number;
+    };
 }
 
 export interface ScannerOptions {

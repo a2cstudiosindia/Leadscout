@@ -5,6 +5,7 @@ import { Check, Crown } from "lucide-react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { getSubscriptionInfo } from "@/lib/subscription";
 import { checkout } from "@/lib/auth-client";
+import { CREDIT_PACKS } from "@/lib/plans";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function PricingPage() {
@@ -102,7 +103,7 @@ export default function PricingPage() {
                         <ul className="space-y-4 mb-8 flex-1">
                             <li className="flex items-center gap-3 text-sm text-gray-300">
                                 <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                100 Leads per month
+                                500 Leads per month
                             </li>
                             <li className="flex items-center gap-3 text-sm text-gray-300">
                                 <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
@@ -114,11 +115,11 @@ export default function PricingPage() {
                             </li>
                             <li className="flex items-center gap-3 text-sm text-gray-300">
                                 <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                API Access
+                                CSV Export
                             </li>
                             <li className="flex items-center gap-3 text-sm text-gray-300">
                                 <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                White-label PDF Reports
+                                API Access & PDF Reports
                             </li>
                         </ul>
 
@@ -138,10 +139,10 @@ export default function PricingPage() {
                         )}
                     </div>
 
-                    {/* Enterprise Plan */}
+                    {/* Agency Plan */}
                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group hover:border-teal-200 transition-all hover:shadow-lg">
                         <div className="mb-6">
-                            <h3 className="text-lg font-bold text-gray-500 uppercase tracking-wide">Enterprise</h3>
+                            <h3 className="text-lg font-bold text-gray-500 uppercase tracking-wide">Agency</h3>
                             <div className="mt-4 flex items-baseline gap-1">
                                 <span className="text-4xl font-bold text-gray-800">$79</span>
                                 <span className="text-gray-400">/mo</span>
@@ -168,7 +169,11 @@ export default function PricingPage() {
                             </li>
                             <li className="flex items-center gap-3 text-sm text-gray-600">
                                 <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                Priority Support
+                                Excel Export with Audit Data
+                            </li>
+                            <li className="flex items-center gap-3 text-sm text-gray-600">
+                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
+                                Favorites & Bulk Actions
                             </li>
                             {/* Coming Soon Feature */}
                             <li className="flex items-center gap-3 text-sm">
@@ -195,10 +200,66 @@ export default function PricingPage() {
                                 disabled={loading === 'enterprise'}
                                 className="w-full py-3 rounded-xl border border-teal-400 text-teal-500 font-bold hover:bg-teal-50 transition-colors disabled:opacity-50"
                             >
-                                {loading === 'enterprise' ? 'Processing...' : 'Upgrade to Enterprise'}
+                                {loading === 'enterprise' ? 'Processing...' : 'Upgrade to Agency'}
                             </button>
                         )}
                     </div>
+                </div>
+
+                {/* Credit Packs */}
+                <div className="w-full max-w-4xl mt-16 px-4">
+                    <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">Pay-As-You-Go Credit Packs</h2>
+                    <p className="text-gray-500 text-center mb-8">Need extra capacity? Buy credits without changing your plan.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {CREDIT_PACKS.map((pack) => (
+                            <div key={pack.id} className="bg-white p-6 rounded-2xl border border-gray-100 text-center hover:border-teal-200 transition-all">
+                                <h3 className="font-bold text-gray-800">{pack.label}</h3>
+                                <p className="text-3xl font-bold text-teal-500 mt-2">${pack.price}</p>
+                                <p className="text-sm text-gray-400 mt-1">One-time purchase</p>
+                                <button
+                                    onClick={() => toast('Credit packs coming soon!', { icon: '💳' })}
+                                    className="mt-4 w-full py-2 rounded-lg border border-teal-400 text-teal-600 font-bold text-sm hover:bg-teal-50 transition-colors"
+                                >
+                                    Buy Credits
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Feature Comparison */}
+                <div className="w-full max-w-4xl mt-16 px-4 overflow-x-auto">
+                    <h2 className="text-2xl font-bold text-gray-800 text-center mb-8">Feature Comparison</h2>
+                    <table className="w-full text-sm border-collapse">
+                        <thead>
+                            <tr className="border-b border-gray-200">
+                                <th className="text-left py-3 px-4 font-bold text-gray-600">Feature</th>
+                                <th className="text-center py-3 px-4 font-bold text-gray-600">Free</th>
+                                <th className="text-center py-3 px-4 font-bold text-teal-600">Pro</th>
+                                <th className="text-center py-3 px-4 font-bold text-gray-600">Agency</th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-gray-600">
+                            {[
+                                ['Lead Scoring', '✓', '✓', '✓'],
+                                ['Website Audits', '5/mo', '50/mo', 'Unlimited'],
+                                ['Lead Discovery', '10/mo', '500/mo', 'Unlimited'],
+                                ['CSV Export', '—', '✓', '✓'],
+                                ['Excel + Audit Data', '—', '—', '✓'],
+                                ['API Access', '—', '✓', '✓'],
+                                ['AI Outreach Emails', '—', '✓', '✓'],
+                                ['White-label PDF', '—', '✓', '✓'],
+                                ['Favorites & Bulk', '—', '—', '✓'],
+                            ].map(([feature, free, pro, agency]) => (
+                                <tr key={feature} className="border-b border-gray-100">
+                                    <td className="py-3 px-4 font-medium">{feature}</td>
+                                    <td className="text-center py-3 px-4">{free}</td>
+                                    <td className="text-center py-3 px-4">{pro}</td>
+                                    <td className="text-center py-3 px-4">{agency}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </DashboardShell >
