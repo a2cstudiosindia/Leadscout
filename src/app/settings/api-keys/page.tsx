@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { generateApiKey, listApiKeys, revokeApiKey } from "@/lib/api-keys";
 import { getSubscriptionInfo } from "@/lib/subscription";
@@ -225,7 +226,7 @@ export default function ApiKeysPage() {
   -H "Authorization: Bearer YOUR_API_KEY"`}
                     </pre>
                     <p className="text-sm text-gray-500 mt-4">
-                        See the full API documentation at <span className="text-teal-500" onClick={() => router.push('/docs/api')}>/docs/api</span>
+                        See the full API documentation at <Link href="/api/docs" className="text-teal-500 hover:underline">/api/docs</Link>
                     </p>
                 </div>
             </div>
