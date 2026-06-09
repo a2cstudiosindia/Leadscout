@@ -11,6 +11,23 @@ interface AuditCheck {
     recommendation?: string;
 }
 
+export type EmailTemplateVariant = 'friendly_audit' | 'urgent_security' | 'value_proposal';
+
+export const EMAIL_TEMPLATES: Record<EmailTemplateVariant, { name: string; description: string }> = {
+    friendly_audit: {
+        name: 'Friendly Audit Share',
+        description: 'Warm, helpful tone sharing audit findings',
+    },
+    urgent_security: {
+        name: 'Urgent Security Alert',
+        description: 'Emphasizes critical security and trust issues',
+    },
+    value_proposal: {
+        name: 'Value Proposal',
+        description: 'ROI-focused pitch with clear business value',
+    },
+};
+
 interface EmailGenerationInput {
     businessName: string;
     websiteUrl: string;
@@ -22,6 +39,7 @@ interface EmailGenerationInput {
     agencyName?: string;
     agencyEmail?: string;
     agencyPhone?: string;
+    template?: EmailTemplateVariant;
 }
 
 interface GeneratedEmail {
@@ -43,12 +61,25 @@ Your emails should:
 
 Output format: JSON with subject and body fields. Use \\n for line breaks in body.`;
 
+function getTemplateInstructions(template: EmailTemplateVariant): string {
+    switch (template) {
+        case 'urgent_security':
+            return 'Use an URGENT but professional tone. Lead with security/SSL issues. Emphasize customer trust and data protection risks. Subject should convey urgency.';
+        case 'value_proposal':
+            return 'Use a VALUE-FOCUSED tone. Lead with ROI and business impact (lost customers, lower rankings). Include specific numbers where possible. End with a clear proposal CTA.';
+        case 'friendly_audit':
+        default:
+            return 'Use a FRIENDLY, helpful tone. Position yourself as someone who noticed issues and wants to help. Share findings like a helpful notification, not a sales pitch.';
+    }
+}
+
 export async function generateColdEmail(input: EmailGenerationInput): Promise<GeneratedEmail | null> {
+    const template = input.template || 'friendly_audit';
     const apiKey = process.env.OPENROUTER_API_KEY || process.env.GROK_API_KEY;
 
     if (!apiKey) {
         console.log('[EMAIL] No API key found, using template email');
-        return generateTemplateEmail(input);
+        return generateTemplateEmail({ ...input, template });
     }
 
     // Identify critical issues (fail or warning with low score)
@@ -67,6 +98,9 @@ export async function generateColdEmail(input: EmailGenerationInput): Promise<Ge
 
     const prompt = `
 Generate a cold outreach email for a web agency to send to a business owner.
+
+TEMPLATE STYLE: ${EMAIL_TEMPLATES[template].name}
+${getTemplateInstructions(template)}
 
 BUSINESS DETAILS:
 - Business Name: ${input.businessName}
@@ -168,11 +202,10 @@ IMPORTANT:
             }
         }
 
-        // Fallback to template
-        return generateTemplateEmail(input);
+        return generateTemplateEmail({ ...input, template });
     } catch (error) {
         console.error('[EMAIL] Failed to generate email:', error);
-        return generateTemplateEmail(input);
+        return generateTemplateEmail({ ...input, template });
     }
 }
 
@@ -180,6 +213,7 @@ IMPORTANT:
  * Template-based email generator (fallback when AI is unavailable)
  */
 function generateTemplateEmail(input: EmailGenerationInput): GeneratedEmail {
+    const template = input.template || 'friendly_audit';
     const criticalIssues = Object.entries(input.checks)
         .filter(([_, check]) => check.status === 'fail' || check.status === 'warning')
         .slice(0, 3);
@@ -190,38 +224,68 @@ function generateTemplateEmail(input: EmailGenerationInput): GeneratedEmail {
 
     const ownerName = input.ownerName || 'there';
     const agencyName = input.agencyName || 'our agency';
+    const topIssue = criticalIssues[0]?.[1]?.title || 'website issues';
 
-    return {
-        subject: `I found ${criticalIssues.length} issues on ${input.businessName}'s website`,
-        body: `Hi ${ownerName},
+    const templates: Record<EmailTemplateVariant, GeneratedEmail> = {
+        friendly_audit: {
+            subject: `Quick audit of ${input.businessName}'s website`,
+            body: `Hi ${ownerName},
 
-I was researching ${input.industry || 'local'} businesses in ${input.city || 'your area'} and came across ${input.businessName}'s website.
+I came across ${input.businessName} while researching ${input.industry || 'local'} businesses in ${input.city || 'your area'}.
 
-I ran a quick technical audit and found a few issues that might be affecting your online presence:
+I ran a quick website audit and noticed a few things worth addressing:
 
 ${issuesList}
 
-Your current website score is ${input.overallScore}/100. These issues are relatively straightforward to fix and could significantly improve your customer experience and search rankings.
+Your site scored ${input.overallScore}/100 — nothing major, but a few quick fixes could help you get more customers online.
 
-Would you be open to a quick 15-minute call to discuss? I can share the full audit report and some quick wins you could implement.
+Happy to share the full report if you're interested. No pressure — just thought you'd want to know.
 
 Best,
 ${agencyName}
-${input.agencyEmail || ''}
-${input.agencyPhone || ''}`.trim(),
-        followUpSubject: `Quick follow-up re: ${input.businessName} website`,
-        followUpBody: `Hi ${ownerName},
+${input.agencyEmail || ''}`.trim(),
+            followUpSubject: `Following up — ${input.businessName} website audit`,
+            followUpBody: `Hi ${ownerName},\n\nJust circling back on the audit I ran for ${input.businessName}. Happy to send the full report over if helpful.\n\n${agencyName}`.trim(),
+        },
+        urgent_security: {
+            subject: `⚠️ Security issue on ${input.businessName}'s website`,
+            body: `Hi ${ownerName},
 
-Just wanted to follow up on my previous email about ${input.businessName}'s website.
+I need to flag something important about ${input.businessName}'s website (${input.websiteUrl}).
 
-I know you're busy running your business, but I wanted to make sure you saw the issues I found. Some of them, like ${criticalIssues[0]?.[1]?.title || 'security concerns'}, can really hurt your credibility with potential customers.
+During a routine audit, I found security issues that may affect customer trust:
 
-Happy to send over the full report if you'd like to see the details - no strings attached.
+${issuesList}
 
-Let me know!
+Visitors may see "Not Secure" warnings, which causes many people to leave immediately. This is fixable, but it shouldn't wait.
 
-${agencyName}`.trim()
+Can we schedule a quick 10-minute call this week? I can walk you through exactly what needs to be fixed.
+
+${agencyName}
+${input.agencyEmail || ''}`.trim(),
+            followUpSubject: `Re: security concerns for ${input.businessName}`,
+            followUpBody: `Hi ${ownerName},\n\nWanted to make sure you saw my note about ${topIssue} on your website. Happy to help fix this quickly.\n\n${agencyName}`.trim(),
+        },
+        value_proposal: {
+            subject: `${input.businessName} — leaving revenue on the table?`,
+            body: `Hi ${ownerName},
+
+I analyzed ${input.businessName}'s website and found opportunities that could directly impact your bottom line:
+
+${issuesList}
+
+Current score: ${input.overallScore}/100. Businesses in your space typically see 20-40% more online inquiries after fixing these issues.
+
+I'd like to propose a quick website refresh focused on the highest-impact fixes. Would a 15-minute call work this week?
+
+${agencyName}
+${input.agencyEmail || ''}`.trim(),
+            followUpSubject: `ROI opportunity for ${input.businessName}`,
+            followUpBody: `Hi ${ownerName},\n\nFollowing up on the website improvements I identified for ${input.businessName}. The fixes are straightforward and the ROI is clear.\n\n${agencyName}`.trim(),
+        },
     };
+
+    return templates[template];
 }
 
 /**

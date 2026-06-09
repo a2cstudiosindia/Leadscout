@@ -1,6 +1,7 @@
 import { chromium, Browser, Page } from 'playwright';
 import { ScanReport, AuditResult } from './types';
 import { generateAIRecommendations, getStaticRecommendation } from '../ai-recommendations';
+import { canScrape } from '../robots-checker';
 import {
     checkMetaTags,
     checkHeadingStructure,
@@ -26,6 +27,29 @@ export class Scanner {
     }
 
     async scan(url: string): Promise<ScanReport> {
+        const robotsCheck = await canScrape(url);
+        if (!robotsCheck.allowed) {
+            return {
+                url,
+                scannedAt: new Date().toISOString(),
+                overallScore: 0,
+                checks: {
+                    security: {
+                        score: 0,
+                        status: 'fail',
+                        title: 'Scraping Blocked',
+                        description: robotsCheck.reason || 'robots.txt disallows automated scanning',
+                    },
+                    mobile: { score: 0, status: 'fail', title: 'Scan Blocked', description: 'Audit could not run' },
+                    performance: { score: 0, status: 'fail', title: 'Scan Blocked', description: 'Audit could not run' },
+                    seo: { score: 0, status: 'fail', title: 'Scan Blocked', description: 'Audit could not run' },
+                    business: { score: 0, status: 'fail', title: 'Scan Blocked', description: 'Audit could not run' },
+                    content: { score: 0, status: 'fail', title: 'Scan Blocked', description: 'Audit could not run' },
+                    social: { score: 0, status: 'fail', title: 'Scan Blocked', description: 'Audit could not run' },
+                },
+            };
+        }
+
         if (!this.browser) await this.init();
 
         // Create contexts for mobile and desktop
@@ -143,6 +167,8 @@ export class Scanner {
 
         console.log(`[SCANNER] Audit complete. Score: ${overallScore}/100`);
 
+        const lighthouse = await fetchLighthouseScores(url);
+
         return {
             url,
             scannedAt: new Date().toISOString(),
@@ -153,7 +179,8 @@ export class Scanner {
                 technicalSEO, images, httpsRedirect
             },
             aiSummary: aiRecs?.summary,
-            priorityFixes: aiRecs?.priorityFixes
+            priorityFixes: aiRecs?.priorityFixes,
+            lighthouse,
         };
     }
 
@@ -314,5 +341,39 @@ export class Scanner {
             description: `${socialLinks.length} social profiles active.`,
             recommendation: 'Great social presence! Consider adding social sharing buttons on blog posts and embedding a live feed for engagement.'
         };
+    }
+}
+
+async function fetchLighthouseScores(url: string): Promise<ScanReport['lighthouse'] | undefined> {
+    const apiKey = process.env.LIGHTHOUSE_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
+    if (!apiKey) return undefined;
+
+    try {
+        const params = new URLSearchParams({
+            url,
+            key: apiKey,
+            category: 'performance',
+            strategy: 'mobile',
+        });
+
+        const response = await fetch(
+            `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params}`,
+            { signal: AbortSignal.timeout(30000) }
+        );
+
+        if (!response.ok) return undefined;
+
+        const data = await response.json();
+        const categories = data.lighthouseResult?.categories;
+        if (!categories) return undefined;
+
+        return {
+            performance: Math.round((categories.performance?.score ?? 0) * 100),
+            accessibility: Math.round((categories.accessibility?.score ?? 0) * 100),
+            bestPractices: Math.round((categories['best-practices']?.score ?? 0) * 100),
+            seo: Math.round((categories.seo?.score ?? 0) * 100),
+        };
+    } catch {
+        return undefined;
     }
 }

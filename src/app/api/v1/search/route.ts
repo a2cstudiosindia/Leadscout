@@ -14,7 +14,7 @@ export const POST = withApiAuth(async (req: NextRequest, context: ApiContext) =>
         );
     }
 
-    const { query } = body;
+    const { query, category } = body;
 
     if (!query) {
         return NextResponse.json(
@@ -25,7 +25,7 @@ export const POST = withApiAuth(async (req: NextRequest, context: ApiContext) =>
 
     try {
         const service = new DiscoveryService();
-        const response = await service.search(query);
+        const response = await service.search(query, category);
 
         return NextResponse.json({
             success: true,

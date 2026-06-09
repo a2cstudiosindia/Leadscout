@@ -1,73 +1,70 @@
 "use server";
 
-import { Scanner } from "@/lib/scanner";
+import { after } from "next/server";
 import { DiscoveryService } from "@/lib/discovery/service";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth-session";
 import { DiscoveredBusiness } from "@/lib/discovery/types";
 import { checkLimit, incrementUsage, trackEvent, getSubscriptionInfo, getSubscription } from "@/lib/subscription";
+import { calculateLeadScore } from "@/lib/lead-scoring";
+import { isDuplicate } from "@/lib/deduplication";
+import { enqueueJob, getJob, getUserJobs, processJobById } from "@/lib/job-queue";
+import type { EmailTemplateVariant } from "@/lib/ai-email-generator";
 
-export async function runAudit(url: string) {
-    // Check usage limit
+export async function runAudit(url: string, leadId?: string) {
     const limitCheck = await checkLimit('audits');
     if (!limitCheck.allowed) {
         return { success: false, error: limitCheck.reason };
     }
 
-    // Use external Scanner API if configured (for production/Vercel)
-    const scannerApiUrl = process.env.SCANNER_API_URL;
+    const user = await getCurrentUser();
+    if (!user) return { success: false, error: "Unauthorized" };
 
-    if (scannerApiUrl) {
-        // Call external Scanner API
-        try {
-            console.log(`[AUDIT] Calling external scanner: ${scannerApiUrl}/scan`);
-            const response = await fetch(`${scannerApiUrl}/scan`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                console.error('[AUDIT] External scanner error:', data.error);
-                return { success: false, error: data.error || 'Scanner API error' };
-            }
-
-            // Track usage
-            await incrementUsage('audits');
-            await trackEvent('audit_run', { url, score: data.report.overallScore });
-
-            return { success: true, report: data.report };
-        } catch (error) {
-            console.error('[AUDIT] Failed to call Scanner API:', error);
-            return { success: false, error: 'Scanner service unavailable' };
-        }
-    }
-
-    // Fallback: Use local Playwright scanner (for development)
-    console.log('[AUDIT] Using LOCAL Playwright scanner (SCANNER_API_URL not set)');
-    console.log('[AUDIT] Scanning URL:', url);
-    const scanner = new Scanner();
     try {
-        const report = await scanner.scan(url);
-        await scanner.close();
+        const jobId = await enqueueJob(user.id, url, leadId);
 
-        // Track usage
-        await incrementUsage('audits');
-        await trackEvent('audit_run', { url, score: report.overallScore });
+        after(async () => {
+            await processJobById(jobId);
+        });
 
-        return { success: true, report };
+        return { success: true, jobId, message: "Scan queued — we'll notify you when done" };
     } catch (error) {
-        console.error("Audit failed:", error);
-        await scanner.close();
-        return { success: false, error: "Failed to scan website" };
+        console.error("Failed to enqueue audit:", error);
+        return { success: false, error: "Failed to queue scan" };
     }
 }
 
+export async function getJobStatus(jobId: string) {
+    const user = await getCurrentUser();
+    if (!user) return { success: false, error: "Unauthorized" };
 
-export async function findLeads(query: string) {
-    // Check search limit
+    const job = await getJob(jobId, user.id);
+    if (!job) return { success: false, error: "Job not found" };
+
+    return {
+        success: true,
+        job: {
+            id: job.id,
+            status: job.status,
+            url: job.url,
+            leadId: job.lead_id,
+            report: job.result_data,
+            error: job.error_message,
+            createdAt: job.created_at,
+            completedAt: job.completed_at,
+        },
+    };
+}
+
+export async function getScanJobs() {
+    const user = await getCurrentUser();
+    if (!user) return { success: false, error: "Unauthorized" };
+
+    const jobs = await getUserJobs(user.id, 10);
+    return { success: true, jobs };
+}
+
+export async function findLeads(query: string, category?: string) {
     const limitCheck = await checkLimit('searches');
     if (!limitCheck.allowed) {
         return { success: false, error: limitCheck.reason, results: [] };
@@ -75,13 +72,24 @@ export async function findLeads(query: string) {
 
     const service = new DiscoveryService();
     try {
-        const result = await service.search(query);
+        const result = await service.search(query, category);
 
-        // Track usage
+        const scoredResults = result.results.map((business) => {
+            const { score, reasons, priority } = calculateLeadScore(business);
+            return {
+                ...business,
+                lead_score: score,
+                score_reasons: reasons,
+                priority,
+            };
+        });
+
+        scoredResults.sort((a, b) => (b.lead_score ?? 0) - (a.lead_score ?? 0));
+
         await incrementUsage('searches');
-        await trackEvent('search_performed', { query, resultsCount: result.results.length });
+        await trackEvent('search_performed', { query, category, resultsCount: scoredResults.length });
 
-        return { success: true, results: result.results };
+        return { success: true, results: scoredResults };
     } catch (error) {
         console.error("Discovery failed:", error);
         return { success: false, error: "Failed to find leads", results: [] };
@@ -91,7 +99,6 @@ export async function findLeads(query: string) {
 
 
 export async function saveLead(lead: DiscoveredBusiness) {
-    // Check usage limit
     const limitCheck = await checkLimit('leads');
     if (!limitCheck.allowed) {
         return { success: false, error: limitCheck.reason };
@@ -101,6 +108,19 @@ export async function saveLead(lead: DiscoveredBusiness) {
     if (!user) return { success: false, error: "Unauthorized" };
 
     const supabase = await createClient();
+
+    const { data: existingLeads } = await supabase
+        .from('leads')
+        .select('id, business_name, address')
+        .eq('user_id', user.id);
+
+    const duplicateCheck = isDuplicate(
+        { name: lead.name, formatted_address: lead.formatted_address },
+        existingLeads || []
+    );
+
+    const { score, reasons } = calculateLeadScore(lead);
+
     const { error } = await supabase.from('leads').insert({
         user_id: user.id,
         business_name: lead.name,
@@ -108,7 +128,9 @@ export async function saveLead(lead: DiscoveredBusiness) {
         google_place_id: lead.place_id,
         phone: lead.phone || null,
         address: lead.formatted_address || null,
-        status: 'new'
+        status: 'new',
+        lead_score: lead.lead_score ?? score,
+        score_reasons: lead.score_reasons ?? reasons,
     });
 
     if (error) {
@@ -116,11 +138,16 @@ export async function saveLead(lead: DiscoveredBusiness) {
         return { success: false, error: "Failed to save lead" };
     }
 
-    // Track usage
     await incrementUsage('leads');
     await trackEvent('lead_saved', { name: lead.name, website: lead.website });
 
-    return { success: true };
+    return {
+        success: true,
+        duplicateWarning: duplicateCheck.isDuplicate
+            ? `This lead may already exist (${Math.round(duplicateCheck.confidence * 100)}% match)`
+            : undefined,
+        matchedLeadId: duplicateCheck.matchedLeadId,
+    };
 }
 
 export async function getLeads() {
@@ -132,6 +159,7 @@ export async function getLeads() {
         .from('leads')
         .select('*')
         .eq('user_id', user.id)
+        .order('lead_score', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -539,8 +567,61 @@ export async function exportLeadsToExcel(leadIds?: string[]) {
     };
 }
 
+export async function exportLeadsToCSV(leadIds?: string[]) {
+    const user = await getCurrentUser();
+    if (!user) return { success: false, error: "Unauthorized" };
+
+    const subscription = await getSubscription();
+    if (!subscription?.limits.csvExport) {
+        return { success: false, error: "CSV export requires a Pro or Agency plan. Please upgrade." };
+    }
+
+    const supabase = await createClient();
+    let query = supabase
+        .from('leads')
+        .select('business_name, website_url, phone, address, status, lead_score, notes, value, created_at')
+        .eq('user_id', user.id)
+        .order('lead_score', { ascending: false });
+
+    if (leadIds && leadIds.length > 0) {
+        query = query.in('id', leadIds);
+    }
+
+    const { data: leads, error } = await query;
+    if (error || !leads) {
+        return { success: false, error: "Failed to fetch leads" };
+    }
+
+    const headers = ['Business Name', 'Phone', 'Address', 'Website', 'Status', 'Score', 'Notes', 'Est. Value', 'Created'];
+    const rows = leads.map((lead) => [
+        lead.business_name || '',
+        lead.phone || '',
+        lead.address || '',
+        lead.website_url || '',
+        lead.status || 'new',
+        String(lead.lead_score ?? 0),
+        (lead.notes || '').replace(/"/g, '""'),
+        lead.value ? `$${lead.value}` : '',
+        new Date(lead.created_at).toLocaleDateString(),
+    ]);
+
+    const csv = [
+        headers.join(','),
+        ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+    ].join('\n');
+
+    await trackEvent('leads_csv_exported', { count: leads.length });
+
+    return {
+        success: true,
+        data: Buffer.from(csv).toString('base64'),
+        filename: `leadscout_export_${new Date().toISOString().split('T')[0]}.csv`,
+        count: leads.length,
+    };
+}
+
 // Generate cold email for a lead
-export async function generateEmail(leadId: string) {
+export async function generateEmail(leadId: string, template?: EmailTemplateVariant, isFollowUp?: boolean) {
     const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
 
@@ -584,20 +665,36 @@ export async function generateEmail(leadId: string) {
     const email = await generateColdEmail({
         businessName: lead.business_name || 'this business',
         websiteUrl: lead.website_url || '',
-        ownerName: undefined, // Could be added to lead data later
+        ownerName: undefined,
         industry: undefined,
         city: lead.address?.split(',').pop()?.trim(),
         overallScore: report.overall_score || 0,
         checks: report.scan_data.checks || {},
         agencyName: profile?.agency_name || undefined,
         agencyEmail: user.email || undefined,
+        template: template || 'friendly_audit',
     });
 
     if (!email) {
         return { success: false, error: "Failed to generate email" };
     }
 
-    await trackEvent('email_generated', { leadId, businessName: lead.business_name });
+    await trackEvent('email_generated', {
+        leadId,
+        businessName: lead.business_name,
+        template: template || 'friendly_audit',
+        isFollowUp: !!isFollowUp,
+    });
+
+    if (isFollowUp) {
+        return {
+            success: true,
+            email: {
+                subject: email.followUpSubject || email.subject,
+                body: email.followUpBody || email.body,
+            },
+        };
+    }
 
     return { success: true, email };
 }

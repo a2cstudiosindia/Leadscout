@@ -15,6 +15,8 @@ create table leads (
   notes text,
   value integer,
   last_contacted_at timestamp with time zone,
+  lead_score integer default 0,
+  score_reasons text[],
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

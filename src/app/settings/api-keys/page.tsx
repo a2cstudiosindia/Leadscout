@@ -225,7 +225,7 @@ export default function ApiKeysPage() {
   -H "Authorization: Bearer YOUR_API_KEY"`}
                     </pre>
                     <p className="text-sm text-gray-500 mt-4">
-                        See the full API documentation at <span className="text-teal-500">/api/docs</span>
+                        See the full API documentation at <span className="text-teal-500" onClick={() => router.push('/docs/api')}>/docs/api</span>
                     </p>
                 </div>
             </div>
