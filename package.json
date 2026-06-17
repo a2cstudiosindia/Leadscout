@@ -10,6 +10,7 @@
     "db:bootstrap": "node scripts/bootstrap-supabase.mjs"
   },
   "dependencies": {
+    "@better-auth/infra": "^0.2.14",
     "@polar-sh/better-auth": "^1.6.3",
     "@polar-sh/sdk": "^0.42.1",
     "@splinetool/react-spline": "^4.1.0",

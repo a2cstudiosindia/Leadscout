@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { Pool } from "pg";
 import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
+import { dash } from "@better-auth/infra";
 
 // Better-Auth requires actual values at initialization time.
 // During build, env vars may not be set. We use fallbacks to allow build to complete,
@@ -51,32 +52,35 @@ export const auth = betterAuth({
         expiresIn: 60 * 60 * 24 * 7, // 7 days
         updateAge: 60 * 60 * 24, // 1 day
     },
-    plugins: polarEnabled && polarClient
-        ? [
-            polar({
-                client: polarClient,
-                // Off by default — expired Polar tokens block Google/email sign-up
-                createCustomerOnSignUp: createPolarCustomerOnSignUp,
-                use: [
-                    checkout({
-                        products: [
-                            { productId: POLAR_PRO_PRODUCT_ID, slug: "pro" },
-                            { productId: POLAR_ENTERPRISE_PRODUCT_ID, slug: "enterprise" }
-                        ],
-                        successUrl: "/dashboard?checkout=success",
-                        authenticatedUsersOnly: true
-                    }),
-                    portal(),
-                    webhooks({
-                        secret: POLAR_WEBHOOK_SECRET,
-                        onPayload: async (payload) => {
-                            console.log('Polar webhook received:', payload.type);
-                        }
-                    })
-                ]
-            })
-        ]
-        : [],
+    plugins: [
+        dash(),
+        ...(polarEnabled && polarClient
+            ? [
+                polar({
+                    client: polarClient,
+                    // Off by default — expired Polar tokens block Google/email sign-up
+                    createCustomerOnSignUp: createPolarCustomerOnSignUp,
+                    use: [
+                        checkout({
+                            products: [
+                                { productId: POLAR_PRO_PRODUCT_ID, slug: "pro" },
+                                { productId: POLAR_ENTERPRISE_PRODUCT_ID, slug: "enterprise" }
+                            ],
+                            successUrl: "/dashboard?checkout=success",
+                            authenticatedUsersOnly: true
+                        }),
+                        portal(),
+                        webhooks({
+                            secret: POLAR_WEBHOOK_SECRET,
+                            onPayload: async (payload) => {
+                                console.log('Polar webhook received:', payload.type);
+                            }
+                        })
+                    ]
+                })
+            ]
+            : [])
+    ],
 });
 
 // Type export for use in other files
