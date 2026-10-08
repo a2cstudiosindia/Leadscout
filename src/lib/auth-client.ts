@@ -1,9 +1,10 @@
 import { createAuthClient } from "better-auth/react";
 import { polarClient } from "@polar-sh/better-auth/client";
+import { sentinelClient } from "@better-auth/infra/client";
 
 export const authClient = createAuthClient({
     baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-    plugins: [polarClient()]
+    plugins: [polarClient(), sentinelClient()]
 });
 
 // Export commonly used methods for convenience

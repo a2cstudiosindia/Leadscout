@@ -93,7 +93,7 @@ The LeadScout API allows you to automate your workflow and integrate with other 
 - **Discovery**: Search for new businesses (\`POST / api / v1 / search\`)
 - **Audits**: Trigger website analysis (\`POST / api / v1 / audit\`)
 - **Usage**: Check your remaining quota (\`GET / api / v1 / usage\`)
-- **Documentation**: Full interactive docs available at \`/ docs / api\`
+- **Documentation**: Full interactive docs available at \`/ api / docs\`
 
 ### 6. Analytics Dashboard
 Track your agency's performance:
@@ -275,7 +275,7 @@ Q: How do I authenticate with the API?
 A: You need to include an \`Authorization\` header with your API key in every request: \`Authorization: Bearer YOUR_API_KEY\`. You can generate a key in Settings.
 
 Q: Where can I find the API documentation?
-A: Comprehensive documentation including endpoint details, request examples, and response schemas is available at \`/ docs / api\` in your dashboard.
+A: Comprehensive documentation including endpoint details, request examples, and response schemas is available at \`/ api / docs\` in your dashboard.
 `;
 
 export const SYSTEM_PROMPT = `You are LeadScout's friendly AI assistant. Your job is to help users understand and use the LeadScout platform effectively.
