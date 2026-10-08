@@ -86,8 +86,8 @@ export default function ApiKeysPage() {
     if (loading) {
         return (
             <DashboardShell>
-                <div className="flex items-center justify-center min-h-[50vh]">
-                    <div className="animate-pulse text-teal-500 font-bold">Loading...</div>
+                <div className="flex justify-center items-center min-h-[50vh]">
+                    <div className="font-bold text-teal-500 animate-pulse">Loading...</div>
                 </div>
             </DashboardShell>
         );
@@ -96,29 +96,29 @@ export default function ApiKeysPage() {
     return (
         <DashboardShell>
             <Toaster position="top-right" />
-            <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="slide-in-from-bottom-4 space-y-8 mx-auto max-w-4xl animate-in duration-500 fade-in">
                 {/* Header */}
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">API Keys</h1>
-                    <p className="text-gray-500 mt-1">Manage your API keys for programmatic access</p>
+                    <h1 className="font-bold text-gray-800 text-3xl">API Keys</h1>
+                    <p className="mt-1 text-gray-500">Manage your API keys for programmatic access</p>
                 </div>
 
                 {/* Upgrade Prompt for Free Users */}
                 {!hasApiAccess && (
-                    <div className="bg-gradient-to-r from-teal-400 to-teal-500 rounded-2xl p-8 text-white">
-                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div className="bg-gradient-to-r from-teal-400 to-teal-500 p-8 rounded-2xl text-white">
+                        <div className="flex md:flex-row flex-col justify-between items-start md:items-center gap-6">
                             <div>
                                 <div className="flex items-center gap-3 mb-2">
                                     <AlertCircle size={24} />
                                     <h3 className="font-bold text-xl">Upgrade to Unlock API Access</h3>
                                 </div>
-                                <p className="text-teal-50 max-w-lg">
+                                <p className="max-w-lg text-teal-50">
                                     API access is available on Pro and Enterprise plans. Generate API keys to integrate LeadScout with your existing tools and automate your workflow.
                                 </p>
                             </div>
                             <a
                                 href="/pricing"
-                                className="px-6 py-3 bg-white text-teal-600 font-bold rounded-xl hover:bg-gray-50 transition-all shadow-lg whitespace-nowrap"
+                                className="bg-white hover:bg-gray-50 shadow-lg px-6 py-3 rounded-xl font-bold text-teal-600 whitespace-nowrap transition-all"
                             >
                                 View Pricing Plans
                             </a>
@@ -128,25 +128,25 @@ export default function ApiKeysPage() {
 
                 {/* New Key Display (shown once after generation) */}
                 {newKey && (
-                    <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6">
-                        <h3 className="font-bold text-teal-800 mb-2">Your New API Key</h3>
-                        <p className="text-teal-700 text-sm mb-4">
+                    <div className="bg-teal-50 p-6 border border-teal-200 rounded-2xl">
+                        <h3 className="mb-2 font-bold text-teal-800">Your New API Key</h3>
+                        <p className="mb-4 text-teal-700 text-sm">
                             Copy this key now. You won't be able to see it again!
                         </p>
                         <div className="flex items-center gap-2">
-                            <code className="flex-1 bg-white px-4 py-3 rounded-xl font-mono text-sm border border-teal-200 overflow-x-auto">
+                            <code className="flex-1 bg-white px-4 py-3 border border-teal-200 rounded-xl overflow-x-auto font-mono text-sm">
                                 {newKey}
                             </code>
                             <button
                                 onClick={copyKey}
-                                className="p-3 bg-teal-400 text-white rounded-xl hover:bg-teal-500 transition-colors"
+                                className="bg-teal-400 hover:bg-teal-500 p-3 rounded-xl text-white transition-colors"
                             >
                                 {copied ? <Check size={18} /> : <Copy size={18} />}
                             </button>
                         </div>
                         <button
                             onClick={() => setNewKey(null)}
-                            className="mt-4 text-sm text-teal-600 hover:text-teal-700"
+                            className="mt-4 text-teal-600 hover:text-teal-700 text-sm"
                         >
                             I've saved my key, dismiss this
                         </button>
@@ -155,8 +155,8 @@ export default function ApiKeysPage() {
 
                 {/* Generate New Key */}
                 {hasApiAccess && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="bg-white shadow-sm p-6 border border-gray-100 rounded-2xl">
+                        <h3 className="flex items-center gap-2 mb-4 font-bold text-gray-800">
                             <Plus size={18} className="text-teal-500" />
                             Generate New Key
                         </h3>
@@ -166,12 +166,12 @@ export default function ApiKeysPage() {
                                 value={newKeyName}
                                 onChange={(e) => setNewKeyName(e.target.value)}
                                 placeholder="Key name (e.g., Production, Testing)"
-                                className="flex-1 p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none"
+                                className="flex-1 bg-gray-50 p-4 border border-gray-200 focus:border-transparent rounded-xl outline-none focus:ring-2 focus:ring-teal-400"
                             />
                             <button
                                 onClick={handleGenerate}
                                 disabled={generating || !hasApiAccess}
-                                className="px-6 py-4 bg-teal-400 text-white font-bold rounded-xl hover:bg-teal-500 disabled:opacity-50 transition-all"
+                                className="bg-teal-400 hover:bg-teal-500 disabled:opacity-50 px-6 py-4 rounded-xl font-bold text-white transition-all"
                             >
                                 {generating ? "Generating..." : "Generate"}
                             </button>
@@ -180,9 +180,9 @@ export default function ApiKeysPage() {
                 )}
 
                 {/* Existing Keys */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="p-6 border-b border-gray-100">
-                        <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                <div className="bg-white shadow-sm border border-gray-100 rounded-2xl overflow-hidden">
+                    <div className="p-6 border-gray-100 border-b">
+                        <h3 className="flex items-center gap-2 font-bold text-gray-800">
                             <Key size={18} className="text-teal-500" />
                             Your API Keys
                         </h3>
@@ -191,17 +191,17 @@ export default function ApiKeysPage() {
                     {keys.length > 0 ? (
                         <div className="divide-y divide-gray-100">
                             {keys.map((key) => (
-                                <div key={key.id} className="p-6 flex items-center justify-between">
+                                <div key={key.id} className="flex justify-between items-center p-6">
                                     <div>
                                         <h4 className="font-medium text-gray-800">{key.name}</h4>
-                                        <div className="text-sm text-gray-500 mt-1">
+                                        <div className="mt-1 text-gray-500 text-sm">
                                             Created: {new Date(key.created_at).toLocaleDateString()}
                                             {key.last_used && ` • Last used: ${new Date(key.last_used).toLocaleDateString()}`}
                                         </div>
                                     </div>
                                     <button
                                         onClick={() => handleRevoke(key.id)}
-                                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                        className="hover:bg-red-50 p-2 rounded-lg text-red-500 transition-colors"
                                         title="Revoke key"
                                     >
                                         <Trash2 size={18} />
@@ -210,22 +210,22 @@ export default function ApiKeysPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="p-12 text-center text-gray-400">
+                        <div className="p-12 text-gray-400 text-center">
                             No API keys yet. Generate one above to get started.
                         </div>
                     )}
                 </div>
 
                 {/* API Documentation */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h3 className="font-bold text-gray-800 mb-4">Quick Start</h3>
-                    <pre className="bg-gray-900 text-gray-100 p-4 rounded-xl overflow-x-auto text-sm">
+                <div className="bg-white shadow-sm p-6 border border-gray-100 rounded-2xl">
+                    <h3 className="mb-4 font-bold text-gray-800">Quick Start</h3>
+                    <pre className="bg-gray-900 p-4 rounded-xl overflow-x-auto text-gray-100 text-sm">
                         {`curl -X GET \\
   https://your-domain.com/api/v1/leads \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
                     </pre>
-                    <p className="text-sm text-gray-500 mt-4">
-                        See the full API documentation at <span className="text-teal-500" onClick={() => router.push('/docs/api')}>/docs/api</span>
+                    <p className="mt-4 text-gray-500 text-sm">
+                        See the full API documentation at <span className="text-teal-500">/docs/api</span>
                     </p>
                 </div>
             </div>

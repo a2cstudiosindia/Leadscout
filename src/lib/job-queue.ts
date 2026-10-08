@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import { Scanner } from '@/lib/scanner';
+
 import { ScanReport } from '@/lib/scanner/types';
 import { incrementUsage, trackEvent } from '@/lib/subscription';
 
@@ -20,26 +20,21 @@ export interface ScanJob {
 async function executeScan(url: string): Promise<ScanReport> {
     const scannerApiUrl = process.env.SCANNER_API_URL;
 
-    if (scannerApiUrl) {
-        const response = await fetch(`${scannerApiUrl}/scan`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url }),
-        });
-
-        const data = await response.json();
-        if (!response.ok || !data.success) {
-            throw new Error(data.error || 'Scanner API error');
-        }
-        return data.report;
+    if (!scannerApiUrl) {
+        throw new Error('SCANNER_API_URL is not configured. Local scanning is disabled.');
     }
 
-    const scanner = new Scanner();
-    try {
-        return await scanner.scan(url);
-    } finally {
-        await scanner.close();
+    const response = await fetch(`${scannerApiUrl}/scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Scanner API error');
     }
+    return data.report;
 }
 
 export async function enqueueJob(userId: string, url: string, leadId?: string): Promise<string> {

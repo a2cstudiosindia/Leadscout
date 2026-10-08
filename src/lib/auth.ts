@@ -46,7 +46,10 @@ export const auth = betterAuth({
             clientSecret: GOOGLE_CLIENT_SECRET,
         },
     },
-    trustedOrigins: [BETTER_AUTH_URL],
+    trustedOrigins: [
+        BETTER_AUTH_URL,
+        "http://localhost:3000",
+    ].filter((v, i, a) => a.indexOf(v) === i), // deduplicate
     session: {
         expiresIn: 60 * 60 * 24 * 7, // 7 days
         updateAge: 60 * 60 * 24, // 1 day
