@@ -29,7 +29,7 @@ export default function LandingPage() {
           <a href="#how-it-works" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">How It Works</a>
           <a href="#testimonials" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">Testimonials</a>
           <Link href="/pricing" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">Pricing</Link>
-          <Link href="/docs/api" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">API Docs</Link>
+          <Link href="/api/docs" className="hover:text-teal-500 focus:text-teal-500 focus:outline-none focus:underline transition-colors">API Docs</Link>
         </div>
 
         {/* Desktop CTA */}

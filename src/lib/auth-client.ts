@@ -1,6 +1,7 @@
 import { createAuthClient } from "better-auth/react";
 import { polarClient } from "@polar-sh/better-auth/client";
 
+
 const getBaseUrl = () => {
     if (typeof window !== "undefined") return window.location.origin;
     if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;

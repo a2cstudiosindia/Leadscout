@@ -88,6 +88,7 @@ export class DiscoveryService {
             }
 
             const data = await response.json();
+            console.log("Google API Raw Response Data:", JSON.stringify(data).substring(0, 500));
 
             const results: DiscoveredBusiness[] = (data.places || []).map((place: Record<string, unknown>) => ({
                 name: (place.displayName as { text?: string })?.text || 'Unknown',

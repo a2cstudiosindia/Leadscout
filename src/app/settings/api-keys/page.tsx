@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { generateApiKey, listApiKeys, revokeApiKey } from "@/lib/api-keys";
 import { getSubscriptionInfo } from "@/lib/subscription";
