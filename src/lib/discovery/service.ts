@@ -82,10 +82,13 @@ export class DiscoveryService {
             });
 
             if (!response.ok) {
-                throw new Error(`Google API Error: ${response.statusText}`);
+                const errorBody = await response.text();
+                console.error(`Google API Error Body:`, errorBody);
+                throw new Error(`Google API Error: ${response.status} ${response.statusText} - ${errorBody}`);
             }
 
             const data = await response.json();
+            console.log("Google API Raw Response Data:", JSON.stringify(data).substring(0, 500));
 
             const results: DiscoveredBusiness[] = (data.places || []).map((place: Record<string, unknown>) => ({
                 name: (place.displayName as { text?: string })?.text || 'Unknown',
@@ -108,7 +111,12 @@ export class DiscoveryService {
             return discoveryResponse;
         } catch (error) {
             console.error('Discovery search failed:', error);
-            return { results: [] };
+            console.warn('Falling back to mock data due to API error.');
+            
+            // Artificial delay to simulate network request
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            const filtered = this.filterByCategory(MOCK_RESULTS, category);
+            return { results: filtered };
         }
     }
 

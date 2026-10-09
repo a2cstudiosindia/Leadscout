@@ -2,14 +2,19 @@ import { betterAuth } from "better-auth";
 import { Pool } from "pg";
 import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
-import { dash } from "@better-auth/infra";
 
 // Better-Auth requires actual values at initialization time.
 // During build, env vars may not be set. We use fallbacks to allow build to complete,
 // but actual runtime will use the real env vars.
 const DATABASE_URL = process.env.DATABASE_URL || "postgresql://localhost:5432/placeholder";
 const BETTER_AUTH_SECRET = process.env.BETTER_AUTH_SECRET || "placeholder-secret-for-build-only-32chars";
-const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || "http://localhost:3000";
+const getBaseUrl = () => {
+    if (process.env.BETTER_AUTH_URL) return process.env.BETTER_AUTH_URL;
+    if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+    if (process.env.NEXT_PUBLIC_VERCEL_URL) return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+    return "http://localhost:3000";
+};
+const BETTER_AUTH_URL = getBaseUrl();
 
 // Google OAuth credentials
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
@@ -47,13 +52,17 @@ export const auth = betterAuth({
             clientSecret: GOOGLE_CLIENT_SECRET,
         },
     },
-    trustedOrigins: [BETTER_AUTH_URL],
+    trustedOrigins: [
+        BETTER_AUTH_URL,
+        process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "",
+        process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "",
+        "http://localhost:3000",
+    ].filter((v, i, a) => v && a.indexOf(v) === i), // deduplicate and remove empty
     session: {
         expiresIn: 60 * 60 * 24 * 7, // 7 days
         updateAge: 60 * 60 * 24, // 1 day
     },
     plugins: [
-        dash(),
         ...(polarEnabled && polarClient
             ? [
                 polar({

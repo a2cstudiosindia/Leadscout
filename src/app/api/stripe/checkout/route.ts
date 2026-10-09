@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, STRIPE_PRICES } from '@/lib/stripe';
-import { createClient } from '@/lib/supabase/server';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 

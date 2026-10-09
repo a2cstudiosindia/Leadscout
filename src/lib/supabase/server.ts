@@ -1,28 +1,19 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
+/**
+ * Create a Supabase client for server-side database operations.
+ * Auth is handled by Better Auth — this client is only for database queries.
+ * Uses the anon key by default. All calls are already guarded by Better Auth
+ * session checks (getCurrentUser()) in the calling code.
+ */
 export async function createClient() {
-    const cookieStore = await cookies()
-
-    return createServerClient(
+    return createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
-            cookies: {
-                getAll() {
-                    return cookieStore.getAll()
-                },
-                setAll(cookiesToSet) {
-                    try {
-                        cookiesToSet.forEach(({ name, value, options }) =>
-                            cookieStore.set(name, value, options)
-                        )
-                    } catch {
-                        // The `setAll` method was called from a Server Component.
-                        // This can be ignored if you have middleware refreshing
-                        // user sessions.
-                    }
-                },
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false,
             },
         }
     )

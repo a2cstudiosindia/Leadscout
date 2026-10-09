@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withApiAuth, ApiContext } from '@/lib/api-middleware';
-import { Scanner } from '@/lib/scanner';
 
 // POST /api/v1/audit - Run a website audit
 export const POST = withApiAuth(async (req: NextRequest, context: ApiContext) => {
@@ -33,11 +32,32 @@ export const POST = withApiAuth(async (req: NextRequest, context: ApiContext) =>
         );
     }
 
-    // Run audit
-    const scanner = new Scanner();
+    // Run audit using external API
+    const scannerApiUrl = process.env.SCANNER_API_URL;
+    if (!scannerApiUrl) {
+        return NextResponse.json(
+            { error: 'Scanner API is not configured' },
+            { status: 500 }
+        );
+    }
+
     try {
-        const report = await scanner.scan(url);
-        await scanner.close();
+        const response = await fetch(`${scannerApiUrl}/scan`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url }),
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok || !data.success) {
+            return NextResponse.json(
+                { error: data.error || 'Failed to scan website' },
+                { status: response.status === 200 ? 500 : response.status }
+            );
+        }
+
+        const report = data.report;
 
         return NextResponse.json({
             success: true,
@@ -50,7 +70,6 @@ export const POST = withApiAuth(async (req: NextRequest, context: ApiContext) =>
         });
     } catch (error) {
         console.error('API audit error:', error);
-        await scanner.close();
         return NextResponse.json(
             { error: 'Failed to scan website' },
             { status: 500 }
