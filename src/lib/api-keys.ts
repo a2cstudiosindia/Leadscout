@@ -21,9 +21,9 @@ export async function generateApiKey(name: string = 'Default Key') {
 
     // Generate random API key
     const rawKey = `sk_live_${crypto.randomBytes(24).toString('hex')}`;
-    const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+    const keyHash = rawKey; // Store raw key to allow copying later
 
-    // Store hashed key in database
+    // Store key in database
     const { error } = await supabase.from('api_keys').insert({
         user_id: user.id,
         key_hash: keyHash,
@@ -47,7 +47,7 @@ export async function listApiKeys() {
     const supabase = await createClient();
     const { data: keys, error } = await supabase
         .from('api_keys')
-        .select('id, name, last_used, created_at')
+        .select('id, name, last_used, created_at, key_hash')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -81,8 +81,8 @@ export async function revokeApiKey(keyId: string) {
 export async function validateApiKey(apiKey: string) {
     const supabase = await createClient();
 
-    // Hash the provided key
-    const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
+    // Use the provided key directly (since we no longer hash)
+    const keyHash = apiKey;
 
     // Find matching key
     const { data: keyRecord, error } = await supabase
