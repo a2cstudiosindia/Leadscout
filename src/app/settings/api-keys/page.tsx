@@ -13,6 +13,7 @@ interface ApiKey {
     name: string;
     last_used: string | null;
     created_at: string;
+    key_hash?: string;
 }
 
 export default function ApiKeysPage() {
@@ -200,13 +201,27 @@ export default function ApiKeysPage() {
                                             {key.last_used && ` • Last used: ${new Date(key.last_used).toLocaleDateString()}`}
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => handleRevoke(key.id)}
-                                        className="hover:bg-red-50 p-2 rounded-lg text-red-500 transition-colors"
-                                        title="Revoke key"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        {key.key_hash && (
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(key.key_hash!);
+                                                    toast.success("API key copied!");
+                                                }}
+                                                className="hover:bg-teal-50 p-2 rounded-lg text-teal-600 transition-colors flex items-center gap-1"
+                                                title="Copy API Key"
+                                            >
+                                                <Copy size={18} />
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleRevoke(key.id)}
+                                            className="hover:bg-red-50 p-2 rounded-lg text-red-500 transition-colors"
+                                            title="Revoke key"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

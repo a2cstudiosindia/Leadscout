@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import { getProfile, updateProfile, uploadLogo } from "../actions";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { Save, Building, Upload } from "lucide-react";
+import { Save, Building, Upload, CreditCard, LogOut, User } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
+import { signOut, customerPortal } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
     const [agencyName, setAgencyName] = useState("");
@@ -12,6 +14,7 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         getProfile().then((data) => {
@@ -49,6 +52,24 @@ export default function SettingsPage() {
         });
         setSaving(false);
         toast.success('Settings saved successfully!');
+    };
+
+    const handleLogout = async () => {
+        await signOut();
+        router.push("/login");
+    };
+
+    const handleManageBilling = async () => {
+        try {
+            const result = await customerPortal();
+            if (result.data) {
+                window.location.href = result.data;
+            } else {
+                toast.error("Failed to open billing portal");
+            }
+        } catch (error) {
+            toast.error("Billing portal error");
+        }
     };
 
     if (loading) return (
@@ -121,6 +142,45 @@ export default function SettingsPage() {
                             className="flex items-center gap-2 bg-teal-400 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-500 disabled:opacity-50 transition-all shadow-md active:scale-95"
                         >
                             {saving ? "Saving..." : <><Save size={18} /> Save Changes</>}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Billing Settings */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-8">
+                    <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+                        <h2 className="font-bold text-gray-800 flex items-center gap-2">
+                            <CreditCard size={20} className="text-teal-500" />
+                            Billing & Subscription
+                        </h2>
+                    </div>
+                    <div className="p-8 space-y-4">
+                        <p className="text-gray-500 text-sm">Manage your billing details, view past invoices, or upgrade/cancel your plan.</p>
+                        <button 
+                            onClick={handleManageBilling}
+                            className="bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-black transition-colors flex items-center gap-2 shadow-sm"
+                        >
+                            Manage Subscription
+                        </button>
+                    </div>
+                </div>
+
+                {/* Account Settings */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-8">
+                    <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+                        <h2 className="font-bold text-gray-800 flex items-center gap-2">
+                            <User size={20} className="text-red-500" />
+                            Account Settings
+                        </h2>
+                    </div>
+                    <div className="p-8 space-y-4">
+                        <p className="text-gray-500 text-sm">Sign out of your account on this device.</p>
+                        <button 
+                            onClick={handleLogout}
+                            className="bg-red-50 text-red-600 px-6 py-3 rounded-xl font-bold hover:bg-red-100 transition-colors flex items-center gap-2 shadow-sm"
+                        >
+                            <LogOut size={18} />
+                            Log Out
                         </button>
                     </div>
                 </div>

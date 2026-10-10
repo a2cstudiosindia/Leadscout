@@ -45,7 +45,7 @@ export default function Dashboard() {
     const [category, setCategory] = useState("all");
     const [finding, setFinding] = useState(false);
     const [leads, setLeads] = useState<DiscoveredBusiness[]>([]);
-    const [sortBy, setSortBy] = useState<'score' | 'date' | 'name'>('score');
+    const [sortBy, setSortBy] = useState<'score' | 'name'>('score');
     const [scanningLead, setScanningLead] = useState<string | null>(null);
     const [savingLead, setSavingLead] = useState<string | null>(null);
 
@@ -329,13 +329,16 @@ export default function Dashboard() {
         }
     }
 
-    async function handleFind() {
-        if (!query) return;
+    async function handleFind(overrideQuery?: string, overrideCategory?: string) {
+        const currentQuery = overrideQuery !== undefined ? overrideQuery : query;
+        const currentCategory = overrideCategory !== undefined ? overrideCategory : category;
+
+        if (!currentQuery) return;
         setFinding(true);
         setLeads([]);
 
         try {
-            const result = await findLeads(query, category !== 'all' ? category : undefined);
+            const result = await findLeads(currentQuery, currentCategory !== 'all' ? currentCategory : undefined);
             if (result.success) {
                 setLeads(result.results);
             } else {
@@ -553,8 +556,9 @@ export default function Dashboard() {
                             <div className="w-full space-y-6">
                                 {/* Report Header / Toolbar */}
                                 <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                                    <button onClick={() => setReport(null)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors">
-                                        &larr; Audit Another
+                                    <button onClick={() => setReport(null)} className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 font-medium transition-colors border border-gray-200 shadow-sm">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                                        New Audit
                                     </button>
                                     <div className="flex gap-2">
                                         {currentLeadId && (
@@ -637,7 +641,16 @@ export default function Dashboard() {
                             {BUSINESS_CATEGORIES.map((cat) => (
                                 <button
                                     key={cat.id}
-                                    onClick={() => setCategory(cat.id)}
+                                    onClick={() => {
+                                        setCategory(cat.id);
+                                        if (cat.id !== 'all') {
+                                            const newQuery = `${cat.label} Near me`;
+                                            setQuery(newQuery);
+                                            handleFind(newQuery, cat.id);
+                                        } else {
+                                            setQuery("");
+                                        }
+                                    }}
                                     className={cn(
                                         "px-3 py-1.5 rounded-full text-xs font-bold transition-all",
                                         category === cat.id
@@ -650,26 +663,30 @@ export default function Dashboard() {
                             ))}
                         </div>
 
-                        <div className="flex gap-4 mb-4">
-                            <input
-                                type="text"
-                                placeholder="Search businesses (e.g. Roofers in Austin)"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleFind()}
-                                className="flex-1 p-3 bg-gray-50 border-gray-100 rounded-xl focus:ring-2 focus:ring-teal-400 outline-none transition-all"
-                            />
+                        <div className="flex gap-4 mb-4 items-center">
+                            <div className="flex-1 relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <Search className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Search businesses (e.g. Roofers in Austin)"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleFind()}
+                                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 shadow-sm rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition-all font-medium text-gray-800 placeholder:text-gray-400"
+                                />
+                            </div>
                             <select
                                 value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value as 'score' | 'date' | 'name')}
-                                className="px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm font-medium"
+                                onChange={(e) => setSortBy(e.target.value as 'score' | 'name')}
+                                className="px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
                             >
                                 <option value="score">By Score</option>
                                 <option value="name">By Name</option>
-                                <option value="date">By Date</option>
                             </select>
                             <button
-                                onClick={handleFind}
+                                onClick={() => handleFind()}
                                 disabled={finding}
                                 className="bg-teal-400 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-500 disabled:opacity-50 transition-all shadow-md active:scale-95"
                             >
@@ -677,31 +694,7 @@ export default function Dashboard() {
                             </button>
                         </div>
 
-                        {recentJobs.length > 0 && (
-                            <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                                    <Clock size={14} /> Recent Scans
-                                </h3>
-                                <div className="space-y-2">
-                                    {recentJobs.slice(0, 5).map((job) => (
-                                        <div key={job.id} className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-600 truncate max-w-[60%]">{job.url}</span>
-                                            <span className={cn(
-                                                "px-2 py-0.5 rounded-full text-xs font-bold",
-                                                job.status === 'completed' ? "bg-green-100 text-green-700" :
-                                                job.status === 'failed' ? "bg-red-100 text-red-700" :
-                                                job.status === 'running' ? "bg-blue-100 text-blue-700" :
-                                                "bg-yellow-100 text-yellow-700"
-                                            )}>
-                                                {job.status}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="grid gap-4">
+                        <div className="grid gap-4 mt-6">
                             {getSortedLeads(leads).map((lead) => {
                                 const badge = lead.priority ? getPriorityBadge(lead.priority) : null;
                                 return (
@@ -732,10 +725,17 @@ export default function Dashboard() {
                                                 {lead.formatted_address}
                                             </a>
                                             {lead.phone && (
-                                                <p className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
+                                                <button 
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(lead.phone!);
+                                                        toast.success("Phone number copied!");
+                                                    }}
+                                                    className="text-sm text-gray-600 flex items-center gap-1 mt-0.5 hover:text-teal-600 transition-colors focus:outline-none"
+                                                    title="Copy phone number"
+                                                >
                                                     <Phone size={12} className="text-teal-500" />
                                                     {lead.phone}
-                                                </p>
+                                                </button>
                                             )}
                                             {lead.website ? (
                                                 <a href={lead.website} target="_blank" className="text-teal-500 text-xs hover:underline mt-1 block">{lead.website}</a>

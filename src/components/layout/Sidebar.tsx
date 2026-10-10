@@ -8,7 +8,6 @@ import { LayoutDashboard, Search, List, Settings, Zap, CreditCard, BarChart3, Ke
 import { getSubscriptionInfo } from "@/lib/subscription";
 
 const navigation = [
-    { name: "Dashboard", href: "/dashboard?tab=find", icon: LayoutDashboard },
     { name: "Find Leads", href: "/dashboard?tab=find", icon: Search },
     { name: "My Leads", href: "/dashboard?tab=leads", icon: List },
     { name: "Direct Scan", href: "/dashboard?tab=scan", icon: Zap },
