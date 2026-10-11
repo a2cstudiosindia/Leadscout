@@ -106,6 +106,8 @@ export interface Database {
                     plan: 'free' | 'pro' | 'enterprise'
                     stripe_customer_id: string | null
                     stripe_subscription_id: string | null
+                    polar_customer_id: string | null
+                    polar_subscription_id: string | null
                     current_period_end: string | null
                     created_at: string
                 }
@@ -115,6 +117,8 @@ export interface Database {
                     plan?: 'free' | 'pro' | 'enterprise'
                     stripe_customer_id?: string | null
                     stripe_subscription_id?: string | null
+                    polar_customer_id?: string | null
+                    polar_subscription_id?: string | null
                     current_period_end?: string | null
                     created_at?: string
                 }
@@ -124,6 +128,8 @@ export interface Database {
                     plan?: 'free' | 'pro' | 'enterprise'
                     stripe_customer_id?: string | null
                     stripe_subscription_id?: string | null
+                    polar_customer_id?: string | null
+                    polar_subscription_id?: string | null
                     current_period_end?: string | null
                     created_at?: string
                 }

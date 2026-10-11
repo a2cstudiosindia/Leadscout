@@ -34,8 +34,21 @@ export async function getSubscription() {
         console.error('[SUBSCRIPTION] Error fetching subscription:', error);
     }
 
-    // Return free plan if no subscription exists
-    if (!subscription) {
+    // If no subscription or plan is free, attempt direct sync with Polar
+    // This guarantees immediate access in local dev (where webhooks cannot reach localhost)
+    // and handles any webhook delays in production.
+    if (!subscription || subscription.plan === 'free') {
+        const synced = await syncUserSubscriptionWithPolar(user.id, user.email);
+        if (synced) {
+            return {
+                plan: synced.plan,
+                limits: PLANS[synced.plan],
+                customerId: synced.customerId,
+                subscriptionId: synced.subscriptionId,
+                currentPeriodEnd: synced.currentPeriodEnd,
+            };
+        }
+
         return {
             plan: 'free' as PlanType,
             limits: PLANS.free,
@@ -45,8 +58,8 @@ export async function getSubscription() {
     return {
         plan: subscription.plan as PlanType,
         limits: PLANS[subscription.plan as PlanType],
-        stripeCustomerId: subscription.stripe_customer_id,
-        stripeSubscriptionId: subscription.stripe_subscription_id,
+        customerId: subscription.polar_customer_id || subscription.stripe_customer_id,
+        subscriptionId: subscription.polar_subscription_id || subscription.stripe_subscription_id,
         currentPeriodEnd: subscription.current_period_end,
     };
 }
@@ -276,5 +289,77 @@ export async function cancelSubscriptionFromPolar(userId: string) {
     if (error) {
         console.error('[SUBSCRIPTION] Error canceling subscription from Polar:', error);
     }
+}
+
+// Direct sync with Polar (resolves localhost webhook limitation and immediate returns from checkout)
+export async function syncUserSubscriptionWithPolar(userId?: string, userEmail?: string) {
+    try {
+        let id = userId;
+        let email = userEmail;
+        if (!id || !email) {
+            const user = await getCurrentUser();
+            if (!user) return null;
+            id = user.id;
+            email = user.email;
+        }
+
+        const isSandbox = (process.env.POLAR_ENV || 'sandbox') === 'sandbox';
+        const accessToken = isSandbox
+            ? process.env.POLAR_SANDBOX_ACCESS_TOKEN
+            : process.env.POLAR_PROD_ACCESS_TOKEN;
+        const proId = isSandbox
+            ? process.env.POLAR_SANDBOX_PRO_PRODUCT_ID
+            : process.env.POLAR_PROD_PRO_PRODUCT_ID;
+        const enterpriseId = isSandbox
+            ? process.env.POLAR_SANDBOX_ENTERPRISE_PRODUCT_ID
+            : process.env.POLAR_PROD_ENTERPRISE_PRODUCT_ID;
+
+        if (!accessToken || (!proId && !enterpriseId)) return null;
+
+        const { Polar } = await import('@polar-sh/sdk');
+        const polar = new Polar({ accessToken, server: isSandbox ? 'sandbox' : 'production' });
+
+        // 1. Find customer in Polar by email
+        const customersRes = await polar.customers.list({ email });
+        const customer = customersRes.result?.items?.[0];
+        if (!customer) return null;
+
+        // 2. Query active subscriptions
+        const subsRes = await polar.subscriptions.list({ customerId: customer.id, active: true });
+        const activeSub = subsRes.result?.items?.find((s) => s.status === 'active');
+
+        if (activeSub) {
+            let plan: PlanType = 'free';
+            if (activeSub.productId === enterpriseId) plan = 'enterprise';
+            else if (activeSub.productId === proId) plan = 'pro';
+
+            if (plan !== 'free') {
+                const supabase = createAdminClient();
+                const periodEnd = activeSub.currentPeriodEnd
+                    ? new Date(activeSub.currentPeriodEnd)
+                    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+                await supabase.from('subscriptions').upsert({
+                    user_id: id,
+                    plan,
+                    polar_customer_id: customer.id,
+                    polar_subscription_id: activeSub.id,
+                    current_period_end: periodEnd.toISOString(),
+                }, { onConflict: 'user_id' });
+
+                console.log(`[SUBSCRIPTION] Direct Polar sync success for ${email} → ${plan}`);
+
+                return {
+                    plan,
+                    customerId: customer.id,
+                    subscriptionId: activeSub.id,
+                    currentPeriodEnd: periodEnd.toISOString(),
+                };
+            }
+        }
+    } catch (err) {
+        console.error('[SUBSCRIPTION] Direct Polar sync error:', err);
+    }
+    return null;
 }
 

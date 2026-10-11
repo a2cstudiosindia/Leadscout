@@ -63,7 +63,7 @@ export default function PrivacyPolicyPage() {
                                 <h3 className="font-semibold text-gray-800 mb-2">Personal Information</h3>
                                 <p className="leading-relaxed">
                                     When you register for an account, we collect your email address, name, and payment information
-                                    (processed securely through Stripe and Razorpay). We do not store full credit card numbers on our servers.
+                                    (processed securely through Polar). We do not store full credit card numbers on our servers.
                                 </p>
                             </div>
                             <div>
@@ -114,7 +114,7 @@ export default function PrivacyPolicyPage() {
                         <div className="pl-12 space-y-4 text-gray-600">
                             <p className="leading-relaxed">We do not sell your personal information. We may share your data with:</p>
                             <ul className="space-y-2 list-disc list-inside">
-                                <li><strong>Service Providers:</strong> Stripe, Razorpay (payments), Supabase (database), Vercel (hosting), Google (Places API)</li>
+                                <li><strong>Service Providers:</strong> Polar (payments), Supabase (database), Vercel (hosting), Google (Places API)</li>
                                 <li><strong>Analytics Partners:</strong> We use analytics tools to understand how users interact with our Service</li>
                                 <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
                                 <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>

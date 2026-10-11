@@ -11,6 +11,7 @@ import toast, { Toaster } from "react-hot-toast";
 export default function PricingPage() {
     const [loading, setLoading] = useState<string | null>(null);
     const [currentPlan, setCurrentPlan] = useState<string>('free');
+    const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
     // Load subscription info
     useEffect(() => {
@@ -24,16 +25,27 @@ export default function PricingPage() {
 
     async function handleCheckout(plan: 'pro' | 'enterprise') {
         if (currentPlan === plan) {
-            toast.error('You are already on this plan');
+            window.location.href = '/portal';
             return;
         }
         setLoading(plan);
         try {
-            await checkout(plan);
-        } catch {
-            toast.error('Something went wrong');
+            const res = await checkout(plan);
+            if (res && 'error' in res && res.error) {
+                if (res.error.status === 401 || res.error.message?.toLowerCase().includes('logged in')) {
+                    toast.error('Please sign in to choose a subscription plan');
+                    window.location.href = `/login?redirect=/pricing`;
+                    return;
+                }
+                toast.error(res.error.message || 'Checkout failed');
+            } else if (res && 'data' in res && res.data?.url) {
+                window.location.href = res.data.url;
+            }
+        } catch (err: any) {
+            toast.error(err?.message || 'Something went wrong');
+        } finally {
+            setLoading(null);
         }
-        setLoading(null);
     }
 
     return (
@@ -51,9 +63,30 @@ export default function PricingPage() {
                             <p className="text-[#6c728a] text-base leading-relaxed">Whether your time-saving automation needs are large or small, we&apos;re here to help you scale.</p>
                         </div>
                         
-                        <div className="flex bg-white/70 backdrop-blur-md p-1.5 rounded-full shadow-sm">
-                            <button className="px-6 py-2 rounded-full bg-teal-500 text-white text-xs font-bold tracking-wide shadow-md transition-all">MONTHLY</button>
-                            <button className="px-6 py-2 rounded-full text-[#6c728a] text-xs font-bold tracking-wide hover:text-gray-800 transition-all">YEARLY</button>
+                        <div className="flex bg-white/70 backdrop-blur-md p-1.5 rounded-full shadow-sm border border-white/80">
+                            <button 
+                                onClick={() => setBillingCycle('monthly')}
+                                className={`px-6 py-2 rounded-full text-xs font-bold tracking-wide transition-all ${
+                                    billingCycle === 'monthly'
+                                        ? 'bg-teal-500 text-white shadow-md'
+                                        : 'text-[#6c728a] hover:text-gray-800'
+                                }`}
+                            >
+                                MONTHLY
+                            </button>
+                            <button 
+                                onClick={() => setBillingCycle('yearly')}
+                                className={`px-6 py-2 rounded-full text-xs font-bold tracking-wide transition-all flex items-center gap-1.5 ${
+                                    billingCycle === 'yearly'
+                                        ? 'bg-teal-500 text-white shadow-md'
+                                        : 'text-[#6c728a] hover:text-gray-800'
+                                }`}
+                            >
+                                YEARLY
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold ${
+                                    billingCycle === 'yearly' ? 'bg-white/20 text-white' : 'bg-teal-100 text-teal-700'
+                                }`}>-20%</span>
+                            </button>
                         </div>
                     </div>
 
@@ -87,15 +120,17 @@ export default function PricingPage() {
                                     </li>
                                 </ul>
 
-                                <button disabled className="w-full py-3 rounded-2xl bg-[#8c92a4]/10 text-[#6c728a] font-semibold text-sm hover:bg-[#8c92a4]/20 transition-colors">
-                                    {currentPlan === 'free' ? 'Current plan' : 'Choose plan'}
+                                <button disabled className="w-full py-3 rounded-2xl bg-[#8c92a4]/10 text-[#6c728a] font-semibold text-sm transition-colors cursor-default">
+                                    {currentPlan === 'free' ? 'Current plan' : 'Free tier'}
                                 </button>
                             </div>
 
                             {/* Pro Plan */}
                             <div className="p-4 md:px-8 border-t md:border-t-0 md:border-l border-[#8c92a4]/20 flex flex-col h-full">
                                 <div className="flex items-baseline gap-1 mb-2">
-                                    <span className="text-[2.5rem] font-bold text-[#1a1c29]">$29</span>
+                                    <span className="text-[2.5rem] font-bold text-[#1a1c29]">
+                                        {billingCycle === 'monthly' ? '$29' : '$24'}
+                                    </span>
                                     <span className="text-[#8c92a4] font-medium text-sm">/month</span>
                                 </div>
                                 <h3 className="text-xl font-medium text-[#1a1c29] mb-2">Professional</h3>
@@ -122,10 +157,18 @@ export default function PricingPage() {
 
                                 <button 
                                     onClick={() => handleCheckout('pro')}
-                                    disabled={loading === 'pro' || currentPlan === 'pro'}
-                                    className="w-full py-3 rounded-2xl bg-[#8c92a4]/10 text-[#6c728a] font-semibold text-sm hover:bg-[#8c92a4]/20 transition-colors"
+                                    disabled={loading === 'pro'}
+                                    className={`w-full py-3 rounded-2xl font-semibold text-sm transition-all ${
+                                        currentPlan === 'pro'
+                                            ? 'bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100'
+                                            : 'bg-[#8c92a4]/10 text-[#6c728a] hover:bg-[#8c92a4]/20 hover:text-gray-900'
+                                    }`}
                                 >
-                                    {currentPlan === 'pro' ? 'Current plan' : (loading === 'pro' ? 'Processing...' : 'Choose plan')}
+                                    {loading === 'pro' 
+                                        ? 'Processing...' 
+                                        : currentPlan === 'pro' 
+                                            ? 'Manage subscription' 
+                                            : 'Choose plan'}
                                 </button>
                             </div>
 
@@ -136,7 +179,9 @@ export default function PricingPage() {
                                 </div>
                                 
                                 <div className="flex items-baseline gap-1 mb-2 mt-2">
-                                    <span className="text-[2.5rem] font-bold text-white">$79</span>
+                                    <span className="text-[2.5rem] font-bold text-white">
+                                        {billingCycle === 'monthly' ? '$79' : '$65'}
+                                    </span>
                                     <span className="text-gray-300 font-medium text-sm">/month</span>
                                 </div>
                                 <h3 className="text-xl font-medium text-white mb-2">Company</h3>
@@ -167,10 +212,14 @@ export default function PricingPage() {
 
                                 <button 
                                     onClick={() => handleCheckout('enterprise')}
-                                    disabled={loading === 'enterprise' || currentPlan === 'enterprise'}
-                                    className="w-full py-3 rounded-2xl bg-teal-500 text-white font-semibold text-sm hover:bg-teal-400 transition-colors mt-auto shadow-lg shadow-teal-500/20"
+                                    disabled={loading === 'enterprise'}
+                                    className="w-full py-3 rounded-2xl bg-teal-500 text-white font-semibold text-sm hover:bg-teal-400 transition-all mt-auto shadow-lg shadow-teal-500/20 active:scale-[0.98]"
                                 >
-                                    {currentPlan === 'enterprise' ? 'Current plan' : (loading === 'enterprise' ? 'Processing...' : 'Choose plan')}
+                                    {loading === 'enterprise' 
+                                        ? 'Processing...' 
+                                        : currentPlan === 'enterprise' 
+                                            ? 'Manage subscription' 
+                                            : 'Choose plan'}
                                 </button>
                             </div>
                         </div>

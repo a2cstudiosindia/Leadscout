@@ -82,6 +82,21 @@ export default function Dashboard() {
             }
         });
         fetchRecentJobs();
+
+        // Handle checkout success redirect from Polar
+        const checkoutStatus = searchParams.get('checkout');
+        if (checkoutStatus === 'success') {
+            toast.success('Payment successful! Your plan has been upgraded.', { duration: 5000 });
+            // Re-fetch subscription to reflect new plan
+            getSubscriptionInfo().then((info) => {
+                if (info) {
+                    setIsEnterprise(info.plan === 'enterprise');
+                    setIsPro(info.plan === 'pro' || info.plan === 'enterprise');
+                }
+            });
+            // Clean up the URL
+            router.replace('/dashboard');
+        }
     }, []);
 
     useEffect(() => {
