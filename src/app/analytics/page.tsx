@@ -265,7 +265,7 @@ export default function AnalyticsPage() {
                         Recent Activity
                     </h3>
                     {analytics.recentEvents.length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
                             {analytics.recentEvents.map((event, i) => (
                                 <div key={i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                                     <div className="flex items-center gap-3">

@@ -39,170 +39,141 @@ export default function PricingPage() {
     return (
         <DashboardShell>
             <Toaster position="top-right" />
-            <div className="flex flex-col items-center justify-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="text-center max-w-2xl mb-16">
-                    <h1 className="text-4xl font-bold text-gray-800 mb-4">Simple, Transparent Pricing</h1>
-                    <p className="text-gray-500 text-lg">Choose the plan that best fits your agency&apos;s needs. Scale as you grow.</p>
-                </div>
+            {/* Background gradient matching the image vibe */}
+            <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#f3eff5] via-[#f8eaef] to-[#dbe0f2] opacity-70 pointer-events-none" />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl px-4" role="list" aria-label="Pricing plans">
-                    {/* Free Plan */}
-                    <article className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group hover:border-teal-200 transition-all hover:shadow-lg" role="listitem" aria-labelledby="free-plan-title">
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-gray-500 uppercase tracking-wide">Free</h3>
-                            <div className="mt-4 flex items-baseline gap-1">
-                                <span className="text-4xl font-bold text-gray-800">$0</span>
-                                <span className="text-gray-400">/mo</span>
-                            </div>
-                            <p className="text-sm text-gray-400 mt-2">Perfect for trying out LeadScout.</p>
+            <div className="relative z-10 flex flex-col items-center justify-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-700 w-full">
+                
+                <div className="w-full max-w-5xl mx-auto px-4 mb-16">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+                        <div className="max-w-xl text-left">
+                            <h1 className="text-[2.75rem] font-medium text-[#2d2f45] mb-3 tracking-tight">Plans & Pricing</h1>
+                            <p className="text-[#6c728a] text-base leading-relaxed">Whether your time-saving automation needs are large or small, we&apos;re here to help you scale.</p>
                         </div>
-
-                        <ul className="space-y-4 mb-8 flex-1">
-                            <li className="flex items-center gap-3 text-sm text-gray-600">
-                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                10 Leads per month
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-600">
-                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                5 Audits per month
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-600">
-                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                20 Searches per month
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-600">
-                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                Basic Lead Management
-                            </li>
-                        </ul>
-
-                        {currentPlan === 'free' ? (
-                            <button disabled className="w-full py-3 rounded-xl border border-gray-200 text-gray-400 font-bold cursor-not-allowed flex items-center justify-center gap-2">
-                                <Crown size={16} />
-                                Current Plan
-                            </button>
-                        ) : (
-                            <button disabled className="w-full py-3 rounded-xl border border-gray-200 text-gray-400 font-bold cursor-not-allowed">
-                                Free Plan
-                            </button>
-                        )}
-                    </article>
-
-                    {/* Pro Plan */}
-                    <div className="bg-gray-900 p-8 rounded-2xl shadow-xl flex flex-col relative overflow-hidden transform scale-105 z-10">
-                        <div className="absolute top-0 right-0 bg-teal-400 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">POPULAR</div>
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-teal-400 uppercase tracking-wide">Pro</h3>
-                            <div className="mt-4 flex items-baseline gap-1">
-                                <span className="text-4xl font-bold text-white">$29</span>
-                                <span className="text-gray-400">/mo</span>
-                            </div>
-                            <p className="text-sm text-gray-400 mt-2">For growing agencies running outreach.</p>
+                        
+                        <div className="flex bg-white/70 backdrop-blur-md p-1.5 rounded-full shadow-sm">
+                            <button className="px-6 py-2 rounded-full bg-teal-500 text-white text-xs font-bold tracking-wide shadow-md transition-all">MONTHLY</button>
+                            <button className="px-6 py-2 rounded-full text-[#6c728a] text-xs font-bold tracking-wide hover:text-gray-800 transition-all">YEARLY</button>
                         </div>
-
-                        <ul className="space-y-4 mb-8 flex-1">
-                            <li className="flex items-center gap-3 text-sm text-gray-300">
-                                <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                500 Leads per month
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-300">
-                                <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                50 Audits per month
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-300">
-                                <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                500 Searches per month
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-300">
-                                <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                CSV Export
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-300">
-                                <span className="w-5 h-5 rounded-full bg-teal-500 text-white flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                API Access & PDF Reports
-                            </li>
-                        </ul>
-
-                        {currentPlan === 'pro' ? (
-                            <button disabled className="w-full py-3 rounded-xl bg-teal-600 text-white font-bold cursor-not-allowed flex items-center justify-center gap-2">
-                                <Crown size={16} />
-                                Current Plan
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => handleCheckout('pro')}
-                                disabled={loading === 'pro'}
-                                className="w-full py-3 rounded-xl bg-teal-400 text-white font-bold hover:bg-teal-500 transition-colors shadow-lg shadow-teal-900/50 disabled:opacity-50"
-                            >
-                                {loading === 'pro' ? 'Processing...' : 'Upgrade to Pro'}
-                            </button>
-                        )}
                     </div>
 
-                    {/* Agency Plan */}
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group hover:border-teal-200 transition-all hover:shadow-lg">
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-gray-500 uppercase tracking-wide">Agency</h3>
-                            <div className="mt-4 flex items-baseline gap-1">
-                                <span className="text-4xl font-bold text-gray-800">$79</span>
-                                <span className="text-gray-400">/mo</span>
+                    <div className="bg-white/50 backdrop-blur-xl rounded-[2.5rem] p-6 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white/80 relative">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-0 items-center">
+                            {/* Free Plan */}
+                            <div className="p-4 md:pr-8 flex flex-col h-full">
+                                <div className="flex items-baseline gap-1 mb-2">
+                                    <span className="text-[2.5rem] font-bold text-[#1a1c29]">$0</span>
+                                    <span className="text-[#8c92a4] font-medium text-sm">/month</span>
+                                </div>
+                                <h3 className="text-xl font-medium text-[#1a1c29] mb-2">Starter</h3>
+                                <p className="text-sm text-[#8c92a4] mb-8 h-10">Unleash the power of automation.</p>
+
+                                <ul className="space-y-4 mb-10 flex-1">
+                                    <li className="flex items-center gap-3 text-sm text-[#6c728a] font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-teal-100 text-teal-500 flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        10 Leads per month
+                                    </li>
+                                    <li className="flex items-center gap-3 text-sm text-[#6c728a] font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-teal-100 text-teal-500 flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        5 Audits per month
+                                    </li>
+                                    <li className="flex items-center gap-3 text-sm text-[#6c728a] font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-teal-100 text-teal-500 flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        20 Searches per month
+                                    </li>
+                                    <li className="flex items-center gap-3 text-sm text-[#6c728a] font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-teal-100 text-teal-500 flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        Basic Lead Management
+                                    </li>
+                                </ul>
+
+                                <button disabled className="w-full py-3 rounded-2xl bg-[#8c92a4]/10 text-[#6c728a] font-semibold text-sm hover:bg-[#8c92a4]/20 transition-colors">
+                                    {currentPlan === 'free' ? 'Current plan' : 'Choose plan'}
+                                </button>
                             </div>
-                            <p className="text-sm text-gray-400 mt-2">Unlimited power for large teams.</p>
+
+                            {/* Pro Plan */}
+                            <div className="p-4 md:px-8 border-t md:border-t-0 md:border-l border-[#8c92a4]/20 flex flex-col h-full">
+                                <div className="flex items-baseline gap-1 mb-2">
+                                    <span className="text-[2.5rem] font-bold text-[#1a1c29]">$29</span>
+                                    <span className="text-[#8c92a4] font-medium text-sm">/month</span>
+                                </div>
+                                <h3 className="text-xl font-medium text-[#1a1c29] mb-2">Professional</h3>
+                                <p className="text-sm text-[#8c92a4] mb-8 h-10">Advanced tools to take your work to the next level.</p>
+
+                                <ul className="space-y-4 mb-10 flex-1">
+                                    <li className="flex items-center gap-3 text-sm text-[#6c728a] font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-teal-100 text-teal-500 flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        500 Leads per month
+                                    </li>
+                                    <li className="flex items-center gap-3 text-sm text-[#6c728a] font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-teal-100 text-teal-500 flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        50 Audits per month
+                                    </li>
+                                    <li className="flex items-center gap-3 text-sm text-[#6c728a] font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-teal-100 text-teal-500 flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        500 Searches per month
+                                    </li>
+                                    <li className="flex items-center gap-3 text-sm text-[#6c728a] font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-teal-100 text-teal-500 flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        CSV Export & API Access
+                                    </li>
+                                </ul>
+
+                                <button 
+                                    onClick={() => handleCheckout('pro')}
+                                    disabled={loading === 'pro' || currentPlan === 'pro'}
+                                    className="w-full py-3 rounded-2xl bg-[#8c92a4]/10 text-[#6c728a] font-semibold text-sm hover:bg-[#8c92a4]/20 transition-colors"
+                                >
+                                    {currentPlan === 'pro' ? 'Current plan' : (loading === 'pro' ? 'Processing...' : 'Choose plan')}
+                                </button>
+                            </div>
+
+                            {/* Agency Plan */}
+                            <div className="bg-[#272545] p-8 md:p-10 rounded-3xl shadow-[0_20px_50px_rgb(0,0,0,0.4)] flex flex-col relative transform md:scale-[1.12] z-10 text-white md:-ml-2 mt-4 md:mt-0">
+                                <div className="absolute top-6 right-6 bg-[#3b3861] text-teal-400 text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest">
+                                    Most Popular
+                                </div>
+                                
+                                <div className="flex items-baseline gap-1 mb-2 mt-2">
+                                    <span className="text-[2.5rem] font-bold text-white">$79</span>
+                                    <span className="text-gray-300 font-medium text-sm">/month</span>
+                                </div>
+                                <h3 className="text-xl font-medium text-white mb-2">Company</h3>
+                                <p className="text-sm text-gray-300 mb-8 h-10">Automation plus enterprise-grade features.</p>
+
+                                <ul className="space-y-4 mb-10 flex-1">
+                                    <li className="flex items-center gap-3 text-sm text-gray-200 font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-white/20 text-white flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        Unlimited Leads & Audits
+                                    </li>
+                                    <li className="flex items-center gap-3 text-sm text-gray-200 font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-white/20 text-white flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        Unlimited Searches
+                                    </li>
+                                    <li className="flex items-center gap-3 text-sm text-gray-200 font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-white/20 text-white flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        Priority API Access
+                                    </li>
+                                    <li className="flex items-center gap-3 text-sm text-gray-200 font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-white/20 text-white flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        Excel Export with Audit
+                                    </li>
+                                    <li className="flex items-center gap-3 text-sm text-gray-200 font-medium">
+                                        <span className="w-[18px] h-[18px] rounded-full bg-white/20 text-white flex items-center justify-center shrink-0"><Check size={10} strokeWidth={4} /></span>
+                                        Favorites & Bulk Actions
+                                    </li>
+                                </ul>
+
+                                <button 
+                                    onClick={() => handleCheckout('enterprise')}
+                                    disabled={loading === 'enterprise' || currentPlan === 'enterprise'}
+                                    className="w-full py-3 rounded-2xl bg-teal-500 text-white font-semibold text-sm hover:bg-teal-400 transition-colors mt-auto shadow-lg shadow-teal-500/20"
+                                >
+                                    {currentPlan === 'enterprise' ? 'Current plan' : (loading === 'enterprise' ? 'Processing...' : 'Choose plan')}
+                                </button>
+                            </div>
                         </div>
-
-                        <ul className="space-y-4 mb-8 flex-1">
-                            <li className="flex items-center gap-3 text-sm text-gray-600">
-                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                Unlimited Leads
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-600">
-                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                Unlimited Audits
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-600">
-                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                Unlimited Searches
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-600">
-                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                Priority API Access
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-600">
-                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                Excel Export with Audit Data
-                            </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-600">
-                                <span className="w-5 h-5 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><Check size={12} /></span>
-                                Favorites & Bulk Actions
-                            </li>
-                            {/* Coming Soon Feature */}
-                            <li className="flex items-center gap-3 text-sm">
-                                <span className="w-5 h-5 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 text-purple-500 flex items-center justify-center shrink-0">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72" />
-                                    </svg>
-                                </span>
-                                <span className="text-gray-500">AI Auto-Call Handling</span>
-                                <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white animate-pulse">
-                                    COMING SOON
-                                </span>
-                            </li>
-                        </ul>
-
-                        {currentPlan === 'enterprise' ? (
-                            <button disabled className="w-full py-3 rounded-xl bg-teal-400 text-white font-bold cursor-not-allowed flex items-center justify-center gap-2">
-                                <Crown size={16} />
-                                Current Plan
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => handleCheckout('enterprise')}
-                                disabled={loading === 'enterprise'}
-                                className="w-full py-3 rounded-xl border border-teal-400 text-teal-500 font-bold hover:bg-teal-50 transition-colors disabled:opacity-50"
-                            >
-                                {loading === 'enterprise' ? 'Processing...' : 'Upgrade to Agency'}
-                            </button>
-                        )}
                     </div>
                 </div>
 

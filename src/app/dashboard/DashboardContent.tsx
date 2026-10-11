@@ -465,49 +465,70 @@ export default function Dashboard() {
     return (
         <DashboardShell>
             <Toaster position="top-right" />
+            <div className="mb-6 flex items-center justify-between">
+                <h1 className="text-2xl font-bold text-slate-800 capitalize">
+                    {activeTab === 'find' ? 'Lead Discovery' : activeTab === 'leads' ? 'My Leads Pipeline' : 'Direct Scan'}
+                </h1>
+            </div>
+
             {/* Top Stat Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8" role="region" aria-label="Dashboard statistics">
-                <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <div>
-                        <p className="text-gray-400 text-xs font-bold uppercase">Total Leads</p>
-                        <h3 className="text-2xl font-bold text-gray-800">{stats.totalLeads}</h3>
+                        <p className="text-gray-500 text-sm font-medium mb-1">Total Leads</p>
+                        <div className="w-6 h-[3px] bg-blue-500 rounded-full mb-4"></div>
                     </div>
-                    <div className="p-3 bg-teal-400 text-white rounded-xl">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
+                            <Users size={24} />
+                        </div>
+                        <h3 className="text-4xl font-bold text-blue-500">{stats.totalLeads}</h3>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <div>
-                        <p className="text-gray-400 text-xs font-bold uppercase">Audits Run</p>
-                        <h3 className="text-2xl font-bold text-gray-800">{stats.auditsRun}</h3>
+                        <p className="text-gray-500 text-sm font-medium mb-1">Audits Run</p>
+                        <div className="w-6 h-[3px] bg-green-500 rounded-full mb-4"></div>
                     </div>
-                    <div className="p-3 bg-teal-400 text-white rounded-xl">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-500 shrink-0">
+                            <Activity size={24} />
+                        </div>
+                        <h3 className="text-4xl font-bold text-green-500">{stats.auditsRun}</h3>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <div>
-                        <p className="text-gray-400 text-xs font-bold uppercase">Searches</p>
-                        <h3 className="text-2xl font-bold text-gray-800">
+                        <p className="text-gray-500 text-sm font-medium mb-1">Searches</p>
+                        <div className="w-6 h-[3px] bg-yellow-500 rounded-full mb-4"></div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 shrink-0">
+                            <Search size={24} />
+                        </div>
+                        <h3 className="text-4xl font-bold text-yellow-500">
                             {stats.searchesUsed}
-                            <span className="text-sm font-medium text-gray-400">
+                            <span className="text-sm font-normal text-gray-400">
                                 /{stats.searchesLimit === Infinity ? '∞' : stats.searchesLimit}
                             </span>
                         </h3>
                     </div>
-                    <div className="p-3 bg-blue-400 text-white rounded-xl">
-                        <Search className="w-6 h-6" />
-                    </div>
                 </div>
-                <div className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <div>
-                        <p className="text-gray-400 text-xs font-bold uppercase">Potential Value</p>
-                        <h3 className="text-2xl font-bold text-gray-800">
-                            ${stats.potentialValue.toLocaleString()}
-                        </h3>
+                        <p className="text-gray-500 text-sm font-medium mb-1">Potential Value</p>
+                        <div className="w-6 h-[3px] bg-purple-500 rounded-full mb-4"></div>
                     </div>
-                    <div className="p-3 bg-teal-400 text-white rounded-xl">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-500 shrink-0">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <h3 className="text-4xl font-bold text-purple-500">
+                            ${stats.potentialValue > 999 ? (stats.potentialValue/1000).toFixed(1) + 'k' : stats.potentialValue}
+                        </h3>
                     </div>
                 </div>
             </div>
@@ -694,67 +715,101 @@ export default function Dashboard() {
                             </button>
                         </div>
 
-                        <div className="grid gap-4 mt-6">
-                            {getSortedLeads(leads).map((lead) => {
-                                const badge = lead.priority ? getPriorityBadge(lead.priority) : null;
-                                return (
-                                <div key={lead.place_id} className="p-4 rounded-xl border border-gray-100 hover:border-teal-200 hover:shadow-md transition-all flex items-center justify-between group">
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 font-bold">
-                                            {lead.name.substring(0, 1)}
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <h3 className="font-bold text-gray-900 group-hover:text-teal-600 transition-colors">{lead.name}</h3>
-                                                {badge && (
-                                                    <span
-                                                        className={cn("px-2 py-0.5 rounded-full text-xs font-bold border", badge.className)}
-                                                        title={lead.score_reasons?.join('\n') || `Score: ${lead.lead_score}`}
-                                                    >
-                                                        {badge.emoji} {badge.label} ({lead.lead_score})
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <a
-                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.formatted_address)}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-sm text-gray-500 flex items-center gap-1 hover:text-teal-600 hover:underline cursor-pointer transition-colors group/address"
-                                            >
-                                                <MapPin size={12} className="text-gray-400 group-hover/address:text-teal-500 transition-colors" />
-                                                {lead.formatted_address}
-                                            </a>
-                                            {lead.phone && (
-                                                <button 
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(lead.phone!);
-                                                        toast.success("Phone number copied!");
-                                                    }}
-                                                    className="text-sm text-gray-600 flex items-center gap-1 mt-0.5 hover:text-teal-600 transition-colors focus:outline-none"
-                                                    title="Copy phone number"
-                                                >
-                                                    <Phone size={12} className="text-teal-500" />
-                                                    {lead.phone}
-                                                </button>
-                                            )}
-                                            {lead.website ? (
-                                                <a href={lead.website} target="_blank" className="text-teal-500 text-xs hover:underline mt-1 block">{lead.website}</a>
-                                            ) : <span className="text-xs text-red-400 mt-1 block">No Website</span>}
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => handleSave(lead)} disabled={savingLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-teal-600 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors">
-                                            {savingLead === lead.place_id ? "Saving..." : "Save Lead"}
-                                        </button>
-                                        <button onClick={() => quickAudit(lead)} disabled={!lead.website || scanningLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50">
-                                            {scanningLead === lead.place_id ? 'Queuing...' : 'Audit'}
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                            })}
+                        <div className="mt-6 overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[800px] bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                                <thead className="bg-gray-50/50">
+                                    <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                        <th className="p-4 font-semibold text-gray-400">Business Details</th>
+                                        <th className="p-4 font-semibold text-gray-400">Contact & Address</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-center">Score</th>
+                                        <th className="p-4 font-semibold text-gray-400 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {getSortedLeads(leads).map((lead) => {
+                                        const badge = lead.priority ? getPriorityBadge(lead.priority) : null;
+                                        return (
+                                            <tr key={lead.place_id} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="p-4 align-top">
+                                                    <div className="flex flex-col gap-1">
+                                                        <h3 className="text-base font-bold text-gray-900 line-clamp-1" title={lead.name}>
+                                                            {lead.name}
+                                                        </h3>
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            {lead.rating && (
+                                                                <span className="flex items-center gap-1 text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded">
+                                                                    <Star size={10} fill="currentColor" /> {lead.rating} {lead.user_ratings_total !== undefined && <span className="text-gray-400 font-normal">({lead.user_ratings_total})</span>}
+                                                                </span>
+                                                            )}
+                                                            {badge && (
+                                                                <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider", badge.className)} title={lead.score_reasons?.join('\n') || `Score: ${lead.lead_score}`}>
+                                                                    {badge.label}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 align-top">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        {lead.website ? (
+                                                            <a href={lead.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline line-clamp-1" title={lead.website}>{lead.website}</a>
+                                                        ) : (
+                                                            <span className="text-xs text-red-400 italic">No Website</span>
+                                                        )}
+                                                        {lead.phone && (
+                                                            <button 
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(lead.phone!);
+                                                                    toast.success("Phone number copied!");
+                                                                }}
+                                                                className="text-sm text-gray-600 flex items-center gap-1 hover:text-teal-600 transition-colors focus:outline-none"
+                                                                title="Click to copy phone number"
+                                                            >
+                                                                <Phone size={12} className="text-teal-500 shrink-0" />
+                                                                <span className="line-clamp-1">{lead.phone}</span>
+                                                            </button>
+                                                        )}
+                                                        {lead.formatted_address && (
+                                                            <a
+                                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.formatted_address)}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-sm text-gray-500 flex items-center gap-1 hover:text-teal-600 transition-colors"
+                                                                title="View on Google Maps"
+                                                            >
+                                                                <MapPin size={12} className="text-teal-500 shrink-0" />
+                                                                <span className="line-clamp-1">{lead.formatted_address}</span>
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-center align-middle">
+                                                    <div className={cn(
+                                                        "inline-flex items-center justify-center w-10 h-10 rounded-full font-bold text-base mx-auto",
+                                                        (lead.lead_score ?? 0) >= 80 ? "bg-green-100 text-green-600" :
+                                                        (lead.lead_score ?? 0) >= 50 ? "bg-yellow-100 text-yellow-600" :
+                                                        "bg-gray-100 text-gray-500"
+                                                    )}>
+                                                        {lead.lead_score ?? 0}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 align-middle text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <button onClick={() => quickAudit(lead)} disabled={!lead.website || scanningLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm">
+                                                            {scanningLead === lead.place_id ? 'Queuing...' : 'Audit'}
+                                                        </button>
+                                                        <button onClick={() => handleSave(lead)} disabled={savingLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-white bg-[#39C0B3] rounded-lg hover:bg-[#2EB5B1] transition-colors shadow-sm disabled:opacity-50">
+                                                            {savingLead === lead.place_id ? "Saving..." : "Save"}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
                             {leads.length === 0 && !finding && query && (
-                                <div className="text-center text-gray-400 py-12">No leads found. Try a different search.</div>
+                                <div className="text-center text-gray-400 py-12 bg-white rounded-2xl border border-gray-100 shadow-sm mt-4">No leads found. Try a different search.</div>
                             )}
                         </div>
                     </div>
@@ -872,150 +927,177 @@ export default function Dashboard() {
                                 })}
                             </div>
                         ) : (
-                        <div className="divide-y divide-gray-100">
-                            {myLeads.filter(l => !showFavoritesOnly || l.is_favorite).map((lead) => (
-                                <div key={lead.id} className="p-6 hover:bg-gray-50 transition-colors group">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex gap-4 items-start">
-                                            {/* Checkbox for selection (Enterprise) */}
-                                            {isEnterprise && (
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedLeads.has(lead.id)}
-                                                    onChange={() => toggleLeadSelection(lead.id)}
-                                                    className="w-5 h-5 rounded border-gray-300 text-teal-500 focus:ring-teal-400 mt-3"
-                                                />
-                                            )}
-                                            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shadow-sm border",
-                                                lead.status === 'audited' ? "bg-teal-100 text-teal-600 border-teal-200" : "bg-gray-100 text-gray-500 border-gray-200"
-                                            )}>
-                                                {lead.business_name.substring(0, 1)}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="font-bold text-gray-800 text-lg">{lead.business_name}</h3>
-                                                    {/* Favorite Star (Enterprise) */}
-                                                    {isEnterprise && (
-                                                        <button
-                                                            onClick={() => handleToggleFavorite(lead.id)}
-                                                            className={cn(
-                                                                "p-1 rounded transition-colors",
-                                                                lead.is_favorite ? "text-yellow-500" : "text-gray-300 hover:text-yellow-400"
-                                                            )}
-                                                        >
-                                                            <Star size={16} fill={lead.is_favorite ? "currentColor" : "none"} />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                {lead.website_url ? (
-                                                    <a href={lead.website_url} target="_blank" className="text-sm text-gray-400 hover:text-teal-500 transition-colors">{lead.website_url}</a>
-                                                ) : (
-                                                    <span className="text-sm text-red-400">No website</span>
-                                                )}
-                                                {/* Phone & Address */}
-                                                {(lead.phone || lead.address) && (
-                                                    <div className="flex flex-wrap gap-4 mt-1 text-sm text-gray-500">
-                                                        {lead.phone && (
-                                                            <span className="flex items-center gap-1">
-                                                                <Phone size={12} className="text-teal-500" />
-                                                                {lead.phone}
-                                                            </span>
+                            <>
+                                {myLeads.filter(l => !showFavoritesOnly || l.is_favorite).length === 0 && (
+                                    <div className="text-center py-20 bg-white">
+                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                            <Users size={32} />
+                                        </div>
+                                        <p className="text-gray-500 font-medium">No leads in your pipeline yet.</p>
+                                        <button onClick={() => changeTab('find')} className="mt-2 text-[#39C0B3] font-bold hover:underline">Find Leads &rarr;</button>
+                                    </div>
+                                )}
+
+                                {myLeads.filter(l => !showFavoritesOnly || l.is_favorite).length > 0 && (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse min-w-[950px] bg-white">
+                                            <thead className="bg-gray-50/50">
+                                                <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                    {isEnterprise && <th className="p-4 w-12 text-center">Sel</th>}
+                                                    <th className="p-4 font-semibold text-gray-400">Business Details</th>
+                                                    <th className="p-4 font-semibold text-gray-400">Contact & Address</th>
+                                                    <th className="p-4 font-semibold text-gray-400">Status</th>
+                                                    <th className="p-4 font-semibold text-gray-400">Est. Value</th>
+                                                    <th className="p-4 font-semibold text-gray-400 text-right">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                                {myLeads.filter(l => !showFavoritesOnly || l.is_favorite).map((lead) => (
+                                                    <tr key={lead.id} className="hover:bg-gray-50/50 transition-colors group">
+                                                        {isEnterprise && (
+                                                            <td className="p-4 text-center align-middle">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedLeads.has(lead.id)}
+                                                                    onChange={() => toggleLeadSelection(lead.id)}
+                                                                    className="w-4 h-4 rounded border-gray-300 text-teal-500 focus:ring-teal-400"
+                                                                />
+                                                            </td>
                                                         )}
-                                                        {lead.address && (
-                                                            <a
-                                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.address)}`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="flex items-center gap-1 hover:text-teal-600 hover:underline cursor-pointer transition-colors group/address"
+                                                        <td className="p-4 align-top">
+                                                            <div className="flex items-start gap-3">
+                                                                <div className={cn("w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border shrink-0 mt-0.5",
+                                                                    lead.status === 'audited' ? "bg-teal-50 text-teal-600 border-teal-200" : "bg-gray-100 text-gray-500 border-gray-200"
+                                                                )}>
+                                                                    {lead.business_name.substring(0, 1)}
+                                                                </div>
+                                                                <div className="flex flex-col gap-0.5">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="font-bold text-sm text-gray-900 line-clamp-1" title={lead.business_name}>
+                                                                            {lead.business_name}
+                                                                        </span>
+                                                                        {isEnterprise && (
+                                                                            <button
+                                                                                onClick={() => handleToggleFavorite(lead.id)}
+                                                                                className={cn(
+                                                                                    "p-1 rounded transition-colors",
+                                                                                    lead.is_favorite ? "text-amber-400 fill-amber-400 hover:text-amber-500" : "text-gray-300 hover:text-amber-400"
+                                                                                )}
+                                                                                title={lead.is_favorite ? "Remove favorite" : "Mark favorite"}
+                                                                            >
+                                                                                <Star size={15} fill={lead.is_favorite ? "currentColor" : "none"} />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                    {lead.website_url ? (
+                                                                        <a href={lead.website_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline line-clamp-1" title={lead.website_url}>{lead.website_url}</a>
+                                                                    ) : (
+                                                                        <span className="text-xs text-red-400 italic">No website</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4 align-top">
+                                                            <div className="flex flex-col gap-1">
+                                                                {lead.phone && (
+                                                                    <button 
+                                                                        onClick={() => {
+                                                                            navigator.clipboard.writeText(lead.phone!);
+                                                                            toast.success("Phone number copied!");
+                                                                        }}
+                                                                        className="text-xs text-gray-600 flex items-center gap-1.5 hover:text-teal-600 transition-colors focus:outline-none w-fit"
+                                                                        title="Click to copy phone number"
+                                                                    >
+                                                                        <Phone size={12} className="text-teal-500 shrink-0" />
+                                                                        <span className="line-clamp-1">{lead.phone}</span>
+                                                                    </button>
+                                                                )}
+                                                                {lead.address && (
+                                                                    <a
+                                                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.address)}`}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="text-xs text-gray-500 flex items-center gap-1.5 hover:text-teal-600 transition-colors line-clamp-1"
+                                                                        title="View on Google Maps"
+                                                                    >
+                                                                        <MapPin size={12} className="text-teal-500 shrink-0" />
+                                                                        <span className="line-clamp-1">{lead.address}</span>
+                                                                    </a>
+                                                                )}
+                                                                {!lead.phone && !lead.address && (
+                                                                    <span className="text-xs text-gray-400 italic">No contact info</span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4 align-top">
+                                                            <select
+                                                                value={lead.status}
+                                                                onChange={(e) => handleStatusChange(lead.id, e.target.value)}
+                                                                className={cn(
+                                                                    "text-xs font-bold px-3 py-1 rounded-full border outline-none cursor-pointer capitalize transition-all",
+                                                                    lead.status === 'new' ? "bg-gray-100 text-gray-600 border-gray-200" :
+                                                                    lead.status === 'auditing' ? "bg-amber-50 text-amber-600 border-amber-200" :
+                                                                    lead.status === 'audited' ? "bg-blue-50 text-blue-600 border-blue-200" :
+                                                                    lead.status === 'contacted' ? "bg-purple-50 text-purple-600 border-purple-200" :
+                                                                    "bg-green-50 text-green-600 border-green-200"
+                                                                )}
                                                             >
-                                                                <MapPin size={12} className="text-gray-400 group-hover/address:text-teal-500 transition-colors" />
-                                                                {lead.address}
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {lead.status === 'audited' && (
-                                                <button
-                                                    onClick={() => handleGenerateEmail(lead.id, lead.business_name)}
-                                                    disabled={generatingEmail === lead.id}
-                                                    className="flex items-center gap-1 text-sm font-bold text-teal-600 hover:text-teal-700 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-lg transition-all"
-                                                >
-                                                    <Mail size={14} /> {generatingEmail === lead.id ? 'Generating...' : 'Outreach'}
-                                                </button>
-                                            )}
-                                            {lead.website_url && (
-                                                <button onClick={() => handleScan(lead.website_url, lead.id)}
-                                                    className="flex items-center gap-1 text-sm font-bold text-gray-600 hover:text-teal-600 bg-white border px-3 py-1.5 rounded-lg hover:border-teal-300 transition-all">
-                                                    <RefreshCw size={14} /> Re-Audit
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={() => handleDeleteLeads([lead.id])}
-                                                className="flex items-center gap-1 text-sm font-bold text-gray-600 hover:text-red-600 bg-white border px-3 py-1.5 rounded-lg hover:border-red-300 transition-all"
-                                            >
-                                                <Trash2 size={14} /> Delete
-                                            </button>
-                                        </div>
+                                                                <option value="new">New</option>
+                                                                <option value="auditing">Auditing</option>
+                                                                <option value="audited">Audited</option>
+                                                                <option value="contacted">Contacted</option>
+                                                                <option value="closed">Closed</option>
+                                                            </select>
+                                                        </td>
+                                                        <td className="p-4 align-top">
+                                                            <div className="relative w-24">
+                                                                <span className="absolute left-2 top-1 text-gray-400 text-xs">$</span>
+                                                                <input
+                                                                    type="number"
+                                                                    defaultValue={lead.value || ''}
+                                                                    onBlur={(e) => handleValueChange(lead.id, e.target.value)}
+                                                                    className="w-full pl-5 bg-transparent border-b border-gray-200 hover:border-gray-400 focus:border-teal-500 text-xs font-semibold text-gray-800 px-1 py-1 outline-none transition-colors"
+                                                                    placeholder="0"
+                                                                />
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4 align-top text-right">
+                                                            <div className="flex items-center justify-end gap-1.5">
+                                                                {lead.status === 'audited' && (
+                                                                    <button
+                                                                        onClick={() => handleGenerateEmail(lead.id, lead.business_name)}
+                                                                        disabled={generatingEmail === lead.id}
+                                                                        className="p-1.5 rounded-lg bg-teal-50 text-teal-600 hover:bg-teal-100 transition-colors"
+                                                                        title="Outreach Email"
+                                                                    >
+                                                                        <Mail size={14} />
+                                                                    </button>
+                                                                )}
+                                                                {lead.website_url && (
+                                                                    <button
+                                                                        onClick={() => handleScan(lead.website_url, lead.id)}
+                                                                        className="p-1.5 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                                                                        title="Re-Audit"
+                                                                    >
+                                                                        <RefreshCw size={14} />
+                                                                    </button>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => handleDeleteLeads([lead.id])}
+                                                                    className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                                                                    title="Delete Lead"
+                                                                >
+                                                                    <Trash2 size={14} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
-
-                                    {/* Action Row */}
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
-                                        <div className="md:col-span-1">
-                                            <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Status</label>
-                                            <select
-                                                value={lead.status}
-                                                onChange={(e) => handleStatusChange(lead.id, e.target.value)}
-                                                className="w-full bg-white border border-gray-200 text-sm font-medium text-gray-700 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-teal-400 outline-none"
-                                            >
-                                                <option value="new">New</option>
-                                                <option value="auditing">Auditing</option>
-                                                <option value="audited">Audited</option>
-                                                <option value="contacted">Contacted</option>
-                                                <option value="closed">Closed</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="md:col-span-2">
-                                            <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Internal Notes</label>
-                                            <input
-                                                type="text"
-                                                placeholder="Add a note..."
-                                                defaultValue={lead.notes || ''}
-                                                onBlur={(e) => handleNotesChange(lead.id, e.target.value)}
-                                                className="w-full bg-white border border-gray-200 text-sm rounded-lg px-3 py-1.5 focus:border-teal-400 outline-none transition-colors"
-                                            />
-                                        </div>
-
-                                        <div className="md:col-span-1">
-                                            <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Est. Value</label>
-                                            <div className="relative">
-                                                <span className="absolute left-3 top-1.5 text-gray-400 text-sm">$</span>
-                                                <input
-                                                    type="number"
-                                                    defaultValue={lead.value || ''}
-                                                    onBlur={(e) => handleValueChange(lead.id, e.target.value)}
-                                                    className="w-full pl-6 bg-white border border-gray-200 text-sm font-bold text-gray-700 rounded-lg px-2 py-1.5 focus:border-teal-400 outline-none"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-
-                            {myLeads.length === 0 && (
-                                <div className="text-center py-20">
-                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                                        <Users size={32} />
-                                    </div>
-                                    <p className="text-gray-500 font-medium">No leads in your pipeline yet.</p>
-                                    <button onClick={() => changeTab('find')} className="mt-2 text-teal-500 font-bold hover:underline">Find Leads &rarr;</button>
-                                </div>
-                            )}
-                        </div>
+                                )}
+                            </>
                         )}
                     </div>
                 )}

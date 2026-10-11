@@ -92,10 +92,10 @@ export function calculateLeadScore(
 export function getPriorityBadge(priority: LeadPriority): { label: string; emoji: string; className: string } {
     switch (priority) {
         case 'hot':
-            return { label: 'Hot', emoji: '🔥', className: 'bg-red-100 text-red-700 border-red-200' };
+            return { label: 'Hot', emoji: '', className: 'bg-red-50 text-red-600 border-red-200' };
         case 'warm':
-            return { label: 'Warm', emoji: '🟡', className: 'bg-yellow-100 text-yellow-700 border-yellow-200' };
+            return { label: 'Warm', emoji: '', className: 'bg-amber-50 text-amber-600 border-amber-200' };
         case 'cold':
-            return { label: 'Cold', emoji: '🔵', className: 'bg-blue-100 text-blue-700 border-blue-200' };
+            return { label: 'Cold', emoji: '', className: 'bg-blue-50 text-blue-600 border-blue-200' };
     }
 }

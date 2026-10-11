@@ -62,8 +62,8 @@ export default function SettingsPage() {
     const handleManageBilling = async () => {
         try {
             const result = await customerPortal();
-            if (result.data) {
-                window.location.href = result.data;
+            if (result.data?.url) {
+                window.location.href = result.data.url;
             } else {
                 toast.error("Failed to open billing portal");
             }
