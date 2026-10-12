@@ -32,7 +32,7 @@ export const signInWithGoogle = async (redirectTo?: string) => {
 
 // Polar checkout helper
 export const checkout = async (slug: 'pro' | 'enterprise') => {
-    return authClient.checkout({ slug });
+    return authClient.checkout({ slug, allowDiscountCodes: true });
 };
 
 // Polar customer portal helper
