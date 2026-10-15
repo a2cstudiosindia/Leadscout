@@ -41,7 +41,7 @@ export default function PortalPage() {
                     </div>
                 ) : (
                     <div className="flex flex-col items-center gap-4">
-                        <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
+                        <Loader2 className="h-8 w-8 animate-spin text-zinc-800" />
                         <p className="text-gray-600">Redirecting to billing portal...</p>
                     </div>
                 )}

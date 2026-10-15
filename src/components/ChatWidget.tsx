@@ -115,7 +115,7 @@ export default function ChatWidget() {
     const [messages, setMessages] = useState<Message[]>([
         {
             role: 'assistant',
-            content: 'Hi! 👋 I\'m LeadScout\'s AI assistant. How can I help you today?'
+            content: 'Hi! I\'m LeadScout\'s AI assistant. How can I help you today?'
         }
     ]);
     const [input, setInput] = useState('');
@@ -188,7 +188,7 @@ export default function ChatWidget() {
             {/* Chat Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center group"
+                className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-zinc-800 to-cyan-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center group"
                 aria-label={isOpen ? 'Close chat' : 'Open chat'}
             >
                 {isOpen ? (
@@ -206,7 +206,7 @@ export default function ChatWidget() {
             {isOpen && (
                 <div className="fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] h-[500px] max-h-[calc(100vh-120px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 animate-in slide-in-from-bottom-5 duration-300">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-teal-500 to-cyan-500 px-4 py-3 flex items-center gap-3">
+                    <div className="bg-gradient-to-r from-zinc-800 to-cyan-500 px-4 py-3 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                             <Bot className="w-6 h-6 text-white" />
                         </div>
@@ -226,8 +226,8 @@ export default function ChatWidget() {
                             >
                                 <div
                                     className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'user'
-                                        ? 'bg-teal-500'
-                                        : 'bg-gradient-to-r from-teal-500 to-cyan-500'
+                                        ? 'bg-zinc-800'
+                                        : 'bg-gradient-to-r from-zinc-800 to-cyan-500'
                                         }`}
                                 >
                                     {message.role === 'user' ? (
@@ -238,7 +238,7 @@ export default function ChatWidget() {
                                 </div>
                                 <div
                                     className={`max-w-[75%] px-4 py-2 rounded-2xl ${message.role === 'user'
-                                        ? 'bg-teal-500 text-white rounded-br-md'
+                                        ? 'bg-zinc-800 text-white rounded-br-md'
                                         : 'bg-white text-gray-800 rounded-bl-md shadow-sm border border-gray-100'
                                         }`}
                                 >
@@ -252,7 +252,7 @@ export default function ChatWidget() {
                         {/* Typing Indicator */}
                         {isLoading && (
                             <div className="flex gap-2">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-zinc-800 to-cyan-500 flex items-center justify-center">
                                     <Bot className="w-4 h-4 text-white" />
                                 </div>
                                 <div className="bg-white px-4 py-3 rounded-2xl rounded-bl-md shadow-sm border border-gray-100">
@@ -277,13 +277,13 @@ export default function ChatWidget() {
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 placeholder="Type your message..."
-                                className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all"
+                                className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-zinc-800 focus:bg-white transition-all"
                                 disabled={isLoading}
                             />
                             <button
                                 onClick={sendMessage}
                                 disabled={!input.trim() || isLoading}
-                                className="w-10 h-10 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-10 h-10 rounded-full bg-gradient-to-r from-zinc-800 to-cyan-500 text-white flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 aria-label="Send message"
                             >
                                 {isLoading ? (

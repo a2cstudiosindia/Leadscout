@@ -490,7 +490,7 @@ print(response.json())`
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-teal-500 selection:text-white">
+        <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-zinc-800 selection:text-white">
             {/* Header / Nav */}
             <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -498,10 +498,10 @@ print(response.json())`
                         <ArrowLeft className="w-4 h-4" />
                     </Link>
                     <div className="h-4 w-px bg-slate-800" />
-                    <span className="font-extrabold text-xl bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-2">
-                        <Zap className="w-5 h-5 text-teal-400" fill="currentColor" /> Blade Spot API
+                    <span className="font-extrabold text-xl bg-gradient-to-r from-zinc-900 to-cyan-400 bg-clip-text text-transparent flex items-center gap-2">
+                        <Zap className="w-5 h-5 text-zinc-900" fill="currentColor" /> Blade Spot API
                     </span>
-                    <span className="bg-teal-950 text-teal-300 text-xs px-2 py-0.5 rounded-full border border-teal-800 font-semibold tracking-wider uppercase">
+                    <span className="bg-teal-950 text-zinc-400 text-xs px-2 py-0.5 rounded-full border border-teal-800 font-semibold tracking-wider uppercase">
                         v1.0
                     </span>
                 </div>
@@ -515,7 +515,7 @@ print(response.json())`
                                 onClick={() => setActiveLang(lang)}
                                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all capitalize ${
                                     activeLang === lang 
-                                        ? 'bg-teal-500 text-slate-950 shadow-lg shadow-teal-500/20' 
+                                        ? 'bg-zinc-800 text-slate-950 shadow-lg shadow-zinc-800/20' 
                                         : 'text-slate-400 hover:text-slate-200'
                                 }`}
                             >
@@ -538,9 +538,9 @@ print(response.json())`
                 <div className="fixed inset-0 top-16 bg-slate-950/95 z-40 p-6 flex flex-col gap-6 md:hidden animate-in fade-in duration-200">
                     <div className="flex flex-col gap-2">
                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Navigation</span>
-                        <button onClick={() => scrollToSection('getting-started')} className={`text-left py-2 font-medium ${activeSection === 'getting-started' ? 'text-teal-400' : 'text-slate-300'}`}>Getting Started</button>
-                        <button onClick={() => scrollToSection('authentication')} className={`text-left py-2 font-medium ${activeSection === 'authentication' ? 'text-teal-400' : 'text-slate-300'}`}>Authentication</button>
-                        <button onClick={() => scrollToSection('base-url')} className={`text-left py-2 font-medium ${activeSection === 'base-url' ? 'text-teal-400' : 'text-slate-300'}`}>Base URL</button>
+                        <button onClick={() => scrollToSection('getting-started')} className={`text-left py-2 font-medium ${activeSection === 'getting-started' ? 'text-zinc-900' : 'text-slate-300'}`}>Getting Started</button>
+                        <button onClick={() => scrollToSection('authentication')} className={`text-left py-2 font-medium ${activeSection === 'authentication' ? 'text-zinc-900' : 'text-slate-300'}`}>Authentication</button>
+                        <button onClick={() => scrollToSection('base-url')} className={`text-left py-2 font-medium ${activeSection === 'base-url' ? 'text-zinc-900' : 'text-slate-300'}`}>Base URL</button>
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -549,7 +549,7 @@ print(response.json())`
                             <button 
                                 key={ep.id} 
                                 onClick={() => scrollToSection(ep.id)} 
-                                className={`text-left py-2 font-medium flex items-center gap-2 ${activeSection === ep.id ? 'text-teal-400' : 'text-slate-300'}`}
+                                className={`text-left py-2 font-medium flex items-center gap-2 ${activeSection === ep.id ? 'text-zinc-900' : 'text-slate-300'}`}
                             >
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
                                     ep.method === 'GET' ? 'bg-blue-950 text-blue-300' :
@@ -575,7 +575,7 @@ print(response.json())`
                                     }}
                                     className={`py-2 text-xs font-semibold rounded-lg text-center capitalize ${
                                         activeLang === lang 
-                                            ? 'bg-teal-500 text-slate-950' 
+                                            ? 'bg-zinc-800 text-slate-950' 
                                             : 'text-slate-400'
                                     }`}
                                 >
@@ -598,19 +598,19 @@ print(response.json())`
                             <div className="space-y-1">
                                 <button 
                                     onClick={() => scrollToSection('getting-started')} 
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeSection === 'getting-started' ? 'bg-slate-800 text-teal-400' : 'text-slate-400 hover:text-slate-200'}`}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeSection === 'getting-started' ? 'bg-slate-800 text-zinc-900' : 'text-slate-400 hover:text-slate-200'}`}
                                 >
                                     <BookOpen className="w-4 h-4" /> Getting Started
                                 </button>
                                 <button 
                                     onClick={() => scrollToSection('authentication')} 
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeSection === 'authentication' ? 'bg-slate-800 text-teal-400' : 'text-slate-400 hover:text-slate-200'}`}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeSection === 'authentication' ? 'bg-slate-800 text-zinc-900' : 'text-slate-400 hover:text-slate-200'}`}
                                 >
                                     <Key className="w-4 h-4" /> Authentication
                                 </button>
                                 <button 
                                     onClick={() => scrollToSection('base-url')} 
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeSection === 'base-url' ? 'bg-slate-800 text-teal-400' : 'text-slate-400 hover:text-slate-200'}`}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeSection === 'base-url' ? 'bg-slate-800 text-zinc-900' : 'text-slate-400 hover:text-slate-200'}`}
                                 >
                                     <Globe className="w-4 h-4" /> Base URL
                                 </button>
@@ -625,7 +625,7 @@ print(response.json())`
                                         key={ep.id}
                                         onClick={() => scrollToSection(ep.id)}
                                         className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left ${
-                                            activeSection === ep.id ? 'bg-slate-800 text-teal-400' : 'text-slate-400 hover:text-slate-200'
+                                            activeSection === ep.id ? 'bg-slate-800 text-zinc-900' : 'text-slate-400 hover:text-slate-200'
                                         }`}
                                     >
                                         <span className="truncate pr-2">{ep.title}</span>
@@ -644,7 +644,7 @@ print(response.json())`
 
                         <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-800/80">
                             <h4 className="text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
-                                <Shield className="w-3.5 h-3.5 text-teal-400" /> Limits Policy
+                                <Shield className="w-3.5 h-3.5 text-zinc-900" /> Limits Policy
                             </h4>
                             <p className="text-[11px] text-slate-400 leading-relaxed">
                                 API requests are subject to limits of 1,000/mo (Pro) and 10,000/mo (Agency). Rate limit headers are returned with every request.
@@ -662,7 +662,7 @@ print(response.json())`
                         {/* Getting Started Section */}
                         <section id="getting-started" className="scroll-mt-24 space-y-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-teal-950 text-teal-400 border border-teal-800/50 rounded-xl">
+                                <div className="p-2.5 bg-teal-950 text-zinc-900 border border-teal-800/50 rounded-xl">
                                     <BookOpen className="w-6 h-6" />
                                 </div>
                                 <h2 className="text-3xl font-extrabold text-white tracking-tight">Getting Started</h2>
@@ -671,9 +671,9 @@ print(response.json())`
                                 Welcome to the <strong>Blade Spot API by A2C Studios</strong>. Our REST API enables developer-first agency outreach automation. Integrate local lead discovery, detailed mobile responsiveness & SEO diagnostics, and auto-score lists directly into your CRM or outbound toolkits.
                             </p>
                             <div className="bg-slate-800/40 rounded-xl border border-slate-800/60 p-4 flex gap-3.5 items-start">
-                                <Terminal className="w-5 h-5 text-teal-400 mt-0.5 shrink-0" />
+                                <Terminal className="w-5 h-5 text-zinc-900 mt-0.5 shrink-0" />
                                 <div className="text-sm text-slate-300">
-                                    <span className="font-bold text-white">Base URL:</span> Use <code className="bg-slate-950 px-1.5 py-0.5 rounded text-teal-300 font-mono">https://api.leadscout.app/api/v1</code> for all operations. Secure HTTPS is required for all requests.
+                                    <span className="font-bold text-white">Base URL:</span> Use <code className="bg-slate-950 px-1.5 py-0.5 rounded text-zinc-400 font-mono">https://api.leadscout.app/api/v1</code> for all operations. Secure HTTPS is required for all requests.
                                 </div>
                             </div>
                         </section>
@@ -681,7 +681,7 @@ print(response.json())`
                         {/* Authentication Section */}
                         <section id="authentication" className="scroll-mt-24 space-y-6">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-teal-950 text-teal-400 border border-teal-800/50 rounded-xl">
+                                <div className="p-2.5 bg-teal-950 text-zinc-900 border border-teal-800/50 rounded-xl">
                                     <Key className="w-6 h-6" />
                                 </div>
                                 <h2 className="text-2xl font-bold text-white tracking-tight">Authentication</h2>
@@ -693,13 +693,13 @@ print(response.json())`
                                 </p>
 
                                 <div className="relative group">
-                                    <div className="bg-slate-950 rounded-xl border border-slate-800/80 p-4 font-mono text-sm text-teal-400 flex items-center justify-between">
+                                    <div className="bg-slate-950 rounded-xl border border-slate-800/80 p-4 font-mono text-sm text-zinc-900 flex items-center justify-between">
                                         <code>Authorization: Bearer sk_live_...</code>
                                         <button 
                                             onClick={() => handleCopy('header-auth', 'Authorization: Bearer sk_live_...')}
-                                            className="text-slate-500 hover:text-teal-400 transition-colors p-1.5 rounded-lg hover:bg-slate-900"
+                                            className="text-slate-500 hover:text-zinc-900 transition-colors p-1.5 rounded-lg hover:bg-slate-900"
                                         >
-                                            {copiedId === 'header-auth' ? <Check className="w-4 h-4 text-teal-400" /> : <Copy className="w-4 h-4" />}
+                                            {copiedId === 'header-auth' ? <Check className="w-4 h-4 text-zinc-900" /> : <Copy className="w-4 h-4" />}
                                         </button>
                                     </div>
                                 </div>
@@ -717,7 +717,7 @@ print(response.json())`
                                 <div className="space-y-3">
                                     <h4 className="font-semibold text-white text-sm">Generating an API Key:</h4>
                                     <ol className="list-decimal pl-5 space-y-2 text-sm">
-                                        <li>Navigate to the <Link href="/settings/api-keys" className="text-teal-400 hover:underline">API Settings</Link> inside your dashboard.</li>
+                                        <li>Navigate to the <Link href="/settings/api-keys" className="text-zinc-900 hover:underline">API Settings</Link> inside your dashboard.</li>
                                         <li>Provide a key description (e.g., "Production Client", "Zapier Integration").</li>
                                         <li>Click <strong>Generate Key</strong>. Copy the key hash immediately. For safety, the raw token is shown only once.</li>
                                     </ol>
@@ -728,7 +728,7 @@ print(response.json())`
                         {/* Base URL Section */}
                         <section id="base-url" className="scroll-mt-24 space-y-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-teal-950 text-teal-400 border border-teal-800/50 rounded-xl">
+                                <div className="p-2.5 bg-teal-950 text-zinc-900 border border-teal-800/50 rounded-xl">
                                     <Globe className="w-6 h-6" />
                                 </div>
                                 <h2 className="text-2xl font-bold text-white tracking-tight">Base URL & API Clients</h2>
@@ -740,9 +740,9 @@ print(response.json())`
                                 <code>https://api.leadscout.app/api/v1</code>
                                 <button 
                                     onClick={() => handleCopy('base-url-text', 'https://api.leadscout.app/api/v1')}
-                                    className="text-slate-500 hover:text-teal-400 transition-colors p-1.5 rounded-lg"
+                                    className="text-slate-500 hover:text-zinc-900 transition-colors p-1.5 rounded-lg"
                                 >
-                                    {copiedId === 'base-url-text' ? <Check className="w-4 h-4 text-teal-400" /> : <Copy className="w-4 h-4" />}
+                                    {copiedId === 'base-url-text' ? <Check className="w-4 h-4 text-zinc-900" /> : <Copy className="w-4 h-4" />}
                                 </button>
                             </div>
                         </section>
@@ -763,7 +763,7 @@ print(response.json())`
                                             }`}>
                                                 {ep.method}
                                             </span>
-                                            <code className="text-sm font-mono text-teal-300">{ep.path}</code>
+                                            <code className="text-sm font-mono text-zinc-400">{ep.path}</code>
                                         </div>
                                         <h3 className="text-2xl font-bold text-white tracking-tight">{ep.title}</h3>
                                         <p className="text-slate-300 leading-relaxed text-sm">{ep.description}</p>
@@ -786,7 +786,7 @@ print(response.json())`
                                                     <tbody className="divide-y divide-slate-800/40 text-slate-300">
                                                         {ep.params.map((param) => (
                                                             <tr key={param.name}>
-                                                                <td className="p-3 font-mono text-teal-400 text-xs">{param.name}</td>
+                                                                <td className="p-3 font-mono text-zinc-900 text-xs">{param.name}</td>
                                                                 <td className="p-3 text-slate-400 text-xs">{param.type}</td>
                                                                 <td className="p-3 text-xs">
                                                                     {param.required ? (
@@ -821,7 +821,7 @@ print(response.json())`
                                                     <tbody className="divide-y divide-slate-800/40 text-slate-300">
                                                         {ep.requestBody.map((bodyProp) => (
                                                             <tr key={bodyProp.name}>
-                                                                <td className="p-3 font-mono text-teal-400 text-xs">{bodyProp.name}</td>
+                                                                <td className="p-3 font-mono text-zinc-900 text-xs">{bodyProp.name}</td>
                                                                 <td className="p-3 text-slate-400 text-xs">{bodyProp.type}</td>
                                                                 <td className="p-3 text-xs">
                                                                     {bodyProp.required ? (
@@ -848,11 +848,11 @@ print(response.json())`
                                                     onClick={() => handleCopy(`${ep.id}-req-mob`, ep.code[activeLang])}
                                                     className="flex items-center gap-1 text-slate-400 hover:text-white transition-colors"
                                                 >
-                                                    {copiedId === `${ep.id}-req-mob` ? <Check className="w-3.5 h-3.5 text-teal-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                                    {copiedId === `${ep.id}-req-mob` ? <Check className="w-3.5 h-3.5 text-zinc-900" /> : <Copy className="w-3.5 h-3.5" />}
                                                     Copy
                                                 </button>
                                             </div>
-                                            <pre className="p-4 font-mono text-xs overflow-x-auto text-teal-300">
+                                            <pre className="p-4 font-mono text-xs overflow-x-auto text-zinc-400">
                                                 {ep.code[activeLang]}
                                             </pre>
                                         </div>
@@ -864,7 +864,7 @@ print(response.json())`
                                                     onClick={() => handleCopy(`${ep.id}-res-mob`, ep.response)}
                                                     className="flex items-center gap-1 text-slate-400 hover:text-white transition-colors"
                                                 >
-                                                    {copiedId === `${ep.id}-res-mob` ? <Check className="w-3.5 h-3.5 text-teal-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                                    {copiedId === `${ep.id}-res-mob` ? <Check className="w-3.5 h-3.5 text-zinc-900" /> : <Copy className="w-3.5 h-3.5" />}
                                                     Copy
                                                 </button>
                                             </div>
@@ -893,7 +893,7 @@ print(response.json())`
                                     <div className="bg-slate-900 rounded-xl border border-slate-800/80 overflow-hidden">
                                         <div className="bg-slate-900/60 px-4 py-2 flex items-center justify-between text-xs border-b border-slate-800/60 text-slate-400">
                                             <div className="flex items-center gap-1.5 font-semibold text-slate-300">
-                                                <Code2 className="w-3.5 h-3.5 text-teal-400" /> 
+                                                <Code2 className="w-3.5 h-3.5 text-zinc-900" /> 
                                                 <span>Request ({activeLang === 'javascript' ? 'Node.js' : activeLang})</span>
                                             </div>
                                             <button 
@@ -902,8 +902,8 @@ print(response.json())`
                                             >
                                                 {copiedId === `${ep.id}-req-desk` ? (
                                                     <>
-                                                        <Check className="w-3.5 h-3.5 text-teal-400" />
-                                                        <span className="text-teal-400 text-[10px]">Copied</span>
+                                                        <Check className="w-3.5 h-3.5 text-zinc-900" />
+                                                        <span className="text-zinc-900 text-[10px]">Copied</span>
                                                     </>
                                                 ) : (
                                                     <>
@@ -914,7 +914,7 @@ print(response.json())`
                                             </button>
                                         </div>
                                         <div className="p-4 overflow-x-auto">
-                                            <pre className="font-mono text-xs text-teal-300 whitespace-pre">
+                                            <pre className="font-mono text-xs text-zinc-400 whitespace-pre">
                                                 {ep.code[activeLang]}
                                             </pre>
                                         </div>
@@ -933,8 +933,8 @@ print(response.json())`
                                             >
                                                 {copiedId === `${ep.id}-res-desk` ? (
                                                     <>
-                                                        <Check className="w-3.5 h-3.5 text-teal-400" />
-                                                        <span className="text-teal-400 text-[10px]">Copied</span>
+                                                        <Check className="w-3.5 h-3.5 text-zinc-900" />
+                                                        <span className="text-zinc-900 text-[10px]">Copied</span>
                                                     </>
                                                 ) : (
                                                     <>

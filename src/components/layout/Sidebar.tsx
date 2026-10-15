@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCached } from "@/lib/use-cached";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -19,15 +19,8 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const tab = searchParams.get('tab');
-    const [plan, setPlan] = useState<string | null>(null);
-
-    useEffect(() => {
-        getSubscriptionInfo().then((info) => {
-            if (info && info.plan !== 'free') {
-                setPlan(info.plan);
-            }
-        });
-    }, []);
+    const { data: info } = useCached("sub", () => getSubscriptionInfo());
+    const plan = info && info.plan !== 'free' ? info.plan : null;
 
     return (
         <>
@@ -42,45 +35,45 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
             {/* Sidebar */}
             <div className={cn(
-                "w-64 bg-gradient-to-b from-[#39C0B3] to-[#4E81EC] min-h-screen border-none flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 shadow-xl",
+                "w-72 bg-[#0c0c0e] border-r border-zinc-800/80 min-h-screen flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300",
                 // Mobile: slide in/out
                 isOpen ? "translate-x-0" : "-translate-x-full",
                 // Desktop: always visible
                 "md:translate-x-0"
             )}>
-                <div className="p-8 pb-6 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="text-white">
-                            <Zap size={28} fill="currentColor" />
+                <div className="p-6 pb-6 flex items-center justify-between">
+                    <Link href="/" className="flex items-center gap-3 group">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700/70 text-white flex items-center justify-center group-hover:border-zinc-500 transition-colors shadow-sm">
+                            <Zap size={20} className="fill-white text-white" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="font-bold text-xl text-white tracking-tight">LeadScout</span>
+                            <span className="font-extrabold text-lg text-white tracking-tight">LeadScout</span>
                             {plan && (
                                 <span className={cn(
-                                    "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 w-fit mt-1",
+                                    "text-[10px] font-mono font-medium uppercase tracking-wider px-2 py-0.5 rounded border flex items-center gap-1 w-fit mt-0.5",
                                     plan === 'enterprise'
-                                        ? "bg-amber-400 text-white"
-                                        : "bg-purple-500 text-white"
-                                )}>
+                                        ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                                        : "border-zinc-700 bg-zinc-800/70 text-zinc-300"
+                                    )}>
                                     {plan === 'enterprise' ? <Crown size={10} /> : <Sparkles size={10} />}
                                     {plan}
                                 </span>
                             )}
                         </div>
-                    </div>
+                    </Link>
                     {/* Mobile close button */}
                     <button
                         onClick={onClose}
-                        className="md:hidden p-2 rounded-lg hover:bg-white/20 transition-colors"
+                        className="md:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/60 transition-colors"
                         aria-label="Close sidebar"
                     >
-                        <X size={20} className="text-white" />
+                        <X size={20} />
                     </button>
                 </div>
 
-                <div className="h-px bg-white/20 mx-6 mb-6" />
+                <div className="h-px bg-zinc-800/80 mx-5 mb-5" />
 
-                <nav className="flex-1 px-4 space-y-2">
+                <nav className="flex-1 px-3 space-y-1.5">
                     {navigation.map((item) => {
                         const isMatch = (item.href.includes(`tab=${tab}`) && pathname === '/dashboard') || 
                                         (pathname === '/analytics' && item.href === '/analytics') || 
@@ -91,57 +84,60 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
                                 href={item.href}
                                 onClick={onClose}
                                 className={cn(
-                                    "flex items-center gap-4 px-4 py-3.5 rounded-full text-sm font-medium transition-all duration-200 group",
-                                    "hover:bg-white/10 hover:translate-x-1",
-                                    isMatch ? "bg-white/20 text-white shadow-sm" : "text-white/80"
+                                    "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
+                                    isMatch 
+                                        ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-xs" 
+                                        : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                                 )}
                             >
                                 <div className={cn(
-                                    "p-1.5 rounded-lg transition-colors",
-                                    isMatch ? "text-white" : "text-white/80 group-hover:text-white"
+                                    "p-1 rounded-lg transition-colors",
+                                    isMatch ? "text-white" : "text-zinc-400 group-hover:text-white"
                                 )}>
-                                    <item.icon size={18} />
+                                    <item.icon size={19} />
                                 </div>
                                 {item.name}
                             </Link>
                         );
                     })}
 
-                    <div className="mt-8 px-4">
-                        <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider mb-4 pl-4">Account</h3>
+                    <div className="pt-6 px-1">
+                        <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-500 mb-2 pl-3">Configuration</h3>
                         <Link
                             href="/settings"
                             onClick={onClose}
                             className={cn(
-                                "flex items-center gap-4 px-4 py-3.5 rounded-full text-sm font-medium transition-all duration-200 group",
-                                "hover:bg-white/10 hover:translate-x-1",
-                                pathname.startsWith("/settings") && !pathname.includes("/api-keys") ? "bg-white/20 text-white shadow-sm" : "text-white/80"
+                                "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
+                                pathname.startsWith("/settings") && !pathname.includes("/api-keys") 
+                                    ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-xs" 
+                                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                             )}
                         >
-                            <div className={cn("p-1.5 rounded-lg transition-colors", pathname.startsWith("/settings") && !pathname.includes("/api-keys") ? "text-white" : "text-white/80 group-hover:text-white")}>
-                                <Settings size={18} />
+                            <div className="p-1 rounded-lg text-zinc-400 group-hover:text-white">
+                                <Settings size={19} />
                             </div>
-                            Settings
+                            Agency Settings
                         </Link>
                         <Link
                             href="/settings/api-keys"
                             onClick={onClose}
                             className={cn(
-                                "flex items-center gap-4 px-4 py-3.5 rounded-full text-sm font-medium transition-all duration-200 group",
-                                "hover:bg-white/10 hover:translate-x-1",
-                                pathname.includes("/api-keys") ? "bg-white/20 text-white shadow-sm" : "text-white/80"
+                                "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
+                                pathname.includes("/api-keys") 
+                                    ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-xs" 
+                                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                             )}
                         >
-                            <div className={cn("p-1.5 rounded-lg transition-colors", pathname.includes("/api-keys") ? "text-white" : "text-white/80 group-hover:text-white")}>
-                                <Key size={18} />
+                            <div className="p-1 rounded-lg text-zinc-400 group-hover:text-white">
+                                <Key size={19} />
                             </div>
                             API Keys
                         </Link>
                     </div>
                 </nav>
 
-                <div className="p-6 text-center">
-                    <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">v1.0.0</span>
+                <div className="p-4 border-t border-zinc-800/80 text-center">
+                    <span className="text-xs text-zinc-500 font-mono tracking-widest">v1.2.0 • PRODUCTION</span>
                 </div>
             </div>
         </>
@@ -153,10 +149,10 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
     return (
         <button
             onClick={onClick}
-            className="md:hidden fixed top-4 left-4 z-30 p-2 bg-white rounded-xl shadow-md border border-gray-100 hover:bg-gray-50 transition-colors"
+            className="md:hidden fixed top-4 left-4 z-30 p-2 bg-zinc-900 rounded-xl shadow-md border border-zinc-800 text-zinc-300 hover:text-white transition-colors"
             aria-label="Open menu"
         >
-            <Menu size={24} className="text-gray-600" />
+            <Menu size={20} />
         </button>
     );
 }

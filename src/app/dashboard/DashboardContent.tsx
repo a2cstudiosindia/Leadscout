@@ -11,7 +11,7 @@ import { DashboardShell } from "@/components/layout/DashboardShell";
 import { getSubscriptionInfo } from "@/lib/subscription";
 import { getPriorityBadge } from "@/lib/lead-scoring";
 import { EMAIL_TEMPLATES, type EmailTemplateVariant } from "@/lib/ai-email-generator";
-import { Users, Search, Activity, Download, RefreshCw, Mail, Star, Phone, FileSpreadsheet, MapPin, Trash2, Zap, LayoutGrid, List, X, Copy, Clock } from "lucide-react";
+import { Users, Search, Activity, Download, RefreshCw, Mail, Star, Phone, FileSpreadsheet, MapPin, Trash2, Zap, LayoutGrid, List, X, Copy, Clock, DollarSign } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -88,7 +88,7 @@ export default function Dashboard() {
         if (checkoutStatus === 'success') {
             toast.success('Payment successful! Your plan has been upgraded.', { duration: 5000 });
             // Re-fetch subscription to reflect new plan
-            getSubscriptionInfo().then((info) => {
+            getSubscriptionInfo(true).then((info) => {
                 if (info) {
                     setIsEnterprise(info.plan === 'enterprise');
                     setIsPro(info.plan === 'pro' || info.plan === 'enterprise');
@@ -326,7 +326,7 @@ export default function Dashboard() {
                             <div className="flex border-l border-gray-200">
                                 <button
                                     onClick={() => { toast.dismiss(t.id); router.push('/pricing'); }}
-                                    className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-teal-600 hover:text-teal-500 focus:outline-none"
+                                    className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-zinc-700 hover:text-zinc-800 focus:outline-none"
                                 >
                                     Upgrade
                                 </button>
@@ -376,7 +376,7 @@ export default function Dashboard() {
                             <div className="flex border-l border-gray-200">
                                 <button
                                     onClick={() => { toast.dismiss(t.id); router.push('/pricing'); }}
-                                    className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-teal-600 hover:text-teal-500 focus:outline-none"
+                                    className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-zinc-700 hover:text-zinc-800 focus:outline-none"
                                 >
                                     Upgrade
                                 </button>
@@ -439,7 +439,7 @@ export default function Dashboard() {
         const result = await saveLead(lead);
         if (result.success) {
             if (result.duplicateWarning) {
-                toast(result.duplicateWarning, { icon: '⚠️', duration: 5000 });
+                toast(result.duplicateWarning, { duration: 5000 });
             }
             toast.success('Lead saved successfully!');
             if (activeTab === 'leads') fetchLeads();
@@ -463,7 +463,7 @@ export default function Dashboard() {
                         <div className="flex border-l border-gray-200">
                             <button
                                 onClick={() => { toast.dismiss(t.id); router.push('/pricing'); }}
-                                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-teal-600 hover:text-teal-500 focus:outline-none"
+                                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-zinc-700 hover:text-zinc-800 focus:outline-none"
                             >
                                 Upgrade
                             </button>
@@ -479,69 +479,62 @@ export default function Dashboard() {
 
     return (
         <DashboardShell>
-            <Toaster position="top-right" />
-            <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-slate-800 capitalize">
-                    {activeTab === 'find' ? 'Lead Discovery' : activeTab === 'leads' ? 'My Leads Pipeline' : 'Direct Scan'}
-                </h1>
+            <Toaster position="top-right" toastOptions={{ style: { background: "#18181b", color: "#fafafa", border: "1px solid #3f3f46" } }} />
+            <div className="mb-8 flex items-center justify-between pb-4 border-b border-zinc-200">
+                <div>
+                    <h1 className="text-3xl font-extrabold text-zinc-900 capitalize tracking-tight">
+                        {activeTab === 'find' ? 'Lead Discovery Engine' : activeTab === 'leads' ? 'Agency CRM Pipeline' : 'Direct Technical Audit'}
+                    </h1>
+                    <p className="text-sm text-zinc-500 mt-1">
+                        {activeTab === 'find' ? 'Search Google Places for local business targets' : activeTab === 'leads' ? 'Track lead stages, notes, and outreach status' : 'Execute one-off headless browser diagnostic scan'}
+                    </p>
+                </div>
             </div>
 
             {/* Top Stat Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8" role="region" aria-label="Dashboard statistics">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <p className="text-gray-500 text-sm font-medium mb-1">Total Leads</p>
-                        <div className="w-6 h-[3px] bg-blue-500 rounded-full mb-4"></div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
-                            <Users size={24} />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10" role="region" aria-label="Dashboard statistics">
+                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-sm transition-all">
+                    <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-3">Total Leads</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shrink-0">
+                            <Users size={20} />
                         </div>
-                        <h3 className="text-4xl font-bold text-blue-500">{stats.totalLeads}</h3>
+                        <h3 className="text-4xl font-extrabold font-mono text-zinc-900 tracking-tight">{stats.totalLeads}</h3>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <p className="text-gray-500 text-sm font-medium mb-1">Audits Run</p>
-                        <div className="w-6 h-[3px] bg-green-500 rounded-full mb-4"></div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-500 shrink-0">
-                            <Activity size={24} />
+                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-sm transition-all">
+                    <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-3">Audits Run</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shrink-0">
+                            <Activity size={20} />
                         </div>
-                        <h3 className="text-4xl font-bold text-green-500">{stats.auditsRun}</h3>
+                        <h3 className="text-4xl font-extrabold font-mono text-zinc-900 tracking-tight">{stats.auditsRun}</h3>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <p className="text-gray-500 text-sm font-medium mb-1">Searches</p>
-                        <div className="w-6 h-[3px] bg-yellow-500 rounded-full mb-4"></div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 shrink-0">
-                            <Search size={24} />
+                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-sm transition-all">
+                    <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-3">Discovery Searches</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shrink-0">
+                            <Search size={20} />
                         </div>
-                        <h3 className="text-4xl font-bold text-yellow-500">
+                        <h3 className="text-4xl font-extrabold font-mono text-zinc-900 tracking-tight">
                             {stats.searchesUsed}
-                            <span className="text-sm font-normal text-gray-400">
-                                /{stats.searchesLimit === Infinity ? '∞' : stats.searchesLimit}
+                            <span className="text-sm font-normal text-zinc-400 font-mono ml-0.5">
+                                /{stats.searchesLimit === Infinity ? '\u221e' : stats.searchesLimit}
                             </span>
                         </h3>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <p className="text-gray-500 text-sm font-medium mb-1">Potential Value</p>
-                        <div className="w-6 h-[3px] bg-purple-500 rounded-full mb-4"></div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-500 shrink-0">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-sm transition-all">
+                    <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-3">Pipeline Value</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shrink-0">
+                            <DollarSign size={20} />
                         </div>
-                        <h3 className="text-4xl font-bold text-purple-500">
+                        <h3 className="text-4xl font-extrabold font-mono text-zinc-900 tracking-tight">
                             ${stats.potentialValue > 999 ? (stats.potentialValue/1000).toFixed(1) + 'k' : stats.potentialValue}
                         </h3>
                     </div>
@@ -555,13 +548,13 @@ export default function Dashboard() {
                         {!report ? (
                             <div className="w-full max-w-2xl text-center space-y-8 animate-in fade-in zoom-in duration-500">
                                 <div className="space-y-2">
-                                    <h2 className="text-3xl font-bold text-gray-800">New Audit</h2>
-                                    <p className="text-gray-500">Enter a website URL to generate a comprehensive analysis.</p>
+                                    <h2 className="text-3xl font-extrabold text-zinc-900 tracking-tight">New Audit</h2>
+                                    <p className="text-base text-zinc-500">Enter a website URL to generate a comprehensive analysis.</p>
                                 </div>
 
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Search className="h-5 w-5 text-gray-400 group-focus-within:text-teal-500 transition-colors" />
+                                        <Search className="h-5 w-5 text-gray-400 group-focus-within:text-zinc-800 transition-colors" />
                                     </div>
                                     <input
                                         type="url"
@@ -569,23 +562,23 @@ export default function Dashboard() {
                                         value={url}
                                         onChange={(e) => setUrl(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleScan()}
-                                        className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-lg transition-all"
+                                        className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent text-lg transition-all"
                                         autoFocus
                                     />
                                     <button
                                         onClick={() => handleScan()}
                                         disabled={loading || !url}
-                                        className="absolute inset-y-2 right-2 bg-teal-400 text-white px-6 rounded-xl font-bold hover:bg-teal-500 disabled:opacity-50 transition-all shadow-md active:scale-95"
+                                        className="absolute inset-y-2 right-2 bg-zinc-900 text-white px-6 rounded-xl font-bold hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-md active:scale-95"
                                     >
                                         {loading ? (activeJobId ? "Queued..." : "Scanning...") : "Audit"}
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-400">
-                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-green-400" /> SEO Analysis</div>
-                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-400" /> Performance</div>
-                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-purple-400" /> Security</div>
-                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-orange-400" /> Mobile Friendly</div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-zinc-400">
+                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-zinc-900" /> SEO Analysis</div>
+                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-zinc-700" /> Performance</div>
+                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-zinc-500" /> Security</div>
+                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-zinc-400" /> Mobile Friendly</div>
                                 </div>
                             </div>
                         ) : (
@@ -602,7 +595,7 @@ export default function Dashboard() {
                                                 <Activity size={16} /> Save to Lead
                                             </button>
                                         )}
-                                        <button onClick={() => generatePDF(report)} className="flex items-center gap-2 bg-teal-50 text-teal-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-teal-100 transition-colors">
+                                        <button onClick={() => generatePDF(report)} className="flex items-center gap-2 bg-zinc-100 text-zinc-700 px-4 py-2 rounded-lg font-bold text-sm hover:bg-zinc-200 transition-colors">
                                             <Download size={16} /> Download PDF
                                         </button>
                                     </div>
@@ -610,7 +603,7 @@ export default function Dashboard() {
 
                                 {/* Score Hero */}
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <div className="bg-teal-400 text-white p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-lg relative overflow-hidden">
+                                    <div className="bg-zinc-900 text-white p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-lg relative overflow-hidden">
                                         <div className="absolute top-0 right-0 p-4 opacity-10"><Activity size={100} /></div>
                                         <span className="text-7xl font-bold">{report.overallScore}</span>
                                         <span className="text-sm font-medium uppercase tracking-wider opacity-90 mt-2">Overall Score</span>
@@ -623,7 +616,7 @@ export default function Dashboard() {
                                             <p className="font-bold text-gray-800 truncate" title={report.url}>{report.url}</p>
                                             <p className="text-xs text-gray-400 mt-1">{new Date(report.scannedAt).toLocaleDateString()}</p>
                                         </div>
-                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:border-teal-400 transition-colors group"
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:border-zinc-900 transition-colors group"
                                             onClick={() => {
                                                 const { subject, body } = generateColdEmail(report.url, report.url, report);
                                                 navigator.clipboard.writeText(`${subject}\n\n${body}`);
@@ -631,10 +624,10 @@ export default function Dashboard() {
                                             }}
                                         >
                                             <div className="flex items-center gap-2 mb-2">
-                                                <Mail size={16} className="text-teal-500" />
+                                                <Mail size={16} className="text-zinc-800" />
                                                 <p className="text-gray-400 text-xs font-bold uppercase">Smart Outreach</p>
                                             </div>
-                                            <p className="font-bold text-gray-800 group-hover:text-teal-600 transition-colors">Copy AI Email Pitch &rarr;</p>
+                                            <p className="font-bold text-gray-800 group-hover:text-zinc-700 transition-colors">Copy AI Email Pitch &rarr;</p>
                                         </div>
                                     </div>
                                 </div>
@@ -646,13 +639,13 @@ export default function Dashboard() {
                                         {Object.entries(report.checks).filter(([k]) => k !== 'seo').map(([key, result]: [string, any]) => (
                                             <div key={key} className="p-4 rounded-xl border border-gray-100 hover:shadow-md transition-shadow flex gap-4 bg-gray-50/50">
                                                 <div className={cn("w-2 h-full rounded-full shrink-0",
-                                                    result.status === 'pass' ? "bg-teal-400" : result.status === 'warning' ? "bg-orange-400" : "bg-red-500"
+                                                    result.status === 'pass' ? "bg-zinc-900" : result.status === 'warning' ? "bg-orange-400" : "bg-red-500"
                                                 )} />
                                                 <div className="flex-1">
                                                     <div className="flex justify-between items-start mb-1">
                                                         <h4 className="font-bold text-gray-800 capitalize text-sm">{result.title}</h4>
                                                         <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide",
-                                                            result.status === 'pass' ? "bg-teal-100 text-teal-700" : result.status === 'warning' ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
+                                                            result.status === 'pass' ? "bg-zinc-200 text-zinc-800" : result.status === 'warning' ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
                                                         )}>{result.status}</span>
                                                     </div>
                                                     <p className="text-xs text-gray-500 leading-relaxed">{result.description}</p>
@@ -669,8 +662,8 @@ export default function Dashboard() {
                 {/* Search Tab (kept mostly same but wrapped in card) */}
                 {activeTab === 'find' && (
                     <div className="bg-white p-6 rounded-2xl shadow-sm min-h-[500px]">
-                        <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                            <Search size={20} className="text-teal-500" /> Lead Discovery
+                        <h2 className="text-xl font-extrabold text-zinc-900 mb-6 flex items-center gap-2.5 tracking-tight">
+                            <Search size={22} className="text-zinc-800" /> Lead Discovery
                         </h2>
 
                         <div className="flex flex-wrap gap-2 mb-4">
@@ -688,9 +681,9 @@ export default function Dashboard() {
                                         }
                                     }}
                                     className={cn(
-                                        "px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                                        "px-4 py-2 rounded-full text-sm font-semibold transition-all",
                                         category === cat.id
-                                            ? "bg-teal-400 text-white"
+                                            ? "bg-zinc-900 text-white"
                                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                     )}
                                 >
@@ -710,13 +703,13 @@ export default function Dashboard() {
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleFind()}
-                                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 shadow-sm rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition-all font-medium text-gray-800 placeholder:text-gray-400"
+                                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 shadow-sm rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none transition-all font-medium text-gray-800 placeholder:text-gray-400"
                                 />
                             </div>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as 'score' | 'name')}
-                                className="px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                                className="px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
                             >
                                 <option value="score">By Score</option>
                                 <option value="name">By Name</option>
@@ -724,7 +717,7 @@ export default function Dashboard() {
                             <button
                                 onClick={() => handleFind()}
                                 disabled={finding}
-                                className="bg-teal-400 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-500 disabled:opacity-50 transition-all shadow-md active:scale-95"
+                                className="bg-zinc-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-md active:scale-95"
                             >
                                 {finding ? "Searching..." : "Find"}
                             </button>
@@ -747,7 +740,7 @@ export default function Dashboard() {
                                             <tr key={lead.place_id} className="hover:bg-gray-50/50 transition-colors">
                                                 <td className="p-4 align-top">
                                                     <div className="flex flex-col gap-1">
-                                                        <h3 className="text-base font-bold text-gray-900 line-clamp-1" title={lead.name}>
+                                                        <h3 className="text-base font-extrabold text-zinc-900 line-clamp-1" title={lead.name}>
                                                             {lead.name}
                                                         </h3>
                                                         <div className="flex flex-wrap items-center gap-2">
@@ -769,7 +762,7 @@ export default function Dashboard() {
                                                         {lead.website ? (
                                                             <a href={lead.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline line-clamp-1" title={lead.website}>{lead.website}</a>
                                                         ) : (
-                                                            <span className="text-xs text-red-400 italic">No Website</span>
+                                                            <span className="text-xs text-red-600 italic">No Website</span>
                                                         )}
                                                         {lead.phone && (
                                                             <button 
@@ -777,10 +770,10 @@ export default function Dashboard() {
                                                                     navigator.clipboard.writeText(lead.phone!);
                                                                     toast.success("Phone number copied!");
                                                                 }}
-                                                                className="text-sm text-gray-600 flex items-center gap-1 hover:text-teal-600 transition-colors focus:outline-none"
+                                                                className="text-sm text-gray-600 flex items-center gap-1 hover:text-zinc-700 transition-colors focus:outline-none"
                                                                 title="Click to copy phone number"
                                                             >
-                                                                <Phone size={12} className="text-teal-500 shrink-0" />
+                                                                <Phone size={12} className="text-zinc-800 shrink-0" />
                                                                 <span className="line-clamp-1">{lead.phone}</span>
                                                             </button>
                                                         )}
@@ -789,10 +782,10 @@ export default function Dashboard() {
                                                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.formatted_address)}`}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="text-sm text-gray-500 flex items-center gap-1 hover:text-teal-600 transition-colors"
+                                                                className="text-sm text-gray-500 flex items-center gap-1 hover:text-zinc-700 transition-colors"
                                                                 title="View on Google Maps"
                                                             >
-                                                                <MapPin size={12} className="text-teal-500 shrink-0" />
+                                                                <MapPin size={12} className="text-zinc-800 shrink-0" />
                                                                 <span className="line-clamp-1">{lead.formatted_address}</span>
                                                             </a>
                                                         )}
@@ -813,7 +806,7 @@ export default function Dashboard() {
                                                         <button onClick={() => quickAudit(lead)} disabled={!lead.website || scanningLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm">
                                                             {scanningLead === lead.place_id ? 'Queuing...' : 'Audit'}
                                                         </button>
-                                                        <button onClick={() => handleSave(lead)} disabled={savingLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-white bg-[#39C0B3] rounded-lg hover:bg-[#2EB5B1] transition-colors shadow-sm disabled:opacity-50">
+                                                        <button onClick={() => handleSave(lead)} disabled={savingLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-white bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors shadow-sm disabled:opacity-50">
                                                             {savingLead === lead.place_id ? "Saving..." : "Save"}
                                                         </button>
                                                     </div>
@@ -835,21 +828,21 @@ export default function Dashboard() {
                 {activeTab === 'leads' && (
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                <Users size={20} className="text-teal-500" /> My Leads Pipeline
+                            <h2 className="text-xl font-extrabold text-zinc-900 flex items-center gap-2.5 tracking-tight">
+                                <Users size={22} className="text-zinc-800" /> My Leads Pipeline
                             </h2>
                             <div className="flex items-center gap-3">
                                 <div className="flex rounded-lg border border-gray-200 overflow-hidden">
                                     <button
                                         onClick={() => setLeadsView('list')}
-                                        className={cn("p-2 transition-colors", leadsView === 'list' ? "bg-teal-50 text-teal-600" : "text-gray-400 hover:text-gray-600")}
+                                        className={cn("p-2 transition-colors", leadsView === 'list' ? "bg-zinc-100 text-zinc-700" : "text-gray-400 hover:text-gray-600")}
                                         title="List view"
                                     >
                                         <List size={16} />
                                     </button>
                                     <button
                                         onClick={() => setLeadsView('kanban')}
-                                        className={cn("p-2 transition-colors", leadsView === 'kanban' ? "bg-teal-50 text-teal-600" : "text-gray-400 hover:text-gray-600")}
+                                        className={cn("p-2 transition-colors", leadsView === 'kanban' ? "bg-zinc-100 text-zinc-700" : "text-gray-400 hover:text-gray-600")}
                                         title="Kanban view"
                                     >
                                         <LayoutGrid size={16} />
@@ -860,7 +853,7 @@ export default function Dashboard() {
                                     <button
                                         onClick={() => handleExportCSV(false)}
                                         disabled={exporting}
-                                        className="flex items-center gap-2 text-sm font-bold bg-white border border-teal-400 text-teal-600 px-4 py-2 rounded-lg hover:bg-teal-50 transition-colors disabled:opacity-50"
+                                        className="flex items-center gap-2 text-sm font-bold bg-white border border-zinc-900 text-zinc-700 px-4 py-2 rounded-lg hover:bg-zinc-100 transition-colors disabled:opacity-50"
                                     >
                                         <Download size={16} />
                                         {exporting ? 'Exporting...' : 'Export CSV'}
@@ -870,7 +863,7 @@ export default function Dashboard() {
                                 <button
                                     onClick={() => handleExport(false)}
                                     disabled={exporting}
-                                    className="flex items-center gap-2 text-sm font-bold bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors shadow-sm disabled:opacity-50"
+                                    className="flex items-center gap-2 text-sm font-bold bg-zinc-800 text-white px-4 py-2 rounded-lg hover:bg-zinc-700 transition-colors shadow-sm disabled:opacity-50"
                                     aria-label="Export all leads to Excel"
                                 >
                                     <FileSpreadsheet size={16} />
@@ -896,7 +889,7 @@ export default function Dashboard() {
                                                 <button
                                                     onClick={() => handleExport(true)}
                                                     disabled={exporting}
-                                                    className="flex items-center gap-1 text-sm font-bold bg-teal-50 text-teal-600 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition-colors"
+                                                    className="flex items-center gap-1 text-sm font-bold bg-zinc-100 text-zinc-700 px-3 py-1.5 rounded-lg hover:bg-zinc-200 transition-colors"
                                                 >
                                                     <FileSpreadsheet size={14} />
                                                     {exporting ? 'Exporting...' : `Export ${selectedLeads.size} Selected`}
@@ -931,7 +924,7 @@ export default function Dashboard() {
                                                     <div key={lead.id} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
                                                         <p className="font-bold text-sm text-gray-800">{lead.business_name}</p>
                                                         {lead.lead_score > 0 && (
-                                                            <span className="text-xs text-teal-600 font-bold">Score: {lead.lead_score}</span>
+                                                            <span className="text-xs text-zinc-700 font-bold">Score: {lead.lead_score}</span>
                                                         )}
                                                         <p className="text-xs text-gray-400 mt-1 truncate">{lead.website_url || 'No website'}</p>
                                                     </div>
@@ -949,7 +942,7 @@ export default function Dashboard() {
                                             <Users size={32} />
                                         </div>
                                         <p className="text-gray-500 font-medium">No leads in your pipeline yet.</p>
-                                        <button onClick={() => changeTab('find')} className="mt-2 text-[#39C0B3] font-bold hover:underline">Find Leads &rarr;</button>
+                                        <button onClick={() => changeTab('find')} className="mt-2 text-zinc-900 font-bold hover:underline">Find Leads &rarr;</button>
                                     </div>
                                 )}
 
@@ -975,20 +968,20 @@ export default function Dashboard() {
                                                                     type="checkbox"
                                                                     checked={selectedLeads.has(lead.id)}
                                                                     onChange={() => toggleLeadSelection(lead.id)}
-                                                                    className="w-4 h-4 rounded border-gray-300 text-teal-500 focus:ring-teal-400"
+                                                                    className="w-4 h-4 rounded border-gray-300 text-zinc-800 focus:ring-zinc-900"
                                                                 />
                                                             </td>
                                                         )}
                                                         <td className="p-4 align-top">
                                                             <div className="flex items-start gap-3">
                                                                 <div className={cn("w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border shrink-0 mt-0.5",
-                                                                    lead.status === 'audited' ? "bg-teal-50 text-teal-600 border-teal-200" : "bg-gray-100 text-gray-500 border-gray-200"
+                                                                    lead.status === 'audited' ? "bg-zinc-100 text-zinc-700 border-zinc-300" : "bg-gray-100 text-gray-500 border-gray-200"
                                                                 )}>
                                                                     {lead.business_name.substring(0, 1)}
                                                                 </div>
                                                                 <div className="flex flex-col gap-0.5">
                                                                     <div className="flex items-center gap-2">
-                                                                        <span className="font-bold text-sm text-gray-900 line-clamp-1" title={lead.business_name}>
+                                                                        <span className="font-extrabold text-sm text-zinc-900 line-clamp-1" title={lead.business_name}>
                                                                             {lead.business_name}
                                                                         </span>
                                                                         {isEnterprise && (
@@ -1007,7 +1000,7 @@ export default function Dashboard() {
                                                                     {lead.website_url ? (
                                                                         <a href={lead.website_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline line-clamp-1" title={lead.website_url}>{lead.website_url}</a>
                                                                     ) : (
-                                                                        <span className="text-xs text-red-400 italic">No website</span>
+                                                                        <span className="text-xs text-red-600 italic">No website</span>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -1020,10 +1013,10 @@ export default function Dashboard() {
                                                                             navigator.clipboard.writeText(lead.phone!);
                                                                             toast.success("Phone number copied!");
                                                                         }}
-                                                                        className="text-xs text-gray-600 flex items-center gap-1.5 hover:text-teal-600 transition-colors focus:outline-none w-fit"
+                                                                        className="text-xs text-gray-600 flex items-center gap-1.5 hover:text-zinc-700 transition-colors focus:outline-none w-fit"
                                                                         title="Click to copy phone number"
                                                                     >
-                                                                        <Phone size={12} className="text-teal-500 shrink-0" />
+                                                                        <Phone size={12} className="text-zinc-800 shrink-0" />
                                                                         <span className="line-clamp-1">{lead.phone}</span>
                                                                     </button>
                                                                 )}
@@ -1032,10 +1025,10 @@ export default function Dashboard() {
                                                                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.address)}`}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="text-xs text-gray-500 flex items-center gap-1.5 hover:text-teal-600 transition-colors line-clamp-1"
+                                                                        className="text-xs text-gray-500 flex items-center gap-1.5 hover:text-zinc-700 transition-colors line-clamp-1"
                                                                         title="View on Google Maps"
                                                                     >
-                                                                        <MapPin size={12} className="text-teal-500 shrink-0" />
+                                                                        <MapPin size={12} className="text-zinc-800 shrink-0" />
                                                                         <span className="line-clamp-1">{lead.address}</span>
                                                                     </a>
                                                                 )}
@@ -1071,7 +1064,7 @@ export default function Dashboard() {
                                                                     type="number"
                                                                     defaultValue={lead.value || ''}
                                                                     onBlur={(e) => handleValueChange(lead.id, e.target.value)}
-                                                                    className="w-full pl-5 bg-transparent border-b border-gray-200 hover:border-gray-400 focus:border-teal-500 text-xs font-semibold text-gray-800 px-1 py-1 outline-none transition-colors"
+                                                                    className="w-full pl-5 bg-transparent border-b border-gray-200 hover:border-gray-400 focus:border-zinc-800 text-xs font-semibold text-gray-800 px-1 py-1 outline-none transition-colors"
                                                                     placeholder="0"
                                                                 />
                                                             </div>
@@ -1082,7 +1075,7 @@ export default function Dashboard() {
                                                                     <button
                                                                         onClick={() => handleGenerateEmail(lead.id, lead.business_name)}
                                                                         disabled={generatingEmail === lead.id}
-                                                                        className="p-1.5 rounded-lg bg-teal-50 text-teal-600 hover:bg-teal-100 transition-colors"
+                                                                        className="p-1.5 rounded-lg bg-zinc-100 text-zinc-700 hover:bg-zinc-200 transition-colors"
                                                                         title="Outreach Email"
                                                                     >
                                                                         <Mail size={14} />
@@ -1136,8 +1129,8 @@ export default function Dashboard() {
                                         className={cn(
                                             "px-3 py-1.5 rounded-lg text-xs font-bold border transition-all",
                                             emailTemplate === key
-                                                ? "bg-teal-400 text-white border-teal-400"
-                                                : "bg-white text-gray-600 border-gray-200 hover:border-teal-300"
+                                                ? "bg-zinc-900 text-white border-zinc-900"
+                                                : "bg-white text-gray-600 border-gray-200 hover:border-zinc-400"
                                         )}
                                     >
                                         {tmpl.name}
@@ -1158,7 +1151,7 @@ export default function Dashboard() {
                                         navigator.clipboard.writeText(`${emailModal.subject}\n\n${emailModal.body}`);
                                         toast.success('Copied to clipboard!');
                                     }}
-                                    className="flex items-center gap-2 bg-teal-400 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-teal-500"
+                                    className="flex items-center gap-2 bg-zinc-900 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-zinc-800"
                                 >
                                     <Copy size={14} /> Copy Email
                                 </button>

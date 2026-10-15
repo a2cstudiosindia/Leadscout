@@ -248,7 +248,7 @@ ${input.agencyEmail || ''}`.trim(),
             followUpBody: `Hi ${ownerName},\n\nJust circling back on the audit I ran for ${input.businessName}. Happy to send the full report over if helpful.\n\n${agencyName}`.trim(),
         },
         urgent_security: {
-            subject: `⚠️ Security issue on ${input.businessName}'s website`,
+            subject: `Security issue on ${input.businessName}'s website`,
             body: `Hi ${ownerName},
 
 I need to flag something important about ${input.businessName}'s website (${input.websiteUrl}).
