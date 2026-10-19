@@ -14,7 +14,8 @@ import {
     CheckCircle2, 
     AlertCircle, 
     ArrowRight,
-    ShieldCheck
+    ShieldCheck,
+    Check
 } from "lucide-react";
 import { authClient, signInWithGoogle } from "@/lib/auth-client";
 
@@ -92,7 +93,6 @@ function LoginForm() {
                 return;
             }
 
-            // Auto sign-in after signup
             router.push(redirect);
         } catch {
             setError("An unexpected error occurred. Please try again.");
@@ -112,40 +112,40 @@ function LoginForm() {
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-[#fafbfc] overflow-x-hidden relative font-sans selection:bg-[#00bdaa] selection:text-white">
+        <div className="min-h-screen w-full flex bg-[var(--canvas)] overflow-x-hidden relative font-sans">
             
-            {/* Panel A: Auth Form (Slides from Left to Right when switching to SignUp on desktop) */}
+            {/* Panel A: Auth Form */}
             <div 
-                className={`w-full lg:w-1/2 min-h-screen flex flex-col justify-between p-6 sm:p-10 md:p-14 lg:p-16 xl:p-20 bg-white z-20 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                className={`w-full lg:w-1/2 min-h-screen flex flex-col justify-between p-6 sm:p-10 md:p-14 lg:p-16 xl:p-20 bg-[var(--surface)] z-20 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     isSignUp 
-                        ? "lg:translate-x-full lg:border-l lg:border-gray-100" 
-                        : "lg:translate-x-0 lg:border-r lg:border-gray-100"
+                        ? "lg:translate-x-full lg:border-l lg:border-[var(--border)]" 
+                        : "lg:translate-x-0 lg:border-r lg:border-[var(--border)]"
                 }`}
             >
-                {/* Brand Navigation (Back to Home removed as requested) */}
+                {/* Brand Navigation */}
                 <div className="flex items-center">
                     <Link href="/" className="inline-flex items-center gap-2.5 group transition-transform active:scale-95">
-                        <div className="w-9 h-9 bg-[#00bdaa] rounded-xl text-white flex items-center justify-center shadow-md shadow-[#00bdaa]/25 group-hover:shadow-[#00bdaa]/35 transition-all">
-                            <Zap size={18} className="fill-white" />
+                        <div className="w-8 h-8 bg-[var(--brand-500)] rounded-[var(--r-md)] text-white flex items-center justify-center shadow-xs">
+                            <Zap size={16} className="fill-white" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="font-extrabold text-lg text-gray-900 tracking-tight leading-none">LeadScout</span>
-                            <span className="text-[10px] font-semibold text-[#00bdaa] tracking-wider uppercase mt-0.5">Intelligence Engine</span>
+                            <span className="font-bold text-base text-[var(--ink-primary)] tracking-tight leading-none">LeadScout</span>
+                            <span className="text-[10px] font-semibold text-[var(--brand-600)] tracking-wider uppercase mt-0.5">Central Hub</span>
                         </div>
                     </Link>
                 </div>
 
                 {/* Form Body Container */}
-                <div className="w-full max-w-sm mx-auto my-auto py-8 space-y-6">
+                <div className="w-full max-w-sm mx-auto my-auto py-8 space-y-5">
                     {/* Header */}
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 tracking-tight transition-all">
-                            {isSignUp ? "Create your account" : "Welcome back"}
+                        <h1 className="text-xl sm:text-2xl font-bold text-[var(--ink-primary)] tracking-tight">
+                            {isSignUp ? "Create your agency account" : "Welcome back"}
                         </h1>
-                        <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                        <p className="text-xs text-[var(--ink-tertiary)] mt-1 leading-relaxed">
                             {isSignUp 
-                                ? "Start uncovering high-value local prospects in seconds." 
-                                : "Enter your credentials to access your agency workspace."}
+                                ? "Discover high-value prospects, close client retainers, and exchange leads." 
+                                : "Sign in to access your agency workspace and pipeline."}
                         </p>
                     </div>
 
@@ -154,10 +154,10 @@ function LoginForm() {
                         type="button"
                         onClick={handleGoogleAuth}
                         disabled={isGoogleLoading || isLoading}
-                        className="w-full py-2.5 px-4 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-semibold rounded-xl transition-all active:scale-[0.99] text-xs flex items-center justify-center gap-2.5 shadow-xs hover:shadow-sm hover:bg-gray-50/50 disabled:opacity-50 disabled:cursor-not-allowed group"
+                        className="w-full py-2.5 px-4 bg-[var(--surface)] border border-[var(--border-strong)] hover:bg-[var(--neutral-50)] text-[var(--ink-primary)] font-medium rounded-[var(--r-md)] transition-all active:scale-[0.99] text-xs flex items-center justify-center gap-2.5 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isGoogleLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                            <Loader2 className="h-4 w-4 animate-spin text-[var(--ink-muted)]" />
                         ) : (
                             <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                                 <path
@@ -182,147 +182,130 @@ function LoginForm() {
                     </button>
 
                     {/* Divider */}
-                    <div className="relative my-4">
+                    <div className="relative my-3">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-200"></div>
+                            <div className="w-full border-t border-[var(--border)]"></div>
                         </div>
                         <div className="relative flex justify-center text-[11px] uppercase">
-                            <span className="px-3 bg-white text-gray-400 font-semibold tracking-wider">or with email</span>
+                            <span className="px-3 bg-[var(--surface)] text-[var(--ink-muted)] font-medium tracking-wider">or email</span>
                         </div>
                     </div>
 
                     {/* Feedback Banners */}
                     {message && (
-                        <div className="p-3 bg-teal-50 border border-teal-200 text-teal-800 text-xs rounded-xl flex items-start gap-2 shadow-xs">
-                            <CheckCircle2 size={15} className="text-[#00bdaa] shrink-0 mt-0.5" />
+                        <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-[var(--r-md)] flex items-start gap-2">
+                            <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5" />
                             <span className="font-medium">{message}</span>
                         </div>
                     )}
                     {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2 shadow-xs">
-                            <AlertCircle size={15} className="text-red-500 shrink-0 mt-0.5" />
+                        <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-[var(--r-md)] flex items-start gap-2">
+                            <AlertCircle size={14} className="text-rose-500 shrink-0 mt-0.5" />
                             <span className="font-medium">{error}</span>
                         </div>
                     )}
 
                     {/* Form Fields */}
-                    <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
+                    <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-3.5">
                         {isSignUp && (
-                            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                                <label className="text-xs font-bold text-gray-700 tracking-wide">Full Name</label>
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium text-[var(--ink-primary)]">Full Name</label>
                                 <div className="relative flex items-center">
-                                    <User className="absolute left-3.5 text-gray-400 pointer-events-none" size={16} />
+                                    <User className="absolute left-3 text-[var(--ink-muted)] pointer-events-none" size={15} />
                                     <input
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         required
                                         placeholder="Alex Mercer"
-                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl focus:bg-white focus:border-[#00bdaa] focus:ring-4 focus:ring-[#00bdaa]/10 outline-none transition-all placeholder:text-gray-400 text-xs text-gray-900 font-medium"
+                                        className="input pl-9"
                                     />
                                 </div>
                             </div>
                         )}
 
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-700 tracking-wide">Work Email</label>
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium text-[var(--ink-primary)]">Work Email</label>
                             <div className="relative flex items-center">
-                                <Mail className="absolute left-3.5 text-gray-400 pointer-events-none" size={16} />
+                                <Mail className="absolute left-3 text-[var(--ink-muted)] pointer-events-none" size={15} />
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    placeholder="alex@agency.com"
-                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl focus:bg-white focus:border-[#00bdaa] focus:ring-4 focus:ring-[#00bdaa]/10 outline-none transition-all placeholder:text-gray-400 text-xs text-gray-900 font-medium"
+                                    placeholder="alex@youragency.com"
+                                    className="input pl-9"
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
+                        <div className="space-y-1">
                             <div className="flex items-center justify-between">
-                                <label className="text-xs font-bold text-gray-700 tracking-wide">Password</label>
-                                {!isSignUp && (
-                                    <a href="#" className="text-[11px] font-semibold text-[#00bdaa] hover:underline transition-colors">
-                                        Forgot?
-                                    </a>
-                                )}
+                                <label className="text-xs font-medium text-[var(--ink-primary)]">Password</label>
                             </div>
                             <div className="relative flex items-center">
-                                <Lock className="absolute left-3.5 text-gray-400 pointer-events-none" size={16} />
+                                <Lock className="absolute left-3 text-[var(--ink-muted)] pointer-events-none" size={15} />
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    placeholder={isSignUp ? "At least 8 characters" : "••••••••"}
-                                    className="w-full pl-10 pr-11 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl focus:bg-white focus:border-[#00bdaa] focus:ring-4 focus:ring-[#00bdaa]/10 outline-none transition-all placeholder:text-gray-400 text-xs text-gray-900 font-medium"
+                                    placeholder="••••••••"
+                                    className="input pl-9 pr-9"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3.5 text-gray-400 hover:text-gray-600 transition-colors p-0.5 rounded"
-                                    title={showPassword ? "Hide password" : "Show password"}
+                                    className="absolute right-3 text-[var(--ink-muted)] hover:text-[var(--ink-primary)]"
+                                    tabIndex={-1}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
-                                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                                 </button>
                             </div>
                         </div>
 
-                        {!isSignUp && (
-                            <div className="flex items-center justify-between pt-0.5">
-                                <label className="flex items-center gap-2 text-gray-600 cursor-pointer select-none">
-                                    <input 
-                                        type="checkbox" 
-                                        defaultChecked 
-                                        className="rounded border-gray-300 text-[#00bdaa] focus:ring-[#00bdaa] h-3.5 w-3.5" 
-                                    />
-                                    <span className="text-xs text-gray-500">Remember this device</span>
-                                </label>
-                            </div>
-                        )}
-
-                        <div className="pt-2">
+                        <div className="pt-1">
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full py-3 px-4 bg-[#00bdaa] hover:bg-[#00a897] text-white font-bold rounded-xl transition-all shadow-md shadow-[#00bdaa]/25 hover:shadow-lg hover:shadow-[#00bdaa]/35 active:scale-[0.99] text-xs flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="btn btn-primary w-full justify-center py-2.5"
                             >
                                 {isLoading ? (
                                     <Loader2 className="h-4 w-4 animate-spin text-white" />
                                 ) : (
                                     <>
-                                        <span>{isSignUp ? "Create Free Account" : "Sign In to Dashboard"}</span>
-                                        <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                                        <span>{isSignUp ? "Create Agency Account" : "Sign In to Dashboard"}</span>
+                                        <ArrowRight size={13} />
                                     </>
                                 )}
                             </button>
                         </div>
                     </form>
 
-                    {/* Quick Mode Toggle Link */}
+                    {/* Mode Toggle Link */}
                     <div className="pt-2 text-center">
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-[var(--ink-tertiary)]">
                             {isSignUp ? (
                                 <>
                                     Already have an account?{" "}
                                     <button 
                                         type="button"
                                         onClick={() => toggleMode(false)} 
-                                        className="font-bold text-[#00bdaa] hover:underline transition-colors ml-1"
+                                        className="font-semibold text-[var(--brand-600)] hover:underline ml-1"
                                     >
                                         Sign in
                                     </button>
                                 </>
                             ) : (
                                 <>
-                                    Don&apos;t have an account?{" "}
+                                    Need an agency account?{" "}
                                     <button 
                                         type="button"
                                         onClick={() => toggleMode(true)} 
-                                        className="font-bold text-[#00bdaa] hover:underline transition-colors ml-1"
+                                        className="font-semibold text-[var(--brand-600)] hover:underline ml-1"
                                     >
-                                        Sign up for free
+                                        Create one free
                                     </button>
                                 </>
                             )}
@@ -331,68 +314,87 @@ function LoginForm() {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between text-[11px] text-gray-400 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between text-[11px] text-[var(--ink-muted)] pt-4 border-t border-[var(--border)]">
                     <span className="flex items-center gap-1.5">
-                        <ShieldCheck size={13} className="text-[#00bdaa]" />
-                        256-Bit Encrypted
+                        <ShieldCheck size={13} className="text-emerald-600" />
+                        Enterprise Encrypted
                     </span>
-                    <span>&copy; {new Date().getFullYear()} LeadScout Inc.</span>
+                    <span>&copy; {new Date().getFullYear()} LeadScout Central Hub</span>
                 </div>
             </div>
 
-            {/* Panel B: Minimalist Brand Showcase (Slides from Right to Left when switching to SignUp on desktop) */}
+            {/* Panel B: Minimalist Brand Showcase */}
             <div 
-                className={`hidden lg:flex lg:w-1/2 min-h-screen flex-col justify-between p-12 xl:p-16 bg-gradient-to-br from-[#061821] via-[#09252f] to-[#06151c] text-white relative overflow-hidden z-10 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                className={`hidden lg:flex lg:w-1/2 min-h-screen flex-col justify-between p-12 xl:p-16 bg-[var(--neutral-950)] text-white relative overflow-hidden z-10 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     isSignUp 
                         ? "lg:-translate-x-full" 
                         : "lg:translate-x-0"
                 }`}
             >
-                {/* Ambient Glows with #00bdaa */}
-                <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-[#00bdaa]/15 rounded-full blur-[130px] pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#00bdaa]/10 rounded-full blur-[120px] pointer-events-none" />
+                {/* Subtle Brand Glow */}
+                <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-[var(--brand-500)]/10 rounded-full blur-[140px] pointer-events-none" />
 
-                {/* Top: Logo with #00bdaa */}
-                <div className="relative z-10 flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-[#00bdaa] text-white flex items-center justify-center shadow-lg shadow-[#00bdaa]/30">
-                        <Zap size={22} className="fill-white" />
+                {/* Top: Logo */}
+                <div className="relative z-10 flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-[var(--r-md)] bg-[var(--brand-500)] text-white flex items-center justify-center shadow-xs">
+                        <Zap size={18} className="fill-white" />
                     </div>
                     <div>
-                        <span className="font-extrabold text-xl text-white tracking-tight leading-none block">LeadScout</span>
-                        <span className="text-[10px] font-semibold text-[#00bdaa] tracking-wider uppercase">Intelligence Engine</span>
+                        <span className="font-bold text-lg text-white tracking-tight leading-none block">LeadScout</span>
+                        <span className="text-[10px] font-semibold text-[var(--brand-300)] tracking-wider uppercase">Central Hub</span>
                     </div>
                 </div>
 
-                {/* Center Content: Clean & Direct Message as Requested */}
+                {/* Center Content: Clean & Direct Message */}
                 <div className="relative z-10 my-auto py-8 max-w-md space-y-5">
-                    <h2 className="text-4xl xl:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
-                        Automate Your <br />
-                        <span className="text-[#00bdaa]">Agency Growth</span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-white/80">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        Central Agency Hub
+                    </div>
+
+                    <h2 className="text-3xl xl:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                        Find Leads. Close Deals. <br />
+                        <span className="text-[var(--brand-400)]">Manage Retainers.</span>
                     </h2>
                     
-                    <p className="text-base text-gray-300/90 leading-relaxed font-normal">
-                        LeadScout helps you find qualified leads, audit their digital presence, and generate personalized outreach in seconds.
+                    <p className="text-sm text-white/70 leading-relaxed font-normal">
+                        The all-in-one platform for digital agencies to uncover underperforming local websites, generate client pitch reports, track sales pipelines, and monetize referral deals.
                     </p>
+
+                    <div className="space-y-2 pt-2 text-xs text-white/80">
+                        <div className="flex items-center gap-2">
+                            <Check size={14} className="text-emerald-400" />
+                            <span>Automated Google Places lead scoring</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Check size={14} className="text-emerald-400" />
+                            <span>Shareable interactive web audit links</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Check size={14} className="text-emerald-400" />
+                            <span>Active Clients Hub & MRR tracking</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Bottom Interactive Smooth-Switch Card */}
                 <div className="relative z-10 pt-6 border-t border-white/10 flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold text-white">
-                            {isSignUp ? "Already have an account?" : "Don't have an account?"}
+                        <p className="text-xs font-semibold text-white">
+                            {isSignUp ? "Already have an account?" : "Ready to scale your agency?"}
                         </p>
-                        <p className="text-[11px] text-gray-400">
-                            {isSignUp ? "Sign in to access your dashboard." : "Create one in under a minute."}
+                        <p className="text-[11px] text-white/50">
+                            {isSignUp ? "Sign in to access your dashboard." : "Create an account in 30 seconds."}
                         </p>
                     </div>
 
                     <button
                         type="button"
                         onClick={() => toggleMode(!isSignUp)}
-                        className="py-2.5 px-5 rounded-xl bg-[#00bdaa]/20 hover:bg-[#00bdaa]/30 border border-[#00bdaa]/40 text-[#00bdaa] hover:text-white text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 shadow-md"
+                        className="btn btn-sm bg-white/10 hover:bg-white/15 text-white border border-white/20"
                     >
                         <span>{isSignUp ? "Sign In" : "Sign Up Free"}</span>
-                        <ArrowRight size={13} />
+                        <ArrowRight size={12} />
                     </button>
                 </div>
             </div>
@@ -403,8 +405,8 @@ function LoginForm() {
 // Loading fallback for Suspense
 function LoginLoading() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#fafbfc]">
-            <Loader2 className="h-8 w-8 animate-spin text-[#00bdaa]" />
+        <div className="min-h-screen flex items-center justify-center bg-[var(--canvas)]">
+            <Loader2 className="h-6 w-6 animate-spin text-[var(--brand-500)]" />
         </div>
     );
 }

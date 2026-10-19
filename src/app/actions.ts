@@ -243,7 +243,7 @@ export async function getProfile() {
     return { success: true, profile: data };
 }
 
-export async function updateProfile(data: { agency_name: string; agency_logo_url: string }) {
+export async function updateProfile(data: { agency_name: string; agency_logo_url: string; calendar_link?: string }) {
     const user = await getCurrentUser();
     if (!user) return { success: false, error: "Unauthorized" };
 
@@ -252,6 +252,7 @@ export async function updateProfile(data: { agency_name: string; agency_logo_url
         id: user.id,
         agency_name: data.agency_name,
         agency_logo_url: data.agency_logo_url,
+        calendar_link: data.calendar_link || null,
         updated_at: new Date().toISOString(),
     });
 

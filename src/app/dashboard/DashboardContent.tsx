@@ -11,8 +11,11 @@ import { DashboardShell } from "@/components/layout/DashboardShell";
 import { getSubscriptionInfo } from "@/lib/subscription";
 import { getPriorityBadge } from "@/lib/lead-scoring";
 import { EMAIL_TEMPLATES, type EmailTemplateVariant } from "@/lib/ai-email-generator";
-import { Users, Search, Activity, Download, RefreshCw, Mail, Star, Phone, FileSpreadsheet, MapPin, Trash2, Zap, LayoutGrid, List, X, Copy, Clock } from "lucide-react";
+import { Users, Search, Activity, Download, RefreshCw, Mail, Star, Phone, FileSpreadsheet, MapPin, Trash2, Zap, LayoutGrid, List, X, Copy, Clock, Briefcase, Globe2, Layers } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
+import PipelineKanbanView from "@/components/pipeline/PipelineKanbanView";
+import ClientsHubView from "@/components/clients/ClientsHubView";
+import ExchangeHubView from "@/components/exchange/ExchangeHubView";
 
 export default function Dashboard() {
     const searchParams = useSearchParams();
@@ -20,17 +23,17 @@ export default function Dashboard() {
     const pathname = usePathname();
 
     const tabParam = searchParams.get('tab');
-    const [activeTab, setActiveTab] = useState<'scan' | 'find' | 'leads'>('find');
+    const [activeTab, setActiveTab] = useState<'scan' | 'find' | 'leads' | 'clients' | 'exchange'>('find');
 
     // Sync state with URL param
     useEffect(() => {
-        if (tabParam === 'scan' || tabParam === 'find' || tabParam === 'leads') {
+        if (tabParam === 'scan' || tabParam === 'find' || tabParam === 'leads' || tabParam === 'clients' || tabParam === 'exchange') {
             setActiveTab(tabParam);
         }
     }, [tabParam]);
 
     // Helper to change tab and update URL
-    const changeTab = (tab: 'scan' | 'find' | 'leads') => {
+    const changeTab = (tab: 'scan' | 'find' | 'leads' | 'clients' | 'exchange') => {
         setActiveTab(tab);
         router.push(`${pathname}?tab=${tab}`);
     };
@@ -439,7 +442,7 @@ export default function Dashboard() {
         const result = await saveLead(lead);
         if (result.success) {
             if (result.duplicateWarning) {
-                toast(result.duplicateWarning, { icon: '⚠️', duration: 5000 });
+                toast(result.duplicateWarning, { duration: 5000 });
             }
             toast.success('Lead saved successfully!');
             if (activeTab === 'leads') fetchLeads();
@@ -480,88 +483,111 @@ export default function Dashboard() {
     return (
         <DashboardShell>
             <Toaster position="top-right" />
-            <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-slate-800 capitalize">
-                    {activeTab === 'find' ? 'Lead Discovery' : activeTab === 'leads' ? 'My Leads Pipeline' : 'Direct Scan'}
-                </h1>
+
+            {/* Page Header */}
+            <div className="page-header">
+                <div>
+                    <h1 className="page-title">
+                        {activeTab === 'find' ? 'Lead Discovery' : activeTab === 'leads' ? 'Pipeline & Deals' : activeTab === 'clients' ? 'Clients Hub' : activeTab === 'exchange' ? 'B2B Exchange' : 'Direct Scan'}
+                    </h1>
+                    <p className="page-subtitle">
+                        {activeTab === 'find' ? 'Discover and qualify local businesses with poor web presence' : activeTab === 'leads' ? 'Track prospect audits and move deals through stages to Closed Won' : activeTab === 'clients' ? 'Manage active client retainers, contract renewals, and recurring MRR' : activeTab === 'exchange' ? 'Monetize out-of-scope referrals and claim verified client opportunities' : 'Run an in-depth technical SEO, speed, and security audit on any URL'}
+                    </p>
+                </div>
+
+                {/* Growth Engine Lifecycle Bar */}
+                <div className="flex items-center gap-1 bg-[var(--surface)] p-1 rounded-[var(--r-lg)] border border-[var(--border)] shadow-xs overflow-x-auto max-w-full">
+                    {[
+                        { tab: 'find', label: '1. Discover', icon: Search },
+                        { tab: 'scan', label: '2. Audit', icon: Zap },
+                        { tab: 'leads', label: '3. Pipeline', icon: Layers },
+                        { tab: 'clients', label: '4. Clients', icon: Briefcase },
+                        { tab: 'exchange', label: '5. Exchange', icon: Globe2 },
+                    ].map((step) => (
+                        <button
+                            key={step.tab}
+                            onClick={() => changeTab(step.tab as any)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-md)] text-xs font-medium transition-all whitespace-nowrap ${
+                                activeTab === step.tab
+                                    ? 'bg-[var(--neutral-900)] text-white font-semibold shadow-xs'
+                                    : 'text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] hover:bg-[var(--neutral-100)]'
+                            }`}
+                        >
+                            <step.icon size={13} className={activeTab === step.tab ? 'text-white' : 'text-[var(--ink-muted)]'} />
+                            <span>{step.label}</span>
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Top Stat Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8" role="region" aria-label="Dashboard statistics">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <p className="text-gray-500 text-sm font-medium mb-1">Total Leads</p>
-                        <div className="w-6 h-[3px] bg-blue-500 rounded-full mb-4"></div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
-                            <Users size={24} />
+            {/* Stat Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 stagger animate-fade-in" role="region" aria-label="Dashboard statistics">
+                <div className="stat-card">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span className="stat-label">Total Leads</span>
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--brand-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-500)' }}>
+                            <Users size={16} />
                         </div>
-                        <h3 className="text-4xl font-bold text-blue-500">{stats.totalLeads}</h3>
                     </div>
+                    <div className="stat-value tabular">{stats.totalLeads}</div>
+                    <div className="stat-accent-line" style={{ background: 'var(--brand-500)' }} />
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <p className="text-gray-500 text-sm font-medium mb-1">Audits Run</p>
-                        <div className="w-6 h-[3px] bg-green-500 rounded-full mb-4"></div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-500 shrink-0">
-                            <Activity size={24} />
+                <div className="stat-card">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span className="stat-label">Audits Run</span>
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--success-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--success-700)' }}>
+                            <Activity size={16} />
                         </div>
-                        <h3 className="text-4xl font-bold text-green-500">{stats.auditsRun}</h3>
                     </div>
+                    <div className="stat-value tabular">{stats.auditsRun}</div>
+                    <div className="stat-accent-line" style={{ background: 'var(--success-500)' }} />
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <p className="text-gray-500 text-sm font-medium mb-1">Searches</p>
-                        <div className="w-6 h-[3px] bg-yellow-500 rounded-full mb-4"></div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-500 shrink-0">
-                            <Search size={24} />
+                <div className="stat-card">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span className="stat-label">Searches Used</span>
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--warning-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--warning-700)' }}>
+                            <Search size={16} />
                         </div>
-                        <h3 className="text-4xl font-bold text-yellow-500">
-                            {stats.searchesUsed}
-                            <span className="text-sm font-normal text-gray-400">
-                                /{stats.searchesLimit === Infinity ? '∞' : stats.searchesLimit}
-                            </span>
-                        </h3>
                     </div>
+                    <div className="stat-value tabular">
+                        {stats.searchesUsed}
+                        <span style={{ fontSize: 'var(--t-sm)', fontWeight: 500, color: 'var(--ink-muted)' }}>
+                            /{stats.searchesLimit === Infinity ? '∞' : stats.searchesLimit}
+                        </span>
+                    </div>
+                    <div className="stat-accent-line" style={{ background: 'var(--warning-500)' }} />
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <p className="text-gray-500 text-sm font-medium mb-1">Potential Value</p>
-                        <div className="w-6 h-[3px] bg-purple-500 rounded-full mb-4"></div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-500 shrink-0">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div className="stat-card">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span className="stat-label">Pipeline Value</span>
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7c3aed' }}>
+                            <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
-                        <h3 className="text-4xl font-bold text-purple-500">
-                            ${stats.potentialValue > 999 ? (stats.potentialValue/1000).toFixed(1) + 'k' : stats.potentialValue}
-                        </h3>
                     </div>
+                    <div className="stat-value tabular">
+                        ${stats.potentialValue > 999 ? (stats.potentialValue/1000).toFixed(1) + 'k' : stats.potentialValue}
+                    </div>
+                    <div className="stat-accent-line" style={{ background: '#7c3aed' }} />
                 </div>
             </div>
 
             <div className="flex flex-col gap-6">
-                {/* Direct Scan - Centered Focus Mode */}
+                {/* Direct Scan */}
                 {activeTab === 'scan' && (
-                    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
                         {!report ? (
-                            <div className="w-full max-w-2xl text-center space-y-8 animate-in fade-in zoom-in duration-500">
-                                <div className="space-y-2">
-                                    <h2 className="text-3xl font-bold text-gray-800">New Audit</h2>
-                                    <p className="text-gray-500">Enter a website URL to generate a comprehensive analysis.</p>
+                            <div className="animate-fade-in" style={{ width: '100%', maxWidth: 600, textAlign: 'center' }}>
+                                <div style={{ marginBottom: 32 }}>
+                                    <h2 style={{ fontSize: 'var(--t-2xl)', fontWeight: 800, color: 'var(--ink-primary)', letterSpacing: '-0.04em', marginBottom: 6 }}>Run a Web Audit</h2>
+                                    <p style={{ color: 'var(--ink-tertiary)', fontSize: 'var(--t-sm)' }}>Enter any website URL to generate a comprehensive performance and SEO analysis.</p>
                                 </div>
 
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Search className="h-5 w-5 text-gray-400 group-focus-within:text-teal-500 transition-colors" />
+                                <div style={{ position: 'relative', marginBottom: 20 }}>
+                                    <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-muted)', pointerEvents: 'none' }}>
+                                        <Search size={17} />
                                     </div>
                                     <input
                                         type="url"
@@ -569,93 +595,92 @@ export default function Dashboard() {
                                         value={url}
                                         onChange={(e) => setUrl(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleScan()}
-                                        className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-lg transition-all"
+                                        className="input input-lg"
+                                        style={{ paddingLeft: 44, paddingRight: 120 }}
                                         autoFocus
                                     />
                                     <button
                                         onClick={() => handleScan()}
                                         disabled={loading || !url}
-                                        className="absolute inset-y-2 right-2 bg-teal-400 text-white px-6 rounded-xl font-bold hover:bg-teal-500 disabled:opacity-50 transition-all shadow-md active:scale-95"
+                                        className="btn btn-primary"
+                                        style={{ position: 'absolute', right: 6, top: 6, bottom: 6, height: 'auto' }}
                                     >
-                                        {loading ? (activeJobId ? "Queued..." : "Scanning...") : "Audit"}
+                                        {loading ? (activeJobId ? 'Queued...' : 'Scanning...') : 'Run Audit'}
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-400">
-                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-green-400" /> SEO Analysis</div>
-                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-400" /> Performance</div>
-                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-purple-400" /> Security</div>
-                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-orange-400" /> Mobile Friendly</div>
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap' }}>
+                                    {[['var(--success-500)', 'SEO Analysis'], ['var(--brand-500)', 'Performance'], ['var(--danger-500)', 'Security'], ['var(--warning-500)', 'Mobile Check']].map(([color, label]) => (
+                                        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--t-xs)', color: 'var(--ink-muted)', fontWeight: 500 }}>
+                                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                                            {label}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         ) : (
-                            <div className="w-full space-y-6">
-                                {/* Report Header / Toolbar */}
-                                <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                                    <button onClick={() => setReport(null)} className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 font-medium transition-colors border border-gray-200 shadow-sm">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                            <div style={{ width: '100%' }} className="animate-fade-in">
+                                {/* Toolbar */}
+                                <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', marginBottom: 16 }}>
+                                    <button onClick={() => setReport(null)} className="btn btn-ghost btn-sm">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                                         New Audit
                                     </button>
-                                    <div className="flex gap-2">
+                                    <div style={{ display: 'flex', gap: 8 }}>
                                         {currentLeadId && (
-                                            <button onClick={handleSaveReport} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-black transition-colors">
-                                                <Activity size={16} /> Save to Lead
+                                            <button onClick={handleSaveReport} className="btn btn-secondary btn-sm">
+                                                <Activity size={13} /> Save to Lead
                                             </button>
                                         )}
-                                        <button onClick={() => generatePDF(report)} className="flex items-center gap-2 bg-teal-50 text-teal-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-teal-100 transition-colors">
-                                            <Download size={16} /> Download PDF
+                                        <button onClick={() => generatePDF(report)} className="btn btn-primary btn-sm">
+                                            <Download size={13} /> Download PDF
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* Score Hero */}
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <div className="bg-teal-400 text-white p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-lg relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-4 opacity-10"><Activity size={100} /></div>
-                                        <span className="text-7xl font-bold">{report.overallScore}</span>
-                                        <span className="text-sm font-medium uppercase tracking-wider opacity-90 mt-2">Overall Score</span>
+                                {/* Score Hero + Meta */}
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4" style={{ marginBottom: 16 }}>
+                                    <div className="audit-score-hero">
+                                        <span className="audit-score-number tabular">{report.overallScore}</span>
+                                        <span className="audit-score-label">Overall Score</span>
                                     </div>
-
-                                    <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {/* Quick Stats */}
-                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                            <p className="text-gray-400 text-xs font-bold uppercase mb-2">Analysis Target</p>
-                                            <p className="font-bold text-gray-800 truncate" title={report.url}>{report.url}</p>
-                                            <p className="text-xs text-gray-400 mt-1">{new Date(report.scannedAt).toLocaleDateString()}</p>
+                                    <div className="card" style={{ padding: '20px 20px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                        <p style={{ fontSize: 'var(--t-xs)', fontWeight: 600, color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Analysis Target</p>
+                                        <p style={{ fontWeight: 600, color: 'var(--ink-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 'var(--t-sm)' }} title={report.url}>{report.url}</p>
+                                        <p style={{ fontSize: 'var(--t-xs)', color: 'var(--ink-muted)' }}>{new Date(report.scannedAt).toLocaleDateString()}</p>
+                                    </div>
+                                    <div className="card" style={{ padding: '20px 20px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6 }}
+                                        onClick={() => {
+                                            const { subject, body } = generateColdEmail(report.url, report.url, report);
+                                            navigator.clipboard.writeText(`${subject}\n\n${body}`);
+                                            toast.success('Email draft copied!');
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <Mail size={14} style={{ color: 'var(--accent)' }} />
+                                            <p style={{ fontSize: 'var(--t-xs)', fontWeight: 600, color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Smart Outreach</p>
                                         </div>
-                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:border-teal-400 transition-colors group"
-                                            onClick={() => {
-                                                const { subject, body } = generateColdEmail(report.url, report.url, report);
-                                                navigator.clipboard.writeText(`${subject}\n\n${body}`);
-                                                toast.success('Email draft copied to clipboard!');
-                                            }}
-                                        >
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Mail size={16} className="text-teal-500" />
-                                                <p className="text-gray-400 text-xs font-bold uppercase">Smart Outreach</p>
-                                            </div>
-                                            <p className="font-bold text-gray-800 group-hover:text-teal-600 transition-colors">Copy AI Email Pitch &rarr;</p>
-                                        </div>
+                                        <p style={{ fontWeight: 600, fontSize: 'var(--t-sm)', color: 'var(--ink-primary)' }}>Copy AI Email Pitch &rarr;</p>
                                     </div>
                                 </div>
 
-                                {/* Detailed Checks */}
-                                <div className="grid gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                    <h3 className="font-bold text-gray-800 mb-2">Audit Breakdown</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Audit Checks */}
+                                <div className="card" style={{ padding: 20 }}>
+                                    <h3 style={{ fontWeight: 700, fontSize: 'var(--t-md)', color: 'var(--ink-primary)', marginBottom: 16, letterSpacing: '-0.02em' }}>Audit Breakdown</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 10 }}>
                                         {Object.entries(report.checks).filter(([k]) => k !== 'seo').map(([key, result]: [string, any]) => (
-                                            <div key={key} className="p-4 rounded-xl border border-gray-100 hover:shadow-md transition-shadow flex gap-4 bg-gray-50/50">
-                                                <div className={cn("w-2 h-full rounded-full shrink-0",
-                                                    result.status === 'pass' ? "bg-teal-400" : result.status === 'warning' ? "bg-orange-400" : "bg-red-500"
-                                                )} />
-                                                <div className="flex-1">
-                                                    <div className="flex justify-between items-start mb-1">
-                                                        <h4 className="font-bold text-gray-800 capitalize text-sm">{result.title}</h4>
-                                                        <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide",
-                                                            result.status === 'pass' ? "bg-teal-100 text-teal-700" : result.status === 'warning' ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
-                                                        )}>{result.status}</span>
+                                            <div key={key} className="audit-check-item">
+                                                <div className="audit-check-status-bar" style={{
+                                                    background: result.status === 'pass' ? 'var(--success-500)' : result.status === 'warning' ? 'var(--warning-500)' : 'var(--danger-500)'
+                                                }} />
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                                                        <h4 style={{ fontWeight: 600, fontSize: 'var(--t-sm)', color: 'var(--ink-primary)' }}>{result.title}</h4>
+                                                        <span className={`badge badge-${result.status === 'pass' ? 'success' : result.status === 'warning' ? 'warning' : 'danger'}`}>
+                                                            {result.status}
+                                                        </span>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 leading-relaxed">{result.description}</p>
+                                                    <p style={{ fontSize: 'var(--t-xs)', color: 'var(--ink-tertiary)', lineHeight: 1.6 }}>{result.description}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -666,14 +691,12 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                {/* Search Tab (kept mostly same but wrapped in card) */}
+                {/* Find Leads Tab */}
                 {activeTab === 'find' && (
-                    <div className="bg-white p-6 rounded-2xl shadow-sm min-h-[500px]">
-                        <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                            <Search size={20} className="text-teal-500" /> Lead Discovery
-                        </h2>
+                    <div className="card" style={{ padding: 24, minHeight: 500 }}>
 
-                        <div className="flex flex-wrap gap-2 mb-4">
+                        {/* Category pills */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
                             {BUSINESS_CATEGORIES.map((cat) => (
                                 <button
                                     key={cat.id}
@@ -684,39 +707,35 @@ export default function Dashboard() {
                                             setQuery(newQuery);
                                             handleFind(newQuery, cat.id);
                                         } else {
-                                            setQuery("");
+                                            setQuery('');
                                         }
                                     }}
-                                    className={cn(
-                                        "px-3 py-1.5 rounded-full text-xs font-bold transition-all",
-                                        category === cat.id
-                                            ? "bg-teal-400 text-white"
-                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                    )}
+                                    className={`btn btn-sm ${category === cat.id ? 'btn-primary' : 'btn-secondary'}`}
+                                    style={{ borderRadius: 99 }}
                                 >
                                     {cat.label}
                                 </button>
                             ))}
                         </div>
 
-                        <div className="flex gap-4 mb-4 items-center">
-                            <div className="flex-1 relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Search className="h-5 w-5 text-gray-400" />
-                                </div>
+                        {/* Search bar */}
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+                            <div className="input-with-icon" style={{ flex: 1 }}>
+                                <Search size={15} className="input-icon" />
                                 <input
                                     type="text"
                                     placeholder="Search businesses (e.g. Roofers in Austin)"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleFind()}
-                                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 shadow-sm rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition-all font-medium text-gray-800 placeholder:text-gray-400"
+                                    className="input"
                                 />
                             </div>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as 'score' | 'name')}
-                                className="px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                                className="input"
+                                style={{ width: 130 }}
                             >
                                 <option value="score">By Score</option>
                                 <option value="name">By Name</option>
@@ -724,20 +743,22 @@ export default function Dashboard() {
                             <button
                                 onClick={() => handleFind()}
                                 disabled={finding}
-                                className="bg-teal-400 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-500 disabled:opacity-50 transition-all shadow-md active:scale-95"
+                                className="btn btn-primary"
+                                style={{ flexShrink: 0, minWidth: 80 }}
                             >
-                                {finding ? "Searching..." : "Find"}
+                                {finding ? 'Searching...' : 'Search'}
                             </button>
                         </div>
 
-                        <div className="mt-6 overflow-x-auto">
-                            <table className="w-full text-left border-collapse min-w-[800px] bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                                <thead className="bg-gray-50/50">
-                                    <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                        <th className="p-4 font-semibold text-gray-400">Business Details</th>
-                                        <th className="p-4 font-semibold text-gray-400">Contact & Address</th>
-                                        <th className="p-4 font-semibold text-gray-400 text-center">Score</th>
-                                        <th className="p-4 font-semibold text-gray-400 text-right">Actions</th>
+                        {/* Results table */}
+                        <div style={{ overflowX: 'auto' }}>
+                            <table className="data-table" style={{ minWidth: 760 }}>
+                                <thead>
+                                    <tr>
+                                        <th>Business Details</th>
+                                        <th>Contact & Address</th>
+                                        <th style={{ textAlign: 'center' }}>Score</th>
+                                        <th style={{ textAlign: 'right' }}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -745,43 +766,42 @@ export default function Dashboard() {
                                         const badge = lead.priority ? getPriorityBadge(lead.priority) : null;
                                         return (
                                             <tr key={lead.place_id} className="hover:bg-gray-50/50 transition-colors">
-                                                <td className="p-4 align-top">
-                                                    <div className="flex flex-col gap-1">
-                                                        <h3 className="text-base font-bold text-gray-900 line-clamp-1" title={lead.name}>
+                                                <td style={{ padding: '12px 16px', verticalAlign: 'top' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                                        <h3 style={{ fontSize: 'var(--t-base)', fontWeight: 600, color: 'var(--ink-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={lead.name}>
                                                             {lead.name}
                                                         </h3>
-                                                        <div className="flex flex-wrap items-center gap-2">
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
                                                             {lead.rating && (
-                                                                <span className="flex items-center gap-1 text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded">
-                                                                    <Star size={10} fill="currentColor" /> {lead.rating} {lead.user_ratings_total !== undefined && <span className="text-gray-400 font-normal">({lead.user_ratings_total})</span>}
+                                                                <span className="badge badge-warning" style={{ gap: 3 }}>
+                                                                    <Star size={9} fill="currentColor" />
+                                                                    {lead.rating}
+                                                                    {lead.user_ratings_total !== undefined && <span style={{ opacity: 0.65, fontWeight: 400 }}>({lead.user_ratings_total})</span>}
                                                                 </span>
                                                             )}
                                                             {badge && (
-                                                                <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider", badge.className)} title={lead.score_reasons?.join('\n') || `Score: ${lead.lead_score}`}>
+                                                                <span className="badge badge-default" title={lead.score_reasons?.join('\n') || `Score: ${lead.lead_score}`}>
                                                                     {badge.label}
                                                                 </span>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="p-4 align-top">
-                                                    <div className="flex flex-col gap-1.5">
+                                                <td style={{ padding: '12px 16px', verticalAlign: 'top' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                                                         {lead.website ? (
-                                                            <a href={lead.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline line-clamp-1" title={lead.website}>{lead.website}</a>
+                                                            <a href={lead.website} target="_blank" rel="noopener noreferrer" style={{ fontSize: 'var(--t-xs)', color: 'var(--accent)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', maxWidth: 200 }} title={lead.website}>{lead.website}</a>
                                                         ) : (
-                                                            <span className="text-xs text-red-400 italic">No Website</span>
+                                                            <span style={{ fontSize: 'var(--t-xs)', color: 'var(--danger-500)', fontStyle: 'italic' }}>No website</span>
                                                         )}
                                                         {lead.phone && (
-                                                            <button 
-                                                                onClick={() => {
-                                                                    navigator.clipboard.writeText(lead.phone!);
-                                                                    toast.success("Phone number copied!");
-                                                                }}
-                                                                className="text-sm text-gray-600 flex items-center gap-1 hover:text-teal-600 transition-colors focus:outline-none"
-                                                                title="Click to copy phone number"
+                                                            <button
+                                                                onClick={() => { navigator.clipboard.writeText(lead.phone!); toast.success('Phone copied!'); }}
+                                                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--t-xs)', color: 'var(--ink-secondary)', display: 'flex', alignItems: 'center', gap: 4, padding: 0 }}
+                                                                title="Click to copy"
                                                             >
-                                                                <Phone size={12} className="text-teal-500 shrink-0" />
-                                                                <span className="line-clamp-1">{lead.phone}</span>
+                                                                <Phone size={11} style={{ color: 'var(--ink-muted)', flexShrink: 0 }} />
+                                                                {lead.phone}
                                                             </button>
                                                         )}
                                                         {lead.formatted_address && (
@@ -789,32 +809,29 @@ export default function Dashboard() {
                                                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.formatted_address)}`}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="text-sm text-gray-500 flex items-center gap-1 hover:text-teal-600 transition-colors"
-                                                                title="View on Google Maps"
+                                                                style={{ fontSize: 'var(--t-xs)', color: 'var(--ink-secondary)', display: 'flex', alignItems: 'center', gap: 4 }}
                                                             >
-                                                                <MapPin size={12} className="text-teal-500 shrink-0" />
-                                                                <span className="line-clamp-1">{lead.formatted_address}</span>
+                                                                <MapPin size={11} style={{ color: 'var(--ink-muted)', flexShrink: 0 }} />
+                                                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>{lead.formatted_address}</span>
                                                             </a>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="p-4 text-center align-middle">
-                                                    <div className={cn(
-                                                        "inline-flex items-center justify-center w-10 h-10 rounded-full font-bold text-base mx-auto",
-                                                        (lead.lead_score ?? 0) >= 80 ? "bg-green-100 text-green-600" :
-                                                        (lead.lead_score ?? 0) >= 50 ? "bg-yellow-100 text-yellow-600" :
-                                                        "bg-gray-100 text-gray-500"
-                                                    )}>
+                                                <td style={{ padding: '12px 16px', textAlign: 'center', verticalAlign: 'middle' }}>
+                                                    <div className={`score-circle ${
+                                                        (lead.lead_score ?? 0) >= 80 ? 'score-high' :
+                                                        (lead.lead_score ?? 0) >= 50 ? 'score-medium' : 'score-low'
+                                                    }`}>
                                                         {lead.lead_score ?? 0}
                                                     </div>
                                                 </td>
-                                                <td className="p-4 align-middle text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        <button onClick={() => quickAudit(lead)} disabled={!lead.website || scanningLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm">
+                                                <td style={{ padding: '12px 16px', textAlign: 'right', verticalAlign: 'middle' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                                                        <button onClick={() => quickAudit(lead)} disabled={!lead.website || scanningLead === lead.place_id} className="btn btn-secondary btn-sm">
                                                             {scanningLead === lead.place_id ? 'Queuing...' : 'Audit'}
                                                         </button>
-                                                        <button onClick={() => handleSave(lead)} disabled={savingLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-white bg-[#39C0B3] rounded-lg hover:bg-[#2EB5B1] transition-colors shadow-sm disabled:opacity-50">
-                                                            {savingLead === lead.place_id ? "Saving..." : "Save"}
+                                                        <button onClick={() => handleSave(lead)} disabled={savingLead === lead.place_id} className="btn btn-primary btn-sm">
+                                                            {savingLead === lead.place_id ? 'Saving...' : 'Save'}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -824,35 +841,39 @@ export default function Dashboard() {
                                 </tbody>
                             </table>
                             {leads.length === 0 && !finding && query && (
-                                <div className="text-center text-gray-400 py-12 bg-white rounded-2xl border border-gray-100 shadow-sm mt-4">No leads found. Try a different search.</div>
+                                <div className="empty-state">
+                                    <div className="empty-state-icon"><Search size={20} /></div>
+                                    <p className="empty-state-title">No results</p>
+                                    <p className="empty-state-desc">No leads found for that search. Try a different query.</p>
+                                </div>
                             )}
                         </div>
                     </div>
                 )}
 
 
-                {/* My Leads (Refactored Table Look) */}
+                {/* Pipeline & Leads */}
                 {activeTab === 'leads' && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                <Users size={20} className="text-teal-500" /> My Leads Pipeline
-                            </h2>
-                            <div className="flex items-center gap-3">
-                                <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                    <div className="card" style={{ overflow: 'hidden', minHeight: 500 }}>
+                        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--neutral-50)' }}>
+                            <h2 style={{ fontSize: 'var(--t-md)', fontWeight: 700, color: 'var(--ink-primary)', letterSpacing: '-0.02em' }}>Leads Pipeline</h2>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div className="tab-bar" style={{ padding: '2px' }}>
                                     <button
                                         onClick={() => setLeadsView('list')}
-                                        className={cn("p-2 transition-colors", leadsView === 'list' ? "bg-teal-50 text-teal-600" : "text-gray-400 hover:text-gray-600")}
+                                        className={`tab-item${leadsView === 'list' ? ' active' : ''}`}
                                         title="List view"
                                     >
-                                        <List size={16} />
+                                        <List size={14} />
+                                        List
                                     </button>
                                     <button
                                         onClick={() => setLeadsView('kanban')}
-                                        className={cn("p-2 transition-colors", leadsView === 'kanban' ? "bg-teal-50 text-teal-600" : "text-gray-400 hover:text-gray-600")}
+                                        className={`tab-item${leadsView === 'kanban' ? ' active' : ''}`}
                                         title="Kanban view"
                                     >
-                                        <LayoutGrid size={16} />
+                                        <LayoutGrid size={14} />
+                                        Board
                                     </button>
                                 </div>
 
@@ -860,21 +881,21 @@ export default function Dashboard() {
                                     <button
                                         onClick={() => handleExportCSV(false)}
                                         disabled={exporting}
-                                        className="flex items-center gap-2 text-sm font-bold bg-white border border-teal-400 text-teal-600 px-4 py-2 rounded-lg hover:bg-teal-50 transition-colors disabled:opacity-50"
+                                        className="btn btn-secondary btn-sm"
                                     >
-                                        <Download size={16} />
-                                        {exporting ? 'Exporting...' : 'Export CSV'}
+                                        <Download size={13} />
+                                        {exporting ? 'Exporting...' : 'CSV'}
                                     </button>
                                 )}
 
                                 <button
                                     onClick={() => handleExport(false)}
                                     disabled={exporting}
-                                    className="flex items-center gap-2 text-sm font-bold bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors shadow-sm disabled:opacity-50"
+                                    className="btn btn-primary btn-sm"
                                     aria-label="Export all leads to Excel"
                                 >
-                                    <FileSpreadsheet size={16} />
-                                    {exporting ? 'Exporting...' : 'Export Excel'}
+                                    <FileSpreadsheet size={13} />
+                                    {exporting ? 'Exporting...' : 'Excel'}
                                 </button>
 
                                 {isEnterprise && (
@@ -917,29 +938,14 @@ export default function Dashboard() {
                         </div>
 
                         {leadsView === 'kanban' ? (
-                            <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                                {(['new', 'contacted', 'audited', 'closed'] as const).map((status) => {
-                                    const columnLeads = myLeads.filter(l =>
-                                        (!showFavoritesOnly || l.is_favorite) &&
-                                        (status === 'audited' ? (l.status === 'audited' || l.status === 'auditing') : l.status === status)
-                                    );
-                                    return (
-                                        <div key={status} className="bg-gray-50 rounded-xl p-3 min-h-[300px]">
-                                            <h3 className="text-xs font-bold uppercase text-gray-500 mb-3 capitalize">{status}</h3>
-                                            <div className="space-y-2">
-                                                {columnLeads.map((lead) => (
-                                                    <div key={lead.id} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                                                        <p className="font-bold text-sm text-gray-800">{lead.business_name}</p>
-                                                        {lead.lead_score > 0 && (
-                                                            <span className="text-xs text-teal-600 font-bold">Score: {lead.lead_score}</span>
-                                                        )}
-                                                        <p className="text-xs text-gray-400 mt-1 truncate">{lead.website_url || 'No website'}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                            <div className="p-6">
+                                <PipelineKanbanView
+                                    leads={myLeads.filter(l => !showFavoritesOnly || l.is_favorite)}
+                                    onRefresh={fetchLeads}
+                                    onGenerateEmail={(id, name) => handleGenerateEmail(id, name)}
+                                    onToggleFavorite={handleToggleFavorite}
+                                    onDeleteLead={(id) => handleDeleteLeads([id])}
+                                />
                             </div>
                         ) : (
                             <>
@@ -1115,6 +1121,16 @@ export default function Dashboard() {
                             </>
                         )}
                     </div>
+                )}
+
+                {/* Active Clients Hub */}
+                {activeTab === 'clients' && (
+                    <ClientsHubView />
+                )}
+
+                {/* B2B Deal & Client Exchange */}
+                {activeTab === 'exchange' && (
+                    <ExchangeHubView />
                 )}
             </div>
 

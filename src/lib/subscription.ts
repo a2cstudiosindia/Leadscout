@@ -16,7 +16,7 @@ export async function getSubscription() {
     // TEST MODE: Override subscription for testing Pro/Enterprise features
     const testModePlan = process.env.TEST_MODE_PLAN as PlanType | undefined;
     if (testModePlan && (testModePlan === 'pro' || testModePlan === 'enterprise')) {
-        console.log(`[SUBSCRIPTION] 🧪 TEST MODE: Using ${testModePlan} plan`);
+        console.log(`[SUBSCRIPTION] TEST MODE: Using ${testModePlan} plan`);
         return {
             plan: testModePlan,
             limits: PLANS[testModePlan],
