@@ -115,7 +115,7 @@ export default function ChatWidget() {
     const [messages, setMessages] = useState<Message[]>([
         {
             role: 'assistant',
-            content: 'Hi! 👋 I\'m LeadScout\'s AI assistant. How can I help you today?'
+            content: 'Hello! I am LeadScout\'s assistant. How can I help with your lead prospecting, audits, or agency workflow today?'
         }
     ]);
     const [input, setInput] = useState('');
@@ -188,61 +188,59 @@ export default function ChatWidget() {
             {/* Chat Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center group"
+                className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-[var(--neutral-900)] hover:bg-black text-white shadow-md transition-all duration-200 hover:scale-105 flex items-center justify-center group border border-white/10"
                 aria-label={isOpen ? 'Close chat' : 'Open chat'}
             >
                 {isOpen ? (
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5" />
                 ) : (
                     <>
-                        <MessageCircle className="w-6 h-6" />
-                        {/* Pulse animation */}
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+                        <MessageCircle className="w-5 h-5" />
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-[var(--brand-500)] rounded-full animate-pulse" />
                     </>
                 )}
             </button>
 
             {/* Chat Panel */}
             {isOpen && (
-                <div className="fixed bottom-24 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] h-[500px] max-h-[calc(100vh-120px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 animate-in slide-in-from-bottom-5 duration-300">
+                <div className="fixed bottom-20 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] h-[480px] max-h-[calc(100vh-120px)] bg-[var(--surface)] rounded-[var(--r-xl)] shadow-lg flex flex-col overflow-hidden border border-[var(--border)] animate-fade-in">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-teal-500 to-cyan-500 px-4 py-3 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <Bot className="w-6 h-6 text-white" />
+                    <div className="bg-[var(--neutral-950)] px-4 py-3 flex items-center gap-3 border-b border-[var(--sidebar-border)]">
+                        <div className="w-8 h-8 rounded-[var(--r-md)] bg-[var(--brand-500)] flex items-center justify-center">
+                            <Bot className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-white font-semibold">LeadScout Assistant</h3>
-                            <p className="text-white/80 text-xs">Ask me anything about LeadScout</p>
+                            <h3 className="text-white text-xs font-semibold">LeadScout AI Assistant</h3>
+                            <p className="text-white/60 text-[11px]">Agency prospecting & workflow guidance</p>
                         </div>
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[var(--canvas)]">
                         {messages.map((message, index) => (
                             <div
                                 key={index}
-                                className={`flex gap-2 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-                                    }`}
+                                className={`flex gap-2 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                             >
                                 <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'user'
-                                        ? 'bg-teal-500'
-                                        : 'bg-gradient-to-r from-teal-500 to-cyan-500'
+                                    className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs ${message.role === 'user'
+                                        ? 'bg-[var(--neutral-900)] text-white'
+                                        : 'bg-[var(--brand-50)] text-[var(--brand-600)] border border-[var(--border)]'
                                         }`}
                                 >
                                     {message.role === 'user' ? (
-                                        <User className="w-4 h-4 text-white" />
+                                        <User className="w-3.5 h-3.5 text-white" />
                                     ) : (
-                                        <Bot className="w-4 h-4 text-white" />
+                                        <Bot className="w-3.5 h-3.5" />
                                     )}
                                 </div>
                                 <div
-                                    className={`max-w-[75%] px-4 py-2 rounded-2xl ${message.role === 'user'
-                                        ? 'bg-teal-500 text-white rounded-br-md'
-                                        : 'bg-white text-gray-800 rounded-bl-md shadow-sm border border-gray-100'
+                                    className={`max-w-[78%] px-3.5 py-2 rounded-[var(--r-md)] text-xs leading-relaxed ${message.role === 'user'
+                                        ? 'bg-[var(--neutral-900)] text-white'
+                                        : 'bg-[var(--surface)] text-[var(--ink-primary)] shadow-xs border border-[var(--border)]'
                                         }`}
                                 >
-                                    <div className="text-sm whitespace-pre-wrap chat-message">
+                                    <div className="whitespace-pre-wrap chat-message">
                                         {formatMessage(message.content)}
                                     </div>
                                 </div>
@@ -252,14 +250,14 @@ export default function ChatWidget() {
                         {/* Typing Indicator */}
                         {isLoading && (
                             <div className="flex gap-2">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 flex items-center justify-center">
-                                    <Bot className="w-4 h-4 text-white" />
+                                <div className="w-7 h-7 rounded-full bg-[var(--brand-50)] text-[var(--brand-600)] border border-[var(--border)] flex items-center justify-center">
+                                    <Bot className="w-3.5 h-3.5" />
                                 </div>
-                                <div className="bg-white px-4 py-3 rounded-2xl rounded-bl-md shadow-sm border border-gray-100">
-                                    <div className="flex gap-1">
-                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                <div className="bg-[var(--surface)] px-3.5 py-2 rounded-[var(--r-md)] border border-[var(--border)] shadow-xs">
+                                    <div className="flex gap-1 py-1">
+                                        <span className="w-1.5 h-1.5 bg-[var(--ink-muted)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                        <span className="w-1.5 h-1.5 bg-[var(--ink-muted)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                        <span className="w-1.5 h-1.5 bg-[var(--ink-muted)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                                     </div>
                                 </div>
                             </div>
@@ -268,7 +266,7 @@ export default function ChatWidget() {
                     </div>
 
                     {/* Input */}
-                    <div className="p-4 bg-white border-t border-gray-100">
+                    <div className="p-3 bg-[var(--surface)] border-t border-[var(--border)]">
                         <div className="flex gap-2">
                             <input
                                 ref={inputRef}
@@ -276,20 +274,20 @@ export default function ChatWidget() {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyPress={handleKeyPress}
-                                placeholder="Type your message..."
-                                className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all"
+                                placeholder="Ask a question..."
+                                className="input flex-1 text-xs py-2"
                                 disabled={isLoading}
                             />
                             <button
                                 onClick={sendMessage}
                                 disabled={!input.trim() || isLoading}
-                                className="w-10 h-10 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="btn btn-primary btn-sm flex items-center gap-1.5"
                                 aria-label="Send message"
                             >
                                 {isLoading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
-                                    <Send className="w-5 h-5" />
+                                    <Send className="w-3.5 h-3.5" />
                                 )}
                             </button>
                         </div>

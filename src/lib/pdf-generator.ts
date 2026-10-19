@@ -62,7 +62,7 @@ function buildPDFDocument(report: ScanReport, branding?: AgencyBranding): jsPDF 
 
         doc.setFontSize(11);
         doc.setTextColor(180, 80, 0);
-        doc.text("⚡ Priority Fixes", 20, 105);
+        doc.text("Priority Fixes", 20, 105);
 
         doc.setFontSize(9);
         doc.setTextColor(80);

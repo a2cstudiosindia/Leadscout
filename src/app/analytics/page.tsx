@@ -41,7 +41,7 @@ export default function AnalyticsPage() {
         return (
             <DashboardShell>
                 <div className="flex items-center justify-center min-h-[50vh]">
-                    <div className="animate-pulse text-teal-500 font-bold">Loading analytics...</div>
+                    <div className="text-xs font-semibold text-[var(--ink-muted)]">Loading analytics...</div>
                 </div>
             </DashboardShell>
         );
@@ -50,7 +50,7 @@ export default function AnalyticsPage() {
     if (!analytics) {
         return (
             <DashboardShell>
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-xs text-[var(--ink-muted)]">
                     Unable to load analytics data.
                 </div>
             </DashboardShell>
@@ -58,10 +58,10 @@ export default function AnalyticsPage() {
     }
 
     const funnelData = [
-        { stage: "New", count: analytics.leadsByStatus.new, fill: "#38B2AC" },
-        { stage: "Auditing", count: analytics.leadsByStatus.auditing, fill: "#4FD1C5" },
-        { stage: "Audited", count: analytics.leadsByStatus.audited, fill: "#81E6D9" },
-        { stage: "Contacted", count: analytics.leadsByStatus.contacted, fill: "#B2F5EA" },
+        { stage: "Discovered", count: analytics.leadsByStatus.new, fill: "#6366f1" },
+        { stage: "Audited", count: analytics.leadsByStatus.audited, fill: "#818cf8" },
+        { stage: "Outreached", count: analytics.leadsByStatus.contacted, fill: "#a5b4fc" },
+        { stage: "Won Deals", count: analytics.leadsByStatus.auditing, fill: "#10b981" },
     ];
 
     const exportCSV = () => {
@@ -84,173 +84,171 @@ export default function AnalyticsPage() {
 
     return (
         <DashboardShell>
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-6 animate-fade-in max-w-6xl mx-auto py-2">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-800">Analytics</h1>
-                        <p className="text-gray-500 mt-1">Track your lead generation performance</p>
+                        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--ink-primary)]">
+                            Performance & Growth Analytics
+                        </h1>
+                        <p className="text-xs sm:text-sm text-[var(--ink-tertiary)] mt-1">
+                            Track lead discovery velocity, website audit activity, and sales pipeline conversion rates.
+                        </p>
                     </div>
                     <button
                         onClick={exportCSV}
-                        className="flex items-center gap-2 bg-teal-400 text-white px-4 py-2 rounded-xl font-bold hover:bg-teal-500 transition-all"
+                        className="btn btn-secondary btn-sm"
                     >
-                        <Download size={18} />
-                        Export CSV
+                        <Download size={14} />
+                        <span>Export CSV</span>
                     </button>
                 </div>
 
-                {/* Usage Bar (if subscription info available) */}
+                {/* Plan Usage Card */}
                 {subscription && (
-                    <div className="bg-gradient-to-r from-teal-400 to-teal-500 rounded-2xl p-4 md:p-6 text-white" role="region" aria-label="Plan usage">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-lg">{subscription.planName} Plan</h3>
-                            <span className="text-sm opacity-80">This Month</span>
+                    <div className="card p-5 border border-[var(--border)] bg-[var(--surface)] shadow-xs">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <span className="font-semibold text-xs text-[var(--ink-primary)]">{subscription.planName} Tier</span>
+                                <span className="badge badge-brand text-[10px] uppercase">Active Plan</span>
+                            </div>
+                            <span className="text-[11px] text-[var(--ink-tertiary)] font-medium">Monthly Quota</span>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                             <div>
-                                <p className="text-sm opacity-80 mb-1">Leads Used</p>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 bg-white/20 rounded-full h-2">
-                                        <div
-                                            className="bg-white rounded-full h-2 transition-all"
-                                            style={{
-                                                width: `${Math.min(100, (subscription.usage.leads.current / (subscription.usage.leads.limit === Infinity ? 100 : subscription.usage.leads.limit)) * 100)}%`
-                                            }}
-                                        />
-                                    </div>
-                                    <span className="text-sm font-bold">
-                                        {subscription.usage.leads.current}/{subscription.usage.leads.limit === Infinity ? '∞' : subscription.usage.leads.limit}
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span className="text-[var(--ink-secondary)]">Leads Used</span>
+                                    <span className="font-semibold tabular-nums text-[var(--ink-primary)]">
+                                        {subscription.usage.leads.current} / {subscription.usage.leads.limit === Infinity ? '∞' : subscription.usage.leads.limit}
                                     </span>
                                 </div>
-                            </div>
-                            <div>
-                                <p className="text-sm opacity-80 mb-1">Audits Used</p>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 bg-white/20 rounded-full h-2">
-                                        <div
-                                            className="bg-white rounded-full h-2 transition-all"
-                                            style={{
-                                                width: `${Math.min(100, (subscription.usage.audits.current / (subscription.usage.audits.limit === Infinity ? 100 : subscription.usage.audits.limit)) * 100)}%`
-                                            }}
-                                        />
-                                    </div>
-                                    <span className="text-sm font-bold">
-                                        {subscription.usage.audits.current}/{subscription.usage.audits.limit === Infinity ? '∞' : subscription.usage.audits.limit}
-                                    </span>
+                                <div className="bg-[var(--neutral-100)] rounded-full h-1.5 overflow-hidden">
+                                    <div
+                                        className="bg-[var(--brand-500)] h-1.5 rounded-full transition-all"
+                                        style={{
+                                            width: `${Math.min(100, (subscription.usage.leads.current / (subscription.usage.leads.limit === Infinity ? 100 : subscription.usage.leads.limit)) * 100)}%`
+                                        }}
+                                    />
                                 </div>
                             </div>
+
                             <div>
-                                <p className="text-sm opacity-80 mb-1">Searches Used</p>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 bg-white/20 rounded-full h-2">
-                                        <div
-                                            className="bg-white rounded-full h-2 transition-all"
-                                            style={{
-                                                width: `${Math.min(100, (subscription.usage.searches.current / (subscription.usage.searches.limit === Infinity ? 100 : subscription.usage.searches.limit)) * 100)}%`
-                                            }}
-                                        />
-                                    </div>
-                                    <span className="text-sm font-bold">
-                                        {subscription.usage.searches.current}/{subscription.usage.searches.limit === Infinity ? '∞' : subscription.usage.searches.limit}
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span className="text-[var(--ink-secondary)]">Audits Run</span>
+                                    <span className="font-semibold tabular-nums text-[var(--ink-primary)]">
+                                        {subscription.usage.audits.current} / {subscription.usage.audits.limit === Infinity ? '∞' : subscription.usage.audits.limit}
                                     </span>
+                                </div>
+                                <div className="bg-[var(--neutral-100)] rounded-full h-1.5 overflow-hidden">
+                                    <div
+                                        className="bg-[var(--brand-500)] h-1.5 rounded-full transition-all"
+                                        style={{
+                                            width: `${Math.min(100, (subscription.usage.audits.current / (subscription.usage.audits.limit === Infinity ? 100 : subscription.usage.audits.limit)) * 100)}%`
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span className="text-[var(--ink-secondary)]">Searches Used</span>
+                                    <span className="font-semibold tabular-nums text-[var(--ink-primary)]">
+                                        {subscription.usage.searches.current} / {subscription.usage.searches.limit === Infinity ? '∞' : subscription.usage.searches.limit}
+                                    </span>
+                                </div>
+                                <div className="bg-[var(--neutral-100)] rounded-full h-1.5 overflow-hidden">
+                                    <div
+                                        className="bg-[var(--brand-500)] h-1.5 rounded-full transition-all"
+                                        style={{
+                                            width: `${Math.min(100, (subscription.usage.searches.current / (subscription.usage.searches.limit === Infinity ? 100 : subscription.usage.searches.limit)) * 100)}%`
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* KPI Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6" role="region" aria-label="Key performance indicators">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-teal-50 text-teal-500 rounded-xl">
-                                <Users size={24} />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Total Leads</p>
-                                <h3 className="text-2xl font-bold text-gray-800">{analytics.overview.totalLeads}</h3>
-                            </div>
-                        </div>
+                {/* KPI Metrics */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="card p-4">
+                        <span className="text-[11px] font-semibold text-[var(--ink-tertiary)] uppercase tracking-wider block">Total Discovered</span>
+                        <span className="text-xl sm:text-2xl font-bold text-[var(--ink-primary)] tabular-nums mt-1 block">{analytics.overview.totalLeads}</span>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-blue-50 text-blue-500 rounded-xl">
-                                <Search size={24} />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Audits Run</p>
-                                <h3 className="text-2xl font-bold text-gray-800">{analytics.overview.totalAudits}</h3>
-                            </div>
-                        </div>
+                    <div className="card p-4">
+                        <span className="text-[11px] font-semibold text-[var(--ink-tertiary)] uppercase tracking-wider block">Audits Run</span>
+                        <span className="text-xl sm:text-2xl font-bold text-[var(--ink-primary)] tabular-nums mt-1 block">{analytics.overview.totalAudits}</span>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-green-50 text-green-500 rounded-xl">
-                                <TrendingUp size={24} />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Conversion Rate</p>
-                                <h3 className="text-2xl font-bold text-gray-800">{analytics.overview.conversionRate}%</h3>
-                            </div>
-                        </div>
+                    <div className="card p-4">
+                        <span className="text-[11px] font-semibold text-[var(--ink-tertiary)] uppercase tracking-wider block">Conversion Rate</span>
+                        <span className="text-xl sm:text-2xl font-bold text-emerald-600 tabular-nums mt-1 block">{analytics.overview.conversionRate}%</span>
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-purple-50 text-purple-500 rounded-xl">
-                                <DollarSign size={24} />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Potential Revenue</p>
-                                <h3 className="text-2xl font-bold text-gray-800">${analytics.overview.potentialRevenue.toLocaleString()}</h3>
-                            </div>
-                        </div>
+                    <div className="card p-4">
+                        <span className="text-[11px] font-semibold text-[var(--ink-tertiary)] uppercase tracking-wider block">Potential Pipeline Value</span>
+                        <span className="text-xl sm:text-2xl font-bold text-[var(--brand-600)] tabular-nums mt-1 block">${analytics.overview.potentialRevenue.toLocaleString()}</span>
                     </div>
                 </div>
 
-                {/* Charts Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Charts Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Leads Over Time */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <h3 className="font-bold text-gray-800 mb-4">Leads Over Time</h3>
+                    <div className="card p-5 space-y-4">
+                        <h3 className="font-semibold text-xs uppercase tracking-wider text-[var(--ink-primary)]">Lead Discovery Velocity</h3>
                         <div className="h-64">
                             {analytics.leadsOverTime.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={analytics.leadsOverTime}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis dataKey="date" fontSize={12} tickFormatter={(v) => v.slice(5)} />
-                                        <YAxis fontSize={12} />
-                                        <Tooltip />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+                                        <XAxis dataKey="date" fontSize={11} stroke="var(--ink-muted)" tickFormatter={(v) => v.slice(5)} />
+                                        <YAxis fontSize={11} stroke="var(--ink-muted)" />
+                                        <Tooltip 
+                                            contentStyle={{ 
+                                                backgroundColor: 'var(--surface)', 
+                                                borderRadius: 8, 
+                                                border: '1px solid var(--border)',
+                                                fontSize: 12,
+                                                boxShadow: 'var(--shadow-md)'
+                                            }} 
+                                        />
                                         <Line
                                             type="monotone"
                                             dataKey="count"
-                                            stroke="#38B2AC"
+                                            stroke="#6366f1"
                                             strokeWidth={2}
-                                            dot={{ fill: "#38B2AC" }}
+                                            dot={{ fill: "#6366f1", r: 3 }}
+                                            activeDot={{ r: 5 }}
                                         />
                                     </LineChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="flex items-center justify-center h-full text-gray-400">
-                                    No data yet. Start saving leads!
+                                <div className="flex items-center justify-center h-full text-xs text-[var(--ink-muted)]">
+                                    No data yet. Start discovering leads to populate charts.
                                 </div>
                             )}
                         </div>
                     </div>
 
                     {/* Lead Funnel */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <h3 className="font-bold text-gray-800 mb-4">Lead Funnel</h3>
+                    <div className="card p-5 space-y-4">
+                        <h3 className="font-semibold text-xs uppercase tracking-wider text-[var(--ink-primary)]">Outreach & Deal Funnel</h3>
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={funnelData} layout="vertical">
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                    <XAxis type="number" fontSize={12} />
-                                    <YAxis type="category" dataKey="stage" fontSize={12} width={80} />
-                                    <Tooltip />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+                                    <XAxis type="number" fontSize={11} stroke="var(--ink-muted)" />
+                                    <YAxis type="category" dataKey="stage" fontSize={11} width={80} stroke="var(--ink-muted)" />
+                                    <Tooltip 
+                                        contentStyle={{ 
+                                            backgroundColor: 'var(--surface)', 
+                                            borderRadius: 8, 
+                                            border: '1px solid var(--border)',
+                                            fontSize: 12,
+                                            boxShadow: 'var(--shadow-md)'
+                                        }} 
+                                    />
                                     <Bar dataKey="count" radius={[0, 4, 4, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -259,27 +257,27 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <Activity size={18} className="text-teal-500" />
-                        Recent Activity
+                <div className="card p-5 space-y-3">
+                    <h3 className="font-semibold text-xs uppercase tracking-wider text-[var(--ink-primary)] flex items-center gap-2">
+                        <Activity size={14} className="text-[var(--brand-500)]" />
+                        <span>Audit & Activity Stream</span>
                     </h3>
                     {analytics.recentEvents.length > 0 ? (
-                        <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                        <div className="divide-y divide-[var(--border)] max-h-72 overflow-y-auto">
                             {analytics.recentEvents.map((event, i) => (
-                                <div key={i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-2 bg-teal-400 rounded-full" />
-                                        <span className="text-sm font-medium text-gray-700">{event.event.replace(/_/g, ' ')}</span>
+                                <div key={i} className="flex items-center justify-between py-2.5 text-xs">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-1.5 h-1.5 bg-[var(--brand-500)] rounded-full" />
+                                        <span className="font-medium text-[var(--ink-primary)]">{event.event.replace(/_/g, ' ')}</span>
                                     </div>
-                                    <span className="text-xs text-gray-400">
+                                    <span className="text-[11px] text-[var(--ink-muted)] tabular-nums">
                                         {new Date(event.created_at).toLocaleDateString()}
                                     </span>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <p className="text-gray-400 text-sm">No recent activity. Start using LeadScout!</p>
+                        <p className="text-[var(--ink-muted)] text-xs py-4 text-center">No recent activity recorded yet.</p>
                     )}
                 </div>
             </div>

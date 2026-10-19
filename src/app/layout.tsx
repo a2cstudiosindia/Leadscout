@@ -12,10 +12,11 @@ const inter = Inter({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#38B2AC",
+  themeColor: "#6366f1",
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: {
     default: "LeadScout - Find Clients Who Need You",
     template: "%s | LeadScout",
