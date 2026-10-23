@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { getProfile, updateProfile, uploadLogo } from "../actions";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Save, Building, Upload, CreditCard, LogOut, User, CheckCircle2 } from "lucide-react";
@@ -90,6 +91,28 @@ export default function SettingsPage() {
                 <div>
                     <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">Agency Settings</h1>
                     <p className="text-sm text-zinc-500 mt-1">Configure white-label branding details for exports and audit reports</p>
+                </div>
+
+                {/* Subnav Tabs */}
+                <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200 pb-4">
+                    <Link
+                        href="/settings"
+                        className="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-zinc-900 text-white shadow-xs"
+                    >
+                        General Branding
+                    </Link>
+                    <Link
+                        href="/settings/api-keys"
+                        className="px-4 py-2 rounded-xl text-sm font-semibold transition-all text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                    >
+                        API Keys
+                    </Link>
+                    <Link
+                        href="/api/docs"
+                        className="px-4 py-2 rounded-xl text-sm font-semibold transition-all text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                    >
+                        API Documentation
+                    </Link>
                 </div>
 
                 {/* General Agency Information */}

@@ -75,7 +75,8 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
                 <nav className="flex-1 px-3 space-y-1.5">
                     {navigation.map((item) => {
-                        const isMatch = (item.href.includes(`tab=${tab}`) && pathname === '/dashboard') || 
+                        const currentTab = tab || 'find';
+                        const isMatch = (item.href.includes(`tab=${currentTab}`) && pathname === '/dashboard') || 
                                         (pathname === '/analytics' && item.href === '/analytics') || 
                                         (pathname === '/pricing' && item.href === '/pricing');
                         return (
@@ -108,7 +109,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
                             onClick={onClose}
                             className={cn(
                                 "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
-                                pathname.startsWith("/settings") && !pathname.includes("/api-keys") 
+                                pathname === "/settings" 
                                     ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-xs" 
                                     : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                             )}
@@ -132,6 +133,21 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
                                 <Key size={19} />
                             </div>
                             API Keys
+                        </Link>
+                        <Link
+                            href="/api/docs"
+                            onClick={onClose}
+                            className={cn(
+                                "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
+                                pathname.startsWith("/api/docs") || pathname.startsWith("/docs/api")
+                                    ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-xs" 
+                                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+                            )}
+                        >
+                            <div className="p-1 rounded-lg text-zinc-400 group-hover:text-white">
+                                <Zap size={19} />
+                            </div>
+                            API Docs
                         </Link>
                     </div>
                 </nav>
