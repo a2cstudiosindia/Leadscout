@@ -83,7 +83,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
             )}>
                 {/* Header / Logo */}
                 <div className="p-6 pb-6 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3 group">
+                    <Link href="/dashboard" className="flex items-center gap-3 group">
                         <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700/70 text-white flex items-center justify-center group-hover:border-zinc-500 transition-colors shadow-sm">
                             <Zap size={20} className="fill-white text-white" />
                         </div>

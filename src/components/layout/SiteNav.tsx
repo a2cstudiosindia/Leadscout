@@ -21,7 +21,7 @@ export function SiteNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur-xl">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8" aria-label="Main navigation">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="LeadScout home">
+        <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2.5" aria-label="LeadScout home">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white">
             <Zap size={16} fill="currentColor" />
           </span>

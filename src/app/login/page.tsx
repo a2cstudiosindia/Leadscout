@@ -1,13 +1,22 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { AuthUI } from "@/components/ui/auth-ui";
+import { useSession } from "@/lib/auth-client";
 
 function LoginContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const redirect = searchParams.get("redirect") || "/dashboard";
   const mode = searchParams.get("mode") === "signup" ? "signup" : "signin";
+  const { data: session, isPending } = useSession();
+
+  useEffect(() => {
+    if (session?.user && !isPending) {
+      router.replace(redirect);
+    }
+  }, [session, isPending, redirect, router]);
 
   return <AuthUI redirectUrl={redirect} defaultMode={mode} />;
 }

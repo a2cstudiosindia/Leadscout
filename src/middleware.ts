@@ -17,8 +17,8 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(loginUrl);
     }
 
-    // Redirect to dashboard if already logged in and trying to access login
-    if (request.nextUrl.pathname === "/login" && sessionCookie) {
+    // Redirect to dashboard if already logged in and trying to access landing page (/) or login (/login)
+    if ((request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/login") && sessionCookie) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 

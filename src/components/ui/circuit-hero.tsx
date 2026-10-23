@@ -64,7 +64,7 @@ export function CircuitHero({ className = "" }: { className?: string }) {
       {hexes.map((s, i) => <div key={i} className="hex-shape" style={{ ...s, animationDelay: `${i * 2.5}s`, animationDirection: i % 2 ? "reverse" : "normal" }} />)}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="circuit-icon-container">
-          <Zap size={52} fill="currentColor" />
+          <Zap size={56} className="text-zinc-950 fill-zinc-950 drop-shadow-xs" />
         </div>
       </div>
     </div>

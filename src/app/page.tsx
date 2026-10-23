@@ -1,10 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   Search, Gauge, FileText, Layers, Mail, Cpu, ArrowRight, Zap,
 } from "lucide-react";
 import { TiltedGridHero } from "@/components/ui/tilted-grid-hero";
 import { CircuitHero } from "@/components/ui/circuit-hero";
 import { SiteNav } from "@/components/layout/SiteNav";
+import { getSession } from "@/lib/auth-session";
+
+export const dynamic = 'force-dynamic';
 
 const SHOWCASE_IMAGES = [
   "photo-1551288049-bebda4e38f71", "photo-1460925895917-afdab827c52f",
@@ -34,7 +38,12 @@ const reviews = [
   ["The API put leads straight into our dashboards and saved reps fifteen hours a week.", "Raj Kumar", "Director, TechScale"],
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await getSession();
+  if (session?.user) {
+    redirect("/dashboard");
+  }
+
   return (
     <div className="min-h-screen bg-white font-sans text-[#1d1d1f]">
       <SiteNav />

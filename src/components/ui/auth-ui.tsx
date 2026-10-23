@@ -210,7 +210,7 @@ function SignInForm({ redirectUrl, onError, onSuccess, isLoading, setIsLoading }
         return;
       }
       onSuccess("Signed in successfully. Redirecting...");
-      router.push(redirectUrl);
+      window.location.href = redirectUrl;
     } catch {
       onError("Authentication error. Please try again.");
       setIsLoading(false);
@@ -263,7 +263,7 @@ function SignUpForm({ redirectUrl, onError, onSuccess, isLoading, setIsLoading }
         return;
       }
       onSuccess("Account created successfully. Redirecting...");
-      router.push(redirectUrl);
+      window.location.href = redirectUrl;
     } catch {
       onError("Registration error. Please retry.");
       setIsLoading(false);
