@@ -12,7 +12,7 @@ const navigation = [
     { name: "My Leads", href: "/dashboard?tab=leads", icon: List },
     { name: "Direct Scan", href: "/dashboard?tab=scan", icon: Zap },
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
-    { name: "Plans & Pricing", href: "/pricing", icon: CreditCard },
+    { name: "Plans & Pricing", href: "/dashboard/pricing", icon: CreditCard },
 ];
 
 export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
@@ -78,7 +78,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
                         const currentTab = tab || 'find';
                         const isMatch = (item.href.includes(`tab=${currentTab}`) && pathname === '/dashboard') || 
                                         (pathname === '/analytics' && item.href === '/analytics') || 
-                                        (pathname === '/pricing' && item.href === '/pricing');
+                                        ((pathname === '/dashboard/pricing' || pathname === '/pricing') && item.href === '/dashboard/pricing');
                         return (
                             <Link
                                 key={item.name}

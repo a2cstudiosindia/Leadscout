@@ -325,7 +325,7 @@ export default function Dashboard() {
                             </div>
                             <div className="flex border-l border-gray-200">
                                 <button
-                                    onClick={() => { toast.dismiss(t.id); router.push('/pricing'); }}
+                                    onClick={() => { toast.dismiss(t.id); router.push('/dashboard/pricing'); }}
                                     className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-zinc-700 hover:text-zinc-800 focus:outline-none"
                                 >
                                     Upgrade
@@ -375,7 +375,7 @@ export default function Dashboard() {
                             </div>
                             <div className="flex border-l border-gray-200">
                                 <button
-                                    onClick={() => { toast.dismiss(t.id); router.push('/pricing'); }}
+                                    onClick={() => { toast.dismiss(t.id); router.push('/dashboard/pricing'); }}
                                     className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-zinc-700 hover:text-zinc-800 focus:outline-none"
                                 >
                                     Upgrade
@@ -462,7 +462,7 @@ export default function Dashboard() {
                         </div>
                         <div className="flex border-l border-gray-200">
                             <button
-                                onClick={() => { toast.dismiss(t.id); router.push('/pricing'); }}
+                                onClick={() => { toast.dismiss(t.id); router.push('/dashboard/pricing'); }}
                                 className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-zinc-700 hover:text-zinc-800 focus:outline-none"
                             >
                                 Upgrade

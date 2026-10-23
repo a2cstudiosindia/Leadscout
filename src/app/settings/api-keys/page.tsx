@@ -149,7 +149,7 @@ export default function ApiKeysPage() {
                                 </p>
                             </div>
                             <Link
-                                href="/pricing"
+                                href="/dashboard/pricing"
                                 className="bg-zinc-900 hover:bg-black text-white px-5 py-3 rounded-xl font-semibold text-sm whitespace-nowrap transition-transform hover:scale-[1.02] shadow-xs"
                             >
                                 Upgrade Plan
