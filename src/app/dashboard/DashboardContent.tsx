@@ -2,7 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { runAudit, findLeads, saveLead, getLeads, saveReport, updateLead, deleteLead, getStats, toggleFavorite, exportLeadsToExcel, exportLeadsToCSV, getJobStatus, getScanJobs, generateEmail } from "../actions";
+import { 
+    runAudit, 
+    findLeads, 
+    saveLead, 
+    getLeads, 
+    saveReport, 
+    updateLead, 
+    deleteLead, 
+    getStats, 
+    toggleFavorite, 
+    exportLeadsToExcel, 
+    exportLeadsToCSV, 
+    getJobStatus, 
+    getScanJobs, 
+    generateEmail 
+} from "../actions";
 import { cn } from "@/lib/utils";
 import { DiscoveredBusiness, BUSINESS_CATEGORIES } from "@/lib/discovery/types";
 import { generatePDF } from "@/lib/pdf-generator";
@@ -11,8 +26,33 @@ import { DashboardShell } from "@/components/layout/DashboardShell";
 import { getSubscriptionInfo } from "@/lib/subscription";
 import { getPriorityBadge } from "@/lib/lead-scoring";
 import { EMAIL_TEMPLATES, type EmailTemplateVariant } from "@/lib/ai-email-generator";
-import { Users, Search, Activity, Download, RefreshCw, Mail, Star, Phone, FileSpreadsheet, MapPin, Trash2, Zap, LayoutGrid, List, X, Copy, Clock, DollarSign } from "lucide-react";
+import { 
+    Users, 
+    Search, 
+    Activity, 
+    Download, 
+    RefreshCw, 
+    Mail, 
+    Star, 
+    Phone, 
+    FileSpreadsheet, 
+    MapPin, 
+    Trash2, 
+    Zap, 
+    LayoutGrid, 
+    List, 
+    X, 
+    Copy, 
+    Clock, 
+    DollarSign,
+    Briefcase,
+    Globe2,
+    Layers
+} from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
+import PipelineKanbanView from "@/components/pipeline/PipelineKanbanView";
+import ClientsHubView from "@/components/clients/ClientsHubView";
+import ExchangeHubView from "@/components/exchange/ExchangeHubView";
 
 export default function Dashboard() {
     const searchParams = useSearchParams();
@@ -20,17 +60,17 @@ export default function Dashboard() {
     const pathname = usePathname();
 
     const tabParam = searchParams.get('tab');
-    const [activeTab, setActiveTab] = useState<'scan' | 'find' | 'leads'>('find');
+    const [activeTab, setActiveTab] = useState<'scan' | 'find' | 'leads' | 'clients' | 'exchange'>('find');
 
     // Sync state with URL param
     useEffect(() => {
-        if (tabParam === 'scan' || tabParam === 'find' || tabParam === 'leads') {
+        if (tabParam === 'scan' || tabParam === 'find' || tabParam === 'leads' || tabParam === 'clients' || tabParam === 'exchange') {
             setActiveTab(tabParam);
         }
     }, [tabParam]);
 
     // Helper to change tab and update URL
-    const changeTab = (tab: 'scan' | 'find' | 'leads') => {
+    const changeTab = (tab: 'scan' | 'find' | 'leads' | 'clients' | 'exchange') => {
         setActiveTab(tab);
         router.push(`${pathname}?tab=${tab}`);
     };
@@ -87,14 +127,12 @@ export default function Dashboard() {
         const checkoutStatus = searchParams.get('checkout');
         if (checkoutStatus === 'success') {
             toast.success('Payment successful! Your plan has been upgraded.', { duration: 5000 });
-            // Re-fetch subscription to reflect new plan
             getSubscriptionInfo(true).then((info) => {
                 if (info) {
                     setIsEnterprise(info.plan === 'enterprise');
                     setIsPro(info.plan === 'pro' || info.plan === 'enterprise');
                 }
             });
-            // Clean up the URL
             router.replace('/dashboard');
         }
     }, []);
@@ -141,7 +179,6 @@ export default function Dashboard() {
 
     // CRM Actions
     async function handleStatusChange(leadId: string, newStatus: string) {
-        // Optimistic update
         setMyLeads(leads => leads.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
         const result = await updateLead(leadId, { status: newStatus });
         if (result.success) {
@@ -153,7 +190,6 @@ export default function Dashboard() {
 
     // Notes save on blur
     async function handleNotesChange(leadId: string, newNotes: string) {
-        // Optimistic update
         setMyLeads(leads => leads.map(l => l.id === leadId ? { ...l, notes: newNotes } : l));
         const result = await updateLead(leadId, { notes: newNotes });
         if (result.success) {
@@ -198,7 +234,6 @@ export default function Dashboard() {
         const result = await saveReport(currentLeadId, report);
         if (result.success) {
             toast.success('Report saved to database!');
-            // Refresh leads to show updated status
             fetchLeads();
         } else {
             toast.error('Failed to save report');
@@ -225,7 +260,6 @@ export default function Dashboard() {
         const result = await exportLeadsToExcel(leadIds);
 
         if (result.success && result.data) {
-            // Download the file
             const blob = new Blob([Uint8Array.from(atob(result.data), c => c.charCodeAt(0))], {
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
@@ -260,7 +294,6 @@ export default function Dashboard() {
         if (activeTab === 'leads') {
             fetchLeads();
         }
-        // Fetch stats on mount and when switching tabs
         fetchStats();
     }, [activeTab]);
 
@@ -307,26 +340,25 @@ export default function Dashboard() {
                 }
                 toast.success('Audit completed!');
             } else {
-                // Check if it's a limit exceeded error
                 const errorMsg = result.error || 'Scan failed';
                 if (errorMsg.includes('limit') || errorMsg.includes('Upgrade')) {
                     toast.custom((t) => (
-                        <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
+                        <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black/5`}>
                             <div className="flex-1 w-0 p-4">
                                 <div className="flex items-start">
                                     <div className="flex-shrink-0 pt-0.5">
-                                        <Zap className="h-10 w-10 text-orange-500" />
+                                        <Zap className="h-9 w-9 text-amber-500" />
                                     </div>
                                     <div className="ml-3 flex-1">
-                                        <p className="text-sm font-medium text-gray-900">Audit Limit Reached</p>
-                                        <p className="mt-1 text-sm text-gray-500">{errorMsg}</p>
+                                        <p className="text-sm font-semibold text-zinc-900">Audit Limit Reached</p>
+                                        <p className="mt-1 text-xs text-zinc-500">{errorMsg}</p>
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex border-l border-gray-200">
+                            <div className="flex border-l border-zinc-200">
                                 <button
                                     onClick={() => { toast.dismiss(t.id); router.push('/dashboard/pricing'); }}
-                                    className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-zinc-700 hover:text-zinc-800 focus:outline-none"
+                                    className="w-full border border-transparent rounded-none rounded-r-xl px-4 py-2 flex items-center justify-center text-xs font-semibold text-zinc-900 hover:bg-zinc-50"
                                 >
                                     Upgrade
                                 </button>
@@ -357,26 +389,25 @@ export default function Dashboard() {
             if (result.success) {
                 setLeads(result.results);
             } else {
-                // Check if it's a limit exceeded error
                 const errorMsg = result.error || 'Failed to find leads';
                 if (errorMsg.includes('limit') || errorMsg.includes('Upgrade')) {
                     toast.custom((t) => (
-                        <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
+                        <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black/5`}>
                             <div className="flex-1 w-0 p-4">
                                 <div className="flex items-start">
                                     <div className="flex-shrink-0 pt-0.5">
-                                        <Zap className="h-10 w-10 text-orange-500" />
+                                        <Zap className="h-9 w-9 text-amber-500" />
                                     </div>
                                     <div className="ml-3 flex-1">
-                                        <p className="text-sm font-medium text-gray-900">Search Limit Reached</p>
-                                        <p className="mt-1 text-sm text-gray-500">{errorMsg}</p>
+                                        <p className="text-sm font-semibold text-zinc-900">Search Limit Reached</p>
+                                        <p className="mt-1 text-xs text-zinc-500">{errorMsg}</p>
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex border-l border-gray-200">
+                            <div className="flex border-l border-zinc-200">
                                 <button
                                     onClick={() => { toast.dismiss(t.id); router.push('/dashboard/pricing'); }}
-                                    className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-zinc-700 hover:text-zinc-800 focus:outline-none"
+                                    className="w-full border border-transparent rounded-none rounded-r-xl px-4 py-2 flex items-center justify-center text-xs font-semibold text-zinc-900 hover:bg-zinc-50"
                                 >
                                     Upgrade
                                 </button>
@@ -444,26 +475,25 @@ export default function Dashboard() {
             toast.success('Lead saved successfully!');
             if (activeTab === 'leads') fetchLeads();
         } else {
-            // Check if it's a limit exceeded error
             const errorMsg = result.error || 'Failed to save lead';
             if (errorMsg.includes('limit') || errorMsg.includes('Upgrade')) {
                 toast.custom((t) => (
-                    <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
+                    <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black/5`}>
                         <div className="flex-1 w-0 p-4">
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 pt-0.5">
-                                    <Zap className="h-10 w-10 text-orange-500" />
+                                    <Zap className="h-9 w-9 text-amber-500" />
                                 </div>
                                 <div className="ml-3 flex-1">
-                                    <p className="text-sm font-medium text-gray-900">Lead Limit Reached</p>
-                                    <p className="mt-1 text-sm text-gray-500">{errorMsg}</p>
+                                    <p className="text-sm font-semibold text-zinc-900">Lead Limit Reached</p>
+                                    <p className="mt-1 text-xs text-zinc-500">{errorMsg}</p>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex border-l border-gray-200">
+                        <div className="flex border-l border-zinc-200">
                             <button
                                 onClick={() => { toast.dismiss(t.id); router.push('/dashboard/pricing'); }}
-                                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-zinc-700 hover:text-zinc-800 focus:outline-none"
+                                className="w-full border border-transparent rounded-none rounded-r-xl px-4 py-2 flex items-center justify-center text-xs font-semibold text-zinc-900 hover:bg-zinc-50"
                             >
                                 Upgrade
                             </button>
@@ -480,20 +510,55 @@ export default function Dashboard() {
     return (
         <DashboardShell>
             <Toaster position="top-right" toastOptions={{ style: { background: "#18181b", color: "#fafafa", border: "1px solid #3f3f46" } }} />
-            <div className="mb-8 flex items-center justify-between pb-4 border-b border-zinc-200">
+            
+            {/* Page Header with Lifecycle Bar */}
+            <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-200">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-zinc-900 capitalize tracking-tight">
-                        {activeTab === 'find' ? 'Lead Discovery Engine' : activeTab === 'leads' ? 'Agency CRM Pipeline' : 'Direct Technical Audit'}
+                    <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">
+                        {activeTab === 'find' ? 'Lead Discovery Engine' : 
+                         activeTab === 'leads' ? 'Pipeline & Deals' : 
+                         activeTab === 'clients' ? 'Active Clients Hub' : 
+                         activeTab === 'exchange' ? 'B2B Deal & Client Exchange' : 
+                         'Direct Technical Audit'}
                     </h1>
                     <p className="text-sm text-zinc-500 mt-1">
-                        {activeTab === 'find' ? 'Search Google Places for local business targets' : activeTab === 'leads' ? 'Track lead stages, notes, and outreach status' : 'Execute one-off headless browser diagnostic scan'}
+                        {activeTab === 'find' ? 'Search Google Places and discover businesses with poor web presence' : 
+                         activeTab === 'leads' ? 'Track prospect audits and move deals through stages to Closed Won' : 
+                         activeTab === 'clients' ? 'Manage active client retainers, contract renewals, and recurring MRR' : 
+                         activeTab === 'exchange' ? 'Monetize out-of-scope referrals and claim verified client opportunities' : 
+                         'Execute one-off headless browser diagnostic scan on any URL'}
                     </p>
+                </div>
+
+                {/* Growth Lifecycle Bar */}
+                <div className="flex items-center gap-1.5 bg-white p-1.5 rounded-2xl border border-zinc-200 shadow-xs overflow-x-auto max-w-full">
+                    {[
+                        { tab: 'find', label: '1. Discover', icon: Search },
+                        { tab: 'scan', label: '2. Audit', icon: Zap },
+                        { tab: 'leads', label: '3. Pipeline', icon: Layers },
+                        { tab: 'clients', label: '4. Clients', icon: Briefcase },
+                        { tab: 'exchange', label: '5. Exchange', icon: Globe2 },
+                    ].map((step) => (
+                        <button
+                            key={step.tab}
+                            onClick={() => changeTab(step.tab as any)}
+                            className={cn(
+                                "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap",
+                                activeTab === step.tab
+                                    ? "bg-zinc-900 text-white shadow-xs"
+                                    : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100"
+                            )}
+                        >
+                            <step.icon size={14} className={activeTab === step.tab ? "text-white" : "text-zinc-400"} />
+                            <span>{step.label}</span>
+                        </button>
+                    ))}
                 </div>
             </div>
 
             {/* Top Stat Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10" role="region" aria-label="Dashboard statistics">
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-sm transition-all">
+                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-xs transition-all">
                     <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-3">Total Leads</p>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shrink-0">
@@ -503,7 +568,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-sm transition-all">
+                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-xs transition-all">
                     <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-3">Audits Run</p>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shrink-0">
@@ -513,7 +578,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-sm transition-all">
+                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-xs transition-all">
                     <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-3">Discovery Searches</p>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shrink-0">
@@ -522,13 +587,13 @@ export default function Dashboard() {
                         <h3 className="text-4xl font-extrabold font-mono text-zinc-900 tracking-tight">
                             {stats.searchesUsed}
                             <span className="text-sm font-normal text-zinc-400 font-mono ml-0.5">
-                                /{stats.searchesLimit === Infinity ? '\u221e' : stats.searchesLimit}
+                                /{stats.searchesLimit === Infinity ? '∞' : stats.searchesLimit}
                             </span>
                         </h3>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-sm transition-all">
+                <div className="bg-white p-6 rounded-2xl border border-zinc-200 flex flex-col justify-between hover:border-zinc-300 hover:shadow-xs transition-all">
                     <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-3">Pipeline Value</p>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700 shrink-0">
@@ -542,19 +607,19 @@ export default function Dashboard() {
             </div>
 
             <div className="flex flex-col gap-6">
-                {/* Direct Scan - Centered Focus Mode */}
+                {/* Direct Scan */}
                 {activeTab === 'scan' && (
-                    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                    <div className="flex flex-col items-center justify-center min-h-[50vh]">
                         {!report ? (
-                            <div className="w-full max-w-2xl text-center space-y-8 animate-in fade-in zoom-in duration-500">
+                            <div className="w-full max-w-2xl text-center space-y-8 animate-in fade-in duration-300">
                                 <div className="space-y-2">
-                                    <h2 className="text-3xl font-extrabold text-zinc-900 tracking-tight">New Audit</h2>
-                                    <p className="text-base text-zinc-500">Enter a website URL to generate a comprehensive analysis.</p>
+                                    <h2 className="text-3xl font-extrabold text-zinc-900 tracking-tight">Run a Web Audit</h2>
+                                    <p className="text-sm text-zinc-500">Enter a website URL to generate a comprehensive performance, SEO, and security audit.</p>
                                 </div>
 
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Search className="h-5 w-5 text-gray-400 group-focus-within:text-zinc-800 transition-colors" />
+                                        <Search className="h-5 w-5 text-zinc-400 group-focus-within:text-zinc-800 transition-colors" />
                                     </div>
                                     <input
                                         type="url"
@@ -562,93 +627,96 @@ export default function Dashboard() {
                                         value={url}
                                         onChange={(e) => setUrl(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleScan()}
-                                        className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent text-lg transition-all"
+                                        className="w-full pl-12 pr-36 py-4 bg-white border border-zinc-200 rounded-2xl shadow-xs outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent text-base font-medium transition-all"
                                         autoFocus
                                     />
                                     <button
                                         onClick={() => handleScan()}
                                         disabled={loading || !url}
-                                        className="absolute inset-y-2 right-2 bg-zinc-900 text-white px-6 rounded-xl font-bold hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-md active:scale-95"
+                                        className="absolute inset-y-2 right-2 bg-zinc-900 text-white px-6 rounded-xl font-semibold hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-xs active:scale-95"
                                     >
-                                        {loading ? (activeJobId ? "Queued..." : "Scanning...") : "Audit"}
+                                        {loading ? (activeJobId ? 'Queued...' : 'Scanning...') : 'Run Audit'}
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-zinc-400">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-semibold text-zinc-500">
                                     <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-zinc-900" /> SEO Analysis</div>
                                     <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-zinc-700" /> Performance</div>
                                     <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-zinc-500" /> Security</div>
-                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-zinc-400" /> Mobile Friendly</div>
+                                    <div className="flex items-center justify-center gap-2"><span className="w-2 h-2 rounded-full bg-zinc-400" /> Mobile Check</div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="w-full space-y-6">
-                                {/* Report Header / Toolbar */}
-                                <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                                    <button onClick={() => setReport(null)} className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 font-medium transition-colors border border-gray-200 shadow-sm">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                                        New Audit
+                            <div className="w-full space-y-6 animate-in fade-in duration-300">
+                                {/* Toolbar */}
+                                <div className="bg-white p-4 rounded-xl border border-zinc-200 flex justify-between items-center shadow-xs">
+                                    <button onClick={() => setReport(null)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors">
+                                        ← New Audit
                                     </button>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2.5">
                                         {currentLeadId && (
-                                            <button onClick={handleSaveReport} className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-black transition-colors">
-                                                <Activity size={16} /> Save to Lead
+                                            <button onClick={handleSaveReport} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-zinc-100 hover:bg-zinc-200 text-zinc-800 transition-colors">
+                                                <Activity size={14} /> Save to Lead
                                             </button>
                                         )}
-                                        <button onClick={() => generatePDF(report)} className="flex items-center gap-2 bg-zinc-100 text-zinc-700 px-4 py-2 rounded-lg font-bold text-sm hover:bg-zinc-200 transition-colors">
-                                            <Download size={16} /> Download PDF
+                                        <button onClick={() => generatePDF(report)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-zinc-900 hover:bg-black text-white transition-colors shadow-xs">
+                                            <Download size={14} /> Download PDF
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Score Hero */}
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <div className="bg-zinc-900 text-white p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-lg relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-4 opacity-10"><Activity size={100} /></div>
-                                        <span className="text-7xl font-bold">{report.overallScore}</span>
-                                        <span className="text-sm font-medium uppercase tracking-wider opacity-90 mt-2">Overall Score</span>
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+                                    <div className="bg-[#0c0c0e] text-white p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden border border-zinc-800">
+                                        <span className="text-7xl font-extrabold tracking-tight">{report.overallScore}</span>
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mt-2">Overall Score</span>
                                     </div>
 
-                                    <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {/* Quick Stats */}
-                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                            <p className="text-gray-400 text-xs font-bold uppercase mb-2">Analysis Target</p>
-                                            <p className="font-bold text-gray-800 truncate" title={report.url}>{report.url}</p>
-                                            <p className="text-xs text-gray-400 mt-1">{new Date(report.scannedAt).toLocaleDateString()}</p>
+                                    <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-xs flex flex-col justify-between">
+                                            <p className="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">Analysis Target</p>
+                                            <p className="font-bold text-zinc-900 text-sm truncate" title={report.url}>{report.url}</p>
+                                            <p className="text-xs text-zinc-400 mt-2">{new Date(report.scannedAt).toLocaleDateString()}</p>
                                         </div>
-                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:border-zinc-900 transition-colors group"
+                                        <div 
+                                            className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-xs cursor-pointer hover:border-zinc-400 transition-colors group flex flex-col justify-between"
                                             onClick={() => {
                                                 const { subject, body } = generateColdEmail(report.url, report.url, report);
                                                 navigator.clipboard.writeText(`${subject}\n\n${body}`);
                                                 toast.success('Email draft copied to clipboard!');
                                             }}
                                         >
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Mail size={16} className="text-zinc-800" />
-                                                <p className="text-gray-400 text-xs font-bold uppercase">Smart Outreach</p>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Mail size={16} className="text-zinc-800" />
+                                                    <p className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Smart Outreach</p>
+                                                </div>
+                                                <p className="font-bold text-zinc-900 text-sm group-hover:text-zinc-700 transition-colors">Copy AI Email Pitch →</p>
                                             </div>
-                                            <p className="font-bold text-gray-800 group-hover:text-zinc-700 transition-colors">Copy AI Email Pitch &rarr;</p>
+                                            <p className="text-xs text-zinc-400 mt-2">Click to copy personalized pitch</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Detailed Checks */}
-                                <div className="grid gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                    <h3 className="font-bold text-gray-800 mb-2">Audit Breakdown</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Audit Breakdown */}
+                                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-xs">
+                                    <h3 className="font-bold text-base text-zinc-900 mb-4 tracking-tight">Audit Breakdown</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         {Object.entries(report.checks).filter(([k]) => k !== 'seo').map(([key, result]: [string, any]) => (
-                                            <div key={key} className="p-4 rounded-xl border border-gray-100 hover:shadow-md transition-shadow flex gap-4 bg-gray-50/50">
-                                                <div className={cn("w-2 h-full rounded-full shrink-0",
-                                                    result.status === 'pass' ? "bg-zinc-900" : result.status === 'warning' ? "bg-orange-400" : "bg-red-500"
+                                            <div key={key} className="p-4 rounded-xl border border-zinc-200 hover:border-zinc-300 transition-all flex gap-3.5 bg-zinc-50/50">
+                                                <div className={cn(
+                                                    "w-1.5 h-full rounded-full shrink-0",
+                                                    result.status === 'pass' ? "bg-zinc-900" : result.status === 'warning' ? "bg-amber-500" : "bg-rose-500"
                                                 )} />
                                                 <div className="flex-1">
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <h4 className="font-bold text-gray-800 capitalize text-sm">{result.title}</h4>
-                                                        <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide",
-                                                            result.status === 'pass' ? "bg-zinc-200 text-zinc-800" : result.status === 'warning' ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
+                                                        <h4 className="font-bold text-zinc-900 text-sm capitalize">{result.title}</h4>
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                                                            result.status === 'pass' ? "bg-zinc-200 text-zinc-800" : result.status === 'warning' ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700"
                                                         )}>{result.status}</span>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 leading-relaxed">{result.description}</p>
+                                                    <p className="text-xs text-zinc-500 leading-relaxed">{result.description}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -659,14 +727,15 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                {/* Search Tab (kept mostly same but wrapped in card) */}
+                {/* Find Leads Tab */}
                 {activeTab === 'find' && (
-                    <div className="bg-white p-6 rounded-2xl shadow-sm min-h-[500px]">
+                    <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-xs min-h-[500px]">
                         <h2 className="text-xl font-extrabold text-zinc-900 mb-6 flex items-center gap-2.5 tracking-tight">
                             <Search size={22} className="text-zinc-800" /> Lead Discovery
                         </h2>
 
-                        <div className="flex flex-wrap gap-2 mb-4">
+                        {/* Category pills */}
+                        <div className="flex flex-wrap gap-2 mb-5">
                             {BUSINESS_CATEGORIES.map((cat) => (
                                 <button
                                     key={cat.id}
@@ -677,14 +746,14 @@ export default function Dashboard() {
                                             setQuery(newQuery);
                                             handleFind(newQuery, cat.id);
                                         } else {
-                                            setQuery("");
+                                            setQuery('');
                                         }
                                     }}
                                     className={cn(
-                                        "px-4 py-2 rounded-full text-sm font-semibold transition-all",
+                                        "px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all",
                                         category === cat.id
-                                            ? "bg-zinc-900 text-white"
-                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                            ? "bg-zinc-900 text-white shadow-xs"
+                                            : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
                                     )}
                                 >
                                     {cat.label}
@@ -692,89 +761,92 @@ export default function Dashboard() {
                             ))}
                         </div>
 
-                        <div className="flex gap-4 mb-4 items-center">
-                            <div className="flex-1 relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Search className="h-5 w-5 text-gray-400" />
-                                </div>
+                        {/* Search bar */}
+                        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                            <div className="relative flex-1">
+                                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 <input
                                     type="text"
-                                    placeholder="Search businesses (e.g. Roofers in Austin)"
+                                    placeholder="Search businesses (e.g. Roofers in Austin, Dentists in Miami)"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleFind()}
-                                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 shadow-sm rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none transition-all font-medium text-gray-800 placeholder:text-gray-400"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-medium text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all placeholder:text-zinc-400"
                                 />
                             </div>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as 'score' | 'name')}
-                                className="px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                                className="px-3.5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-700 outline-none focus:ring-2 focus:ring-zinc-900"
                             >
-                                <option value="score">By Score</option>
-                                <option value="name">By Name</option>
+                                <option value="score">Sort by Score</option>
+                                <option value="name">Sort by Name</option>
                             </select>
                             <button
                                 onClick={() => handleFind()}
                                 disabled={finding}
-                                className="bg-zinc-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-md active:scale-95"
+                                className="bg-zinc-900 text-white px-6 py-2.5 rounded-xl text-xs font-semibold hover:bg-black disabled:opacity-50 transition-all shadow-xs"
                             >
-                                {finding ? "Searching..." : "Find"}
+                                {finding ? 'Searching...' : 'Search'}
                             </button>
                         </div>
 
-                        <div className="mt-6 overflow-x-auto">
-                            <table className="w-full text-left border-collapse min-w-[800px] bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                                <thead className="bg-gray-50/50">
-                                    <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                        <th className="p-4 font-semibold text-gray-400">Business Details</th>
-                                        <th className="p-4 font-semibold text-gray-400">Contact & Address</th>
-                                        <th className="p-4 font-semibold text-gray-400 text-center">Score</th>
-                                        <th className="p-4 font-semibold text-gray-400 text-right">Actions</th>
+                        {/* Results table */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[760px]">
+                                <thead>
+                                    <tr className="border-b border-zinc-200 text-xs font-semibold text-zinc-400 uppercase tracking-wider bg-zinc-50">
+                                        <th className="p-3.5">Business Details</th>
+                                        <th className="p-3.5">Contact & Address</th>
+                                        <th className="p-3.5 text-center">Score</th>
+                                        <th className="p-3.5 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody className="divide-y divide-zinc-100">
                                     {getSortedLeads(leads).map((lead) => {
                                         const badge = lead.priority ? getPriorityBadge(lead.priority) : null;
                                         return (
-                                            <tr key={lead.place_id} className="hover:bg-gray-50/50 transition-colors">
-                                                <td className="p-4 align-top">
+                                            <tr key={lead.place_id} className="hover:bg-zinc-50/50 transition-colors">
+                                                <td className="p-3.5 align-top">
                                                     <div className="flex flex-col gap-1">
-                                                        <h3 className="text-base font-extrabold text-zinc-900 line-clamp-1" title={lead.name}>
+                                                        <h3 className="text-sm font-bold text-zinc-900 truncate max-w-xs" title={lead.name}>
                                                             {lead.name}
                                                         </h3>
-                                                        <div className="flex flex-wrap items-center gap-2">
+                                                        <div className="flex flex-wrap gap-1.5 items-center">
                                                             {lead.rating && (
-                                                                <span className="flex items-center gap-1 text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded">
-                                                                    <Star size={10} fill="currentColor" /> {lead.rating} {lead.user_ratings_total !== undefined && <span className="text-gray-400 font-normal">({lead.user_ratings_total})</span>}
+                                                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">
+                                                                    <Star size={10} fill="currentColor" />
+                                                                    {lead.rating}
+                                                                    {lead.user_ratings_total !== undefined && (
+                                                                        <span className="opacity-70 font-normal">({lead.user_ratings_total})</span>
+                                                                    )}
                                                                 </span>
                                                             )}
                                                             {badge && (
-                                                                <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider", badge.className)} title={lead.score_reasons?.join('\n') || `Score: ${lead.lead_score}`}>
+                                                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 uppercase" title={lead.score_reasons?.join('\n') || `Score: ${lead.lead_score}`}>
                                                                     {badge.label}
                                                                 </span>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="p-4 align-top">
-                                                    <div className="flex flex-col gap-1.5">
+                                                <td className="p-3.5 align-top text-xs">
+                                                    <div className="flex flex-col gap-1">
                                                         {lead.website ? (
-                                                            <a href={lead.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline line-clamp-1" title={lead.website}>{lead.website}</a>
+                                                            <a href={lead.website} target="_blank" rel="noopener noreferrer" className="text-zinc-900 font-medium hover:underline truncate max-w-[220px]" title={lead.website}>
+                                                                {lead.website}
+                                                            </a>
                                                         ) : (
-                                                            <span className="text-xs text-red-600 italic">No Website</span>
+                                                            <span className="text-rose-500 italic">No website</span>
                                                         )}
                                                         {lead.phone && (
-                                                            <button 
-                                                                onClick={() => {
-                                                                    navigator.clipboard.writeText(lead.phone!);
-                                                                    toast.success("Phone number copied!");
-                                                                }}
-                                                                className="text-sm text-gray-600 flex items-center gap-1 hover:text-zinc-700 transition-colors focus:outline-none"
-                                                                title="Click to copy phone number"
+                                                            <button
+                                                                onClick={() => { navigator.clipboard.writeText(lead.phone!); toast.success('Phone copied!'); }}
+                                                                className="text-zinc-500 hover:text-zinc-900 flex items-center gap-1.5 text-left"
+                                                                title="Click to copy"
                                                             >
-                                                                <Phone size={12} className="text-zinc-800 shrink-0" />
-                                                                <span className="line-clamp-1">{lead.phone}</span>
+                                                                <Phone size={11} className="text-zinc-400 shrink-0" />
+                                                                {lead.phone}
                                                             </button>
                                                         )}
                                                         {lead.formatted_address && (
@@ -782,32 +854,39 @@ export default function Dashboard() {
                                                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.formatted_address)}`}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="text-sm text-gray-500 flex items-center gap-1 hover:text-zinc-700 transition-colors"
+                                                                className="text-zinc-400 hover:text-zinc-700 flex items-center gap-1.5 truncate max-w-[220px]"
                                                                 title="View on Google Maps"
                                                             >
-                                                                <MapPin size={12} className="text-zinc-800 shrink-0" />
-                                                                <span className="line-clamp-1">{lead.formatted_address}</span>
+                                                                <MapPin size={11} className="text-zinc-400 shrink-0" />
+                                                                <span className="truncate">{lead.formatted_address}</span>
                                                             </a>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="p-4 text-center align-middle">
-                                                    <div className={cn(
-                                                        "inline-flex items-center justify-center w-10 h-10 rounded-full font-bold text-base mx-auto",
-                                                        (lead.lead_score ?? 0) >= 80 ? "bg-green-100 text-green-600" :
-                                                        (lead.lead_score ?? 0) >= 50 ? "bg-yellow-100 text-yellow-600" :
-                                                        "bg-gray-100 text-gray-500"
+                                                <td className="p-3.5 align-middle text-center">
+                                                    <span className={cn(
+                                                        "inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold font-mono",
+                                                        (lead.lead_score ?? 0) >= 80 ? "bg-rose-100 text-rose-700" :
+                                                        (lead.lead_score ?? 0) >= 50 ? "bg-amber-100 text-amber-700" : "bg-zinc-100 text-zinc-700"
                                                     )}>
                                                         {lead.lead_score ?? 0}
-                                                    </div>
+                                                    </span>
                                                 </td>
-                                                <td className="p-4 align-middle text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        <button onClick={() => quickAudit(lead)} disabled={!lead.website || scanningLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 shadow-sm">
+                                                <td className="p-3.5 align-middle text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button 
+                                                            onClick={() => quickAudit(lead)} 
+                                                            disabled={!lead.website || scanningLead === lead.place_id} 
+                                                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-100 hover:bg-zinc-200 text-zinc-800 disabled:opacity-50 transition-colors"
+                                                        >
                                                             {scanningLead === lead.place_id ? 'Queuing...' : 'Audit'}
                                                         </button>
-                                                        <button onClick={() => handleSave(lead)} disabled={savingLead === lead.place_id} className="px-4 py-2 text-sm font-bold text-white bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors shadow-sm disabled:opacity-50">
-                                                            {savingLead === lead.place_id ? "Saving..." : "Save"}
+                                                        <button 
+                                                            onClick={() => handleSave(lead)} 
+                                                            disabled={savingLead === lead.place_id} 
+                                                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-900 hover:bg-black text-white disabled:opacity-50 transition-colors shadow-xs"
+                                                        >
+                                                            {savingLead === lead.place_id ? 'Saving...' : 'Save'}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -817,35 +896,52 @@ export default function Dashboard() {
                                 </tbody>
                             </table>
                             {leads.length === 0 && !finding && query && (
-                                <div className="text-center text-gray-400 py-12 bg-white rounded-2xl border border-gray-100 shadow-sm mt-4">No leads found. Try a different search.</div>
+                                <div className="text-center py-16">
+                                    <div className="w-12 h-12 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-3 text-zinc-400">
+                                        <Search size={20} />
+                                    </div>
+                                    <p className="text-sm font-semibold text-zinc-900">No leads found</p>
+                                    <p className="text-xs text-zinc-500 mt-1">Try broadening your search term or selecting a different category.</p>
+                                </div>
                             )}
                         </div>
                     </div>
                 )}
 
-
-                {/* My Leads (Refactored Table Look) */}
+                {/* Pipeline & Leads */}
                 {activeTab === 'leads' && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h2 className="text-xl font-extrabold text-zinc-900 flex items-center gap-2.5 tracking-tight">
-                                <Users size={22} className="text-zinc-800" /> My Leads Pipeline
-                            </h2>
-                            <div className="flex items-center gap-3">
-                                <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                    <div className="bg-white rounded-2xl border border-zinc-200 shadow-xs overflow-hidden min-h-[500px]">
+                        <div className="p-5 border-b border-zinc-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-zinc-50/50">
+                            <div>
+                                <h2 className="text-lg font-extrabold text-zinc-900 flex items-center gap-2 tracking-tight">
+                                    <Layers size={18} className="text-zinc-700" /> Leads Pipeline
+                                </h2>
+                                <p className="text-xs text-zinc-500 mt-0.5">Drag-and-drop deals, schedule pitches, and manage client lifecycles</p>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex rounded-xl border border-zinc-200 bg-white p-1">
                                     <button
                                         onClick={() => setLeadsView('list')}
-                                        className={cn("p-2 transition-colors", leadsView === 'list' ? "bg-zinc-100 text-zinc-700" : "text-gray-400 hover:text-gray-600")}
+                                        className={cn(
+                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                                            leadsView === 'list' ? "bg-zinc-900 text-white" : "text-zinc-600 hover:text-zinc-900"
+                                        )}
                                         title="List view"
                                     >
-                                        <List size={16} />
+                                        <List size={14} />
+                                        <span>List</span>
                                     </button>
                                     <button
                                         onClick={() => setLeadsView('kanban')}
-                                        className={cn("p-2 transition-colors", leadsView === 'kanban' ? "bg-zinc-100 text-zinc-700" : "text-gray-400 hover:text-gray-600")}
+                                        className={cn(
+                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                                            leadsView === 'kanban' ? "bg-zinc-900 text-white" : "text-zinc-600 hover:text-zinc-900"
+                                        )}
                                         title="Kanban view"
                                     >
-                                        <LayoutGrid size={16} />
+                                        <LayoutGrid size={14} />
+                                        <span>Board</span>
                                     </button>
                                 </div>
 
@@ -853,21 +949,21 @@ export default function Dashboard() {
                                     <button
                                         onClick={() => handleExportCSV(false)}
                                         disabled={exporting}
-                                        className="flex items-center gap-2 text-sm font-bold bg-white border border-zinc-900 text-zinc-700 px-4 py-2 rounded-lg hover:bg-zinc-100 transition-colors disabled:opacity-50"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white border border-zinc-200 text-zinc-800 hover:bg-zinc-50 disabled:opacity-50 transition-colors shadow-xs"
                                     >
-                                        <Download size={16} />
-                                        {exporting ? 'Exporting...' : 'Export CSV'}
+                                        <Download size={13} />
+                                        {exporting ? 'Exporting...' : 'CSV'}
                                     </button>
                                 )}
 
                                 <button
                                     onClick={() => handleExport(false)}
                                     disabled={exporting}
-                                    className="flex items-center gap-2 text-sm font-bold bg-zinc-800 text-white px-4 py-2 rounded-lg hover:bg-zinc-700 transition-colors shadow-sm disabled:opacity-50"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-900 text-white hover:bg-black disabled:opacity-50 transition-colors shadow-xs"
                                     aria-label="Export all leads to Excel"
                                 >
-                                    <FileSpreadsheet size={16} />
-                                    {exporting ? 'Exporting...' : 'Export Excel'}
+                                    <FileSpreadsheet size={13} />
+                                    {exporting ? 'Exporting...' : 'Excel'}
                                 </button>
 
                                 {isEnterprise && (
@@ -875,13 +971,13 @@ export default function Dashboard() {
                                         <button
                                             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                                             className={cn(
-                                                "flex items-center gap-1 text-sm font-bold px-3 py-1.5 rounded-lg border transition-all",
+                                                "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all",
                                                 showFavoritesOnly
-                                                    ? "bg-yellow-50 text-yellow-600 border-yellow-200"
-                                                    : "bg-white text-gray-500 hover:text-yellow-600 hover:border-yellow-200"
+                                                    ? "bg-amber-50 text-amber-700 border-amber-300"
+                                                    : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300"
                                             )}
                                         >
-                                            <Star size={14} fill={showFavoritesOnly ? "currentColor" : "none"} />
+                                            <Star size={13} fill={showFavoritesOnly ? "currentColor" : "none"} />
                                             Favorites
                                         </button>
                                         {selectedLeads.size > 0 && (
@@ -889,123 +985,114 @@ export default function Dashboard() {
                                                 <button
                                                     onClick={() => handleExport(true)}
                                                     disabled={exporting}
-                                                    className="flex items-center gap-1 text-sm font-bold bg-zinc-100 text-zinc-700 px-3 py-1.5 rounded-lg hover:bg-zinc-200 transition-colors"
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 text-zinc-800 hover:bg-zinc-200 transition-colors"
                                                 >
-                                                    <FileSpreadsheet size={14} />
-                                                    {exporting ? 'Exporting...' : `Export ${selectedLeads.size} Selected`}
+                                                    <FileSpreadsheet size={13} />
+                                                    Export ({selectedLeads.size})
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteLeads(Array.from(selectedLeads))}
-                                                    className="flex items-center gap-1 text-sm font-bold bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
                                                 >
-                                                    <Trash2 size={14} />
-                                                    Delete {selectedLeads.size} Selected
+                                                    <Trash2 size={13} />
+                                                    Delete ({selectedLeads.size})
                                                 </button>
                                             </>
                                         )}
                                     </>
                                 )}
-                                <span className="text-xs font-bold text-gray-400 bg-white px-2 py-1 rounded-md border">{myLeads.filter(l => !showFavoritesOnly || l.is_favorite).length} Records</span>
+                                <span className="text-xs font-mono font-semibold text-zinc-500 bg-white px-2.5 py-1 rounded-lg border border-zinc-200">
+                                    {myLeads.filter(l => !showFavoritesOnly || l.is_favorite).length} Records
+                                </span>
                             </div>
                         </div>
 
                         {leadsView === 'kanban' ? (
-                            <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                                {(['new', 'contacted', 'audited', 'closed'] as const).map((status) => {
-                                    const columnLeads = myLeads.filter(l =>
-                                        (!showFavoritesOnly || l.is_favorite) &&
-                                        (status === 'audited' ? (l.status === 'audited' || l.status === 'auditing') : l.status === status)
-                                    );
-                                    return (
-                                        <div key={status} className="bg-gray-50 rounded-xl p-3 min-h-[300px]">
-                                            <h3 className="text-xs font-bold uppercase text-gray-500 mb-3 capitalize">{status}</h3>
-                                            <div className="space-y-2">
-                                                {columnLeads.map((lead) => (
-                                                    <div key={lead.id} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                                                        <p className="font-bold text-sm text-gray-800">{lead.business_name}</p>
-                                                        {lead.lead_score > 0 && (
-                                                            <span className="text-xs text-zinc-700 font-bold">Score: {lead.lead_score}</span>
-                                                        )}
-                                                        <p className="text-xs text-gray-400 mt-1 truncate">{lead.website_url || 'No website'}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                            <div className="p-6">
+                                <PipelineKanbanView
+                                    leads={myLeads.filter(l => !showFavoritesOnly || l.is_favorite)}
+                                    onRefresh={fetchLeads}
+                                    onGenerateEmail={(id, name) => handleGenerateEmail(id, name)}
+                                    onToggleFavorite={handleToggleFavorite}
+                                    onDeleteLead={(id) => handleDeleteLeads([id])}
+                                />
                             </div>
                         ) : (
                             <>
                                 {myLeads.filter(l => !showFavoritesOnly || l.is_favorite).length === 0 && (
                                     <div className="text-center py-20 bg-white">
-                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                                            <Users size={32} />
+                                        <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-400">
+                                            <Users size={28} />
                                         </div>
-                                        <p className="text-gray-500 font-medium">No leads in your pipeline yet.</p>
-                                        <button onClick={() => changeTab('find')} className="mt-2 text-zinc-900 font-bold hover:underline">Find Leads &rarr;</button>
+                                        <p className="text-sm font-semibold text-zinc-800">No leads in your pipeline yet</p>
+                                        <p className="text-xs text-zinc-500 mt-1">Discover businesses and save them to your CRM</p>
+                                        <button onClick={() => changeTab('find')} className="mt-4 px-4 py-2 bg-zinc-900 text-white rounded-xl text-xs font-semibold hover:bg-black transition-colors">
+                                            Find Leads →
+                                        </button>
                                     </div>
                                 )}
 
                                 {myLeads.filter(l => !showFavoritesOnly || l.is_favorite).length > 0 && (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse min-w-[950px] bg-white">
-                                            <thead className="bg-gray-50/50">
-                                                <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                                    {isEnterprise && <th className="p-4 w-12 text-center">Sel</th>}
-                                                    <th className="p-4 font-semibold text-gray-400">Business Details</th>
-                                                    <th className="p-4 font-semibold text-gray-400">Contact & Address</th>
-                                                    <th className="p-4 font-semibold text-gray-400">Status</th>
-                                                    <th className="p-4 font-semibold text-gray-400">Est. Value</th>
-                                                    <th className="p-4 font-semibold text-gray-400 text-right">Actions</th>
+                                            <thead className="bg-zinc-50 border-b border-zinc-200">
+                                                <tr className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                                                    {isEnterprise && <th className="p-3.5 w-12 text-center">Sel</th>}
+                                                    <th className="p-3.5">Business Details</th>
+                                                    <th className="p-3.5">Contact & Address</th>
+                                                    <th className="p-3.5">Stage</th>
+                                                    <th className="p-3.5">Est. Value</th>
+                                                    <th className="p-3.5 text-right">Actions</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-gray-100">
+                                            <tbody className="divide-y divide-zinc-100">
                                                 {myLeads.filter(l => !showFavoritesOnly || l.is_favorite).map((lead) => (
-                                                    <tr key={lead.id} className="hover:bg-gray-50/50 transition-colors group">
+                                                    <tr key={lead.id} className="hover:bg-zinc-50/50 transition-colors group">
                                                         {isEnterprise && (
-                                                            <td className="p-4 text-center align-middle">
+                                                            <td className="p-3.5 text-center align-middle">
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={selectedLeads.has(lead.id)}
                                                                     onChange={() => toggleLeadSelection(lead.id)}
-                                                                    className="w-4 h-4 rounded border-gray-300 text-zinc-800 focus:ring-zinc-900"
+                                                                    className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
                                                                 />
                                                             </td>
                                                         )}
-                                                        <td className="p-4 align-top">
+                                                        <td className="p-3.5 align-top">
                                                             <div className="flex items-start gap-3">
-                                                                <div className={cn("w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border shrink-0 mt-0.5",
-                                                                    lead.status === 'audited' ? "bg-zinc-100 text-zinc-700 border-zinc-300" : "bg-gray-100 text-gray-500 border-gray-200"
+                                                                <div className={cn(
+                                                                    "w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border shrink-0 mt-0.5",
+                                                                    lead.status === 'audited' ? "bg-zinc-100 text-zinc-900 border-zinc-300" : "bg-zinc-50 text-zinc-500 border-zinc-200"
                                                                 )}>
                                                                     {lead.business_name.substring(0, 1)}
                                                                 </div>
                                                                 <div className="flex flex-col gap-0.5">
                                                                     <div className="flex items-center gap-2">
-                                                                        <span className="font-extrabold text-sm text-zinc-900 line-clamp-1" title={lead.business_name}>
+                                                                        <span className="font-bold text-sm text-zinc-900 truncate max-w-xs" title={lead.business_name}>
                                                                             {lead.business_name}
                                                                         </span>
                                                                         {isEnterprise && (
                                                                             <button
                                                                                 onClick={() => handleToggleFavorite(lead.id)}
                                                                                 className={cn(
-                                                                                    "p-1 rounded transition-colors",
-                                                                                    lead.is_favorite ? "text-amber-400 fill-amber-400 hover:text-amber-500" : "text-gray-300 hover:text-amber-400"
+                                                                                    "p-0.5 rounded transition-colors",
+                                                                                    lead.is_favorite ? "text-amber-400 fill-amber-400 hover:text-amber-500" : "text-zinc-300 hover:text-amber-400"
                                                                                 )}
                                                                                 title={lead.is_favorite ? "Remove favorite" : "Mark favorite"}
                                                                             >
-                                                                                <Star size={15} fill={lead.is_favorite ? "currentColor" : "none"} />
+                                                                                <Star size={13} fill={lead.is_favorite ? "currentColor" : "none"} />
                                                                             </button>
                                                                         )}
                                                                     </div>
                                                                     {lead.website_url ? (
-                                                                        <a href={lead.website_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline line-clamp-1" title={lead.website_url}>{lead.website_url}</a>
+                                                                        <a href={lead.website_url} target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-600 hover:underline truncate max-w-[200px]" title={lead.website_url}>{lead.website_url}</a>
                                                                     ) : (
-                                                                        <span className="text-xs text-red-600 italic">No website</span>
+                                                                        <span className="text-xs text-rose-500 italic">No website</span>
                                                                     )}
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="p-4 align-top">
+                                                        <td className="p-3.5 align-top text-xs">
                                                             <div className="flex flex-col gap-1">
                                                                 {lead.phone && (
                                                                     <button 
@@ -1013,11 +1100,11 @@ export default function Dashboard() {
                                                                             navigator.clipboard.writeText(lead.phone!);
                                                                             toast.success("Phone number copied!");
                                                                         }}
-                                                                        className="text-xs text-gray-600 flex items-center gap-1.5 hover:text-zinc-700 transition-colors focus:outline-none w-fit"
+                                                                        className="text-zinc-600 flex items-center gap-1.5 hover:text-zinc-900 transition-colors w-fit"
                                                                         title="Click to copy phone number"
                                                                     >
-                                                                        <Phone size={12} className="text-zinc-800 shrink-0" />
-                                                                        <span className="line-clamp-1">{lead.phone}</span>
+                                                                        <Phone size={11} className="text-zinc-400 shrink-0" />
+                                                                        <span>{lead.phone}</span>
                                                                     </button>
                                                                 )}
                                                                 {lead.address && (
@@ -1025,30 +1112,23 @@ export default function Dashboard() {
                                                                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.address)}`}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="text-xs text-gray-500 flex items-center gap-1.5 hover:text-zinc-700 transition-colors line-clamp-1"
+                                                                        className="text-zinc-400 flex items-center gap-1.5 hover:text-zinc-700 transition-colors truncate max-w-[200px]"
                                                                         title="View on Google Maps"
                                                                     >
-                                                                        <MapPin size={12} className="text-zinc-800 shrink-0" />
-                                                                        <span className="line-clamp-1">{lead.address}</span>
+                                                                        <MapPin size={11} className="text-zinc-400 shrink-0" />
+                                                                        <span className="truncate">{lead.address}</span>
                                                                     </a>
                                                                 )}
                                                                 {!lead.phone && !lead.address && (
-                                                                    <span className="text-xs text-gray-400 italic">No contact info</span>
+                                                                    <span className="text-zinc-400 italic">No contact info</span>
                                                                 )}
                                                             </div>
                                                         </td>
-                                                        <td className="p-4 align-top">
+                                                        <td className="p-3.5 align-top">
                                                             <select
                                                                 value={lead.status}
                                                                 onChange={(e) => handleStatusChange(lead.id, e.target.value)}
-                                                                className={cn(
-                                                                    "text-xs font-bold px-3 py-1 rounded-full border outline-none cursor-pointer capitalize transition-all",
-                                                                    lead.status === 'new' ? "bg-gray-100 text-gray-600 border-gray-200" :
-                                                                    lead.status === 'auditing' ? "bg-amber-50 text-amber-600 border-amber-200" :
-                                                                    lead.status === 'audited' ? "bg-blue-50 text-blue-600 border-blue-200" :
-                                                                    lead.status === 'contacted' ? "bg-purple-50 text-purple-600 border-purple-200" :
-                                                                    "bg-green-50 text-green-600 border-green-200"
-                                                                )}
+                                                                className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-800 outline-none cursor-pointer capitalize"
                                                             >
                                                                 <option value="new">New</option>
                                                                 <option value="auditing">Auditing</option>
@@ -1057,19 +1137,19 @@ export default function Dashboard() {
                                                                 <option value="closed">Closed</option>
                                                             </select>
                                                         </td>
-                                                        <td className="p-4 align-top">
+                                                        <td className="p-3.5 align-top">
                                                             <div className="relative w-24">
-                                                                <span className="absolute left-2 top-1 text-gray-400 text-xs">$</span>
+                                                                <span className="absolute left-2.5 top-1.5 text-zinc-400 text-xs">$</span>
                                                                 <input
                                                                     type="number"
                                                                     defaultValue={lead.value || ''}
                                                                     onBlur={(e) => handleValueChange(lead.id, e.target.value)}
-                                                                    className="w-full pl-5 bg-transparent border-b border-gray-200 hover:border-gray-400 focus:border-zinc-800 text-xs font-semibold text-gray-800 px-1 py-1 outline-none transition-colors"
+                                                                    className="w-full pl-5 pr-2 py-1 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-500"
                                                                     placeholder="0"
                                                                 />
                                                             </div>
                                                         </td>
-                                                        <td className="p-4 align-top text-right">
+                                                        <td className="p-3.5 align-top text-right">
                                                             <div className="flex items-center justify-end gap-1.5">
                                                                 {lead.status === 'audited' && (
                                                                     <button
@@ -1084,7 +1164,7 @@ export default function Dashboard() {
                                                                 {lead.website_url && (
                                                                     <button
                                                                         onClick={() => handleScan(lead.website_url, lead.id)}
-                                                                        className="p-1.5 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                                                                        className="p-1.5 rounded-lg bg-zinc-100 text-zinc-700 hover:bg-zinc-200 transition-colors"
                                                                         title="Re-Audit"
                                                                     >
                                                                         <RefreshCw size={14} />
@@ -1092,7 +1172,7 @@ export default function Dashboard() {
                                                                 )}
                                                                 <button
                                                                     onClick={() => handleDeleteLeads([lead.id])}
-                                                                    className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                                                                    className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
                                                                     title="Delete Lead"
                                                                 >
                                                                     <Trash2 size={14} />
@@ -1109,15 +1189,26 @@ export default function Dashboard() {
                         )}
                     </div>
                 )}
+
+                {/* Active Clients Hub */}
+                {activeTab === 'clients' && (
+                    <ClientsHubView />
+                )}
+
+                {/* B2B Deal & Client Exchange */}
+                {activeTab === 'exchange' && (
+                    <ExchangeHubView />
+                )}
             </div>
 
+            {/* Email Modal */}
             {emailModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <h3 className="font-bold text-lg text-gray-800">Outreach Email — {emailModal.leadName}</h3>
-                            <button onClick={() => setEmailModal(null)} className="text-gray-400 hover:text-gray-600">
-                                <X size={20} />
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto border border-zinc-200">
+                        <div className="p-5 border-b border-zinc-200 flex justify-between items-center bg-zinc-50/50">
+                            <h3 className="font-bold text-base text-zinc-900">Outreach Email — {emailModal.leadName}</h3>
+                            <button onClick={() => setEmailModal(null)} className="text-zinc-400 hover:text-zinc-600 p-1 rounded-lg">
+                                <X size={18} />
                             </button>
                         </div>
                         <div className="p-6 space-y-4">
@@ -1127,10 +1218,10 @@ export default function Dashboard() {
                                         key={key}
                                         onClick={() => setEmailTemplate(key as EmailTemplateVariant)}
                                         className={cn(
-                                            "px-3 py-1.5 rounded-lg text-xs font-bold border transition-all",
+                                            "px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
                                             emailTemplate === key
                                                 ? "bg-zinc-900 text-white border-zinc-900"
-                                                : "bg-white text-gray-600 border-gray-200 hover:border-zinc-400"
+                                                : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400"
                                         )}
                                     >
                                         {tmpl.name}
@@ -1138,26 +1229,26 @@ export default function Dashboard() {
                                 ))}
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-gray-400 uppercase">Subject</label>
-                                <p className="mt-1 p-3 bg-gray-50 rounded-lg text-sm font-medium">{emailModal.subject}</p>
+                                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Subject Line</label>
+                                <p className="mt-1 p-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-medium text-zinc-900">{emailModal.subject}</p>
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-gray-400 uppercase">Body</label>
-                                <pre className="mt-1 p-3 bg-gray-50 rounded-lg text-sm whitespace-pre-wrap font-sans">{emailModal.body}</pre>
+                                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Email Body</label>
+                                <pre className="mt-1 p-4 bg-zinc-50 border border-zinc-200 rounded-xl text-xs whitespace-pre-wrap font-sans text-zinc-800 leading-relaxed">{emailModal.body}</pre>
                             </div>
-                            <div className="flex gap-3">
+                            <div className="flex gap-2.5 pt-2">
                                 <button
                                     onClick={() => {
                                         navigator.clipboard.writeText(`${emailModal.subject}\n\n${emailModal.body}`);
                                         toast.success('Copied to clipboard!');
                                     }}
-                                    className="flex items-center gap-2 bg-zinc-900 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-zinc-800"
+                                    className="flex items-center gap-2 bg-zinc-900 text-white px-4 py-2.5 rounded-xl text-xs font-semibold hover:bg-black transition-colors shadow-xs"
                                 >
-                                    <Copy size={14} /> Copy Email
+                                    <Copy size={13} /> Copy Email
                                 </button>
                                 <button
                                     onClick={() => setEmailModal(null)}
-                                    className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50"
+                                    className="px-4 py-2.5 rounded-xl border border-zinc-200 text-zinc-700 text-xs font-semibold hover:bg-zinc-50 transition-colors"
                                 >
                                     Close
                                 </button>

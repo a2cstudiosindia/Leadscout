@@ -3,16 +3,39 @@
 import { useCached } from "@/lib/use-cached";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { Search, List, Settings, Zap, CreditCard, BarChart3, Key, Menu, X, Crown, Sparkles } from "lucide-react";
+import { 
+    Search, 
+    Settings, 
+    Zap, 
+    CreditCard, 
+    BarChart3, 
+    Key, 
+    Menu, 
+    X, 
+    Crown, 
+    Sparkles, 
+    Briefcase, 
+    Globe2, 
+    Layers,
+    FileText
+} from "lucide-react";
 import { getSubscriptionInfo } from "@/lib/subscription";
+import { cn } from "@/lib/utils";
 
-const navigation = [
-    { name: "Find Leads", href: "/dashboard?tab=find", icon: Search },
-    { name: "My Leads", href: "/dashboard?tab=leads", icon: List },
-    { name: "Direct Scan", href: "/dashboard?tab=scan", icon: Zap },
-    { name: "Analytics", href: "/analytics", icon: BarChart3 },
-    { name: "Plans & Pricing", href: "/dashboard/pricing", icon: CreditCard },
+const workspaceNav = [
+    { name: "Find Leads", href: "/dashboard?tab=find", tab: "find", icon: Search },
+    { name: "Pipeline & Deals", href: "/dashboard?tab=leads", tab: "leads", icon: Layers },
+    { name: "Clients Hub", href: "/dashboard?tab=clients", tab: "clients", icon: Briefcase },
+    { name: "B2B Exchange", href: "/dashboard?tab=exchange", tab: "exchange", icon: Globe2 },
+    { name: "Direct Scan", href: "/dashboard?tab=scan", tab: "scan", icon: Zap },
+    { name: "Analytics", href: "/analytics", tab: null, icon: BarChart3 },
+    { name: "Plans & Pricing", href: "/dashboard/pricing", tab: null, icon: CreditCard },
+];
+
+const configNav = [
+    { name: "Agency Settings", href: "/settings", icon: Settings },
+    { name: "API Keys", href: "/settings/api-keys", icon: Key },
+    { name: "API Docs", href: "/api/docs", icon: FileText },
 ];
 
 export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
@@ -22,9 +45,26 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
     const { data: info } = useCached("sub", () => getSubscriptionInfo());
     const plan = info && info.plan !== 'free' ? info.plan : null;
 
+    function isNavActive(item: typeof workspaceNav[0]) {
+        if (item.tab) {
+            return pathname === "/dashboard" && (tab === item.tab || (!tab && item.tab === "find"));
+        }
+        if (item.href === "/dashboard/pricing") {
+            return pathname === "/dashboard/pricing";
+        }
+        return pathname === item.href;
+    }
+
+    function isConfigActive(item: typeof configNav[0]) {
+        if (item.href === "/settings/api-keys") return pathname.includes("/api-keys");
+        if (item.href === "/settings") return pathname === "/settings";
+        if (item.href === "/api/docs") return pathname.startsWith("/api/docs") || pathname.startsWith("/docs");
+        return pathname === item.href;
+    }
+
     return (
         <>
-            {/* Mobile Overlay */}
+            {/* Mobile overlay */}
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 z-40 md:hidden"
@@ -33,7 +73,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
                 />
             )}
 
-            {/* Sidebar */}
+            {/* Sidebar container */}
             <div className={cn(
                 "w-72 bg-[#0c0c0e] border-r border-zinc-800/80 min-h-screen flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300",
                 // Mobile: slide in/out
@@ -41,6 +81,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
                 // Desktop: always visible
                 "md:translate-x-0"
             )}>
+                {/* Header / Logo */}
                 <div className="p-6 pb-6 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-3 group">
                         <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700/70 text-white flex items-center justify-center group-hover:border-zinc-500 transition-colors shadow-sm">
@@ -71,96 +112,78 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
                     </button>
                 </div>
 
-                <div className="h-px bg-zinc-800/80 mx-5 mb-5" />
+                <div className="h-px bg-zinc-800/80 mx-5 mb-4" />
 
-                <nav className="flex-1 px-3 space-y-1.5">
-                    {navigation.map((item) => {
-                        const currentTab = tab || 'find';
-                        const isMatch = (item.href.includes(`tab=${currentTab}`) && pathname === '/dashboard') || 
-                                        (pathname === '/analytics' && item.href === '/analytics') || 
-                                        ((pathname === '/dashboard/pricing' || pathname === '/pricing') && item.href === '/dashboard/pricing');
+                {/* Navigation items */}
+                <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+                    <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-zinc-500 mb-2 px-3 pt-1">
+                        Workspace
+                    </div>
+
+                    {workspaceNav.map((item) => {
+                        const active = isNavActive(item);
                         return (
                             <Link
                                 key={item.name}
                                 href={item.href}
                                 onClick={onClose}
                                 className={cn(
-                                    "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
-                                    isMatch 
+                                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
+                                    active 
                                         ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-xs" 
                                         : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                                 )}
                             >
                                 <div className={cn(
                                     "p-1 rounded-lg transition-colors",
-                                    isMatch ? "text-white" : "text-zinc-400 group-hover:text-white"
+                                    active ? "text-white" : "text-zinc-400 group-hover:text-white"
                                 )}>
-                                    <item.icon size={19} />
+                                    <item.icon size={18} />
                                 </div>
-                                {item.name}
+                                <span>{item.name}</span>
                             </Link>
                         );
                     })}
 
                     <div className="pt-6 px-1">
-                        <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-500 mb-2 pl-3">Configuration</h3>
-                        <Link
-                            href="/settings"
-                            onClick={onClose}
-                            className={cn(
-                                "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
-                                pathname === "/settings" 
-                                    ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-xs" 
-                                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-                            )}
-                        >
-                            <div className="p-1 rounded-lg text-zinc-400 group-hover:text-white">
-                                <Settings size={19} />
-                            </div>
-                            Agency Settings
-                        </Link>
-                        <Link
-                            href="/settings/api-keys"
-                            onClick={onClose}
-                            className={cn(
-                                "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
-                                pathname.includes("/api-keys") 
-                                    ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-xs" 
-                                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-                            )}
-                        >
-                            <div className="p-1 rounded-lg text-zinc-400 group-hover:text-white">
-                                <Key size={19} />
-                            </div>
-                            API Keys
-                        </Link>
-                        <Link
-                            href="/api/docs"
-                            onClick={onClose}
-                            className={cn(
-                                "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
-                                pathname.startsWith("/api/docs") || pathname.startsWith("/docs/api")
-                                    ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-xs" 
-                                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-                            )}
-                        >
-                            <div className="p-1 rounded-lg text-zinc-400 group-hover:text-white">
-                                <Zap size={19} />
-                            </div>
-                            API Docs
-                        </Link>
+                        <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-zinc-500 mb-2 px-2">
+                            Configuration
+                        </div>
+                        {configNav.map((item) => {
+                            const active = isConfigActive(item);
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    onClick={onClose}
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-150 group",
+                                        active 
+                                            ? "bg-zinc-800 text-white border border-zinc-700/60 shadow-xs" 
+                                            : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+                                    )}
+                                >
+                                    <div className={cn(
+                                        "p-1 rounded-lg transition-colors",
+                                        active ? "text-white" : "text-zinc-400 group-hover:text-white"
+                                    )}>
+                                        <item.icon size={18} />
+                                    </div>
+                                    <span>{item.name}</span>
+                                </Link>
+                            );
+                        })}
                     </div>
                 </nav>
 
                 <div className="p-4 border-t border-zinc-800/80 text-center">
-                    <span className="text-xs text-zinc-500 font-mono tracking-widest">v1.2.0 • PRODUCTION</span>
+                    <span className="text-[11px] text-zinc-500 font-mono tracking-widest uppercase">v2.0 • PRODUCTION</span>
                 </div>
             </div>
         </>
     );
 }
 
-// Mobile menu button component for use in DashboardShell
 export function MobileMenuButton({ onClick }: { onClick: () => void }) {
     return (
         <button

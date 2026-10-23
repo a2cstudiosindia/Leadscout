@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getProfile, updateProfile, uploadLogo } from "../actions";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { Save, Building, Upload, CreditCard, LogOut, User, CheckCircle2 } from "lucide-react";
+import { Save, Building, Upload, CreditCard, LogOut, User, Calendar, CheckCircle2 } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
 import { signOut, customerPortal } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -13,6 +13,7 @@ import { useCached } from "@/lib/use-cached";
 export default function SettingsPage() {
     const [agencyName, setAgencyName] = useState("");
     const [logoUrl, setLogoUrl] = useState("");
+    const [calendarLink, setCalendarLink] = useState("");
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const router = useRouter();
@@ -23,6 +24,7 @@ export default function SettingsPage() {
         if (profileData?.profile && !hydrated) {
             setAgencyName(profileData.profile.agency_name || "");
             setLogoUrl(profileData.profile.agency_logo_url || "");
+            setCalendarLink(profileData.profile.calendar_link || "");
             setHydrated(true);
         }
     }, [profileData, hydrated]);
@@ -49,7 +51,8 @@ export default function SettingsPage() {
         setSaving(true);
         await updateProfile({
             agency_name: agencyName,
-            agency_logo_url: logoUrl
+            agency_logo_url: logoUrl,
+            calendar_link: calendarLink,
         });
         setSaving(false);
         toast.success('Agency settings saved');
@@ -90,7 +93,7 @@ export default function SettingsPage() {
             <div className="max-w-4xl mx-auto space-y-8">
                 <div>
                     <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">Agency Settings</h1>
-                    <p className="text-sm text-zinc-500 mt-1">Configure white-label branding details for exports and audit reports</p>
+                    <p className="text-sm text-zinc-500 mt-1">Configure white-label branding details for exports, audit reports, and booking integration</p>
                 </div>
 
                 {/* Subnav Tabs */}
@@ -120,7 +123,7 @@ export default function SettingsPage() {
                     <div className="p-5 border-b border-zinc-200 bg-zinc-50">
                         <h2 className="font-semibold text-base text-zinc-900 flex items-center gap-2.5">
                             <Building size={18} className="text-zinc-500" />
-                            General Information
+                            General Information & White-Labeling
                         </h2>
                     </div>
 
@@ -135,7 +138,23 @@ export default function SettingsPage() {
                                 placeholder="e.g. Apex Strategic Growth"
                                 className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-all font-medium"
                             />
-                            <p className="text-xs text-zinc-500">Rendered on client-facing PDF audit summaries and cold emails.</p>
+                            <p className="text-xs text-zinc-500">Rendered on client-facing PDF audit summaries, web reports, and cold emails.</p>
+                        </div>
+
+                        {/* Calendar / Strategy Call Link */}
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
+                                <Calendar size={13} className="text-zinc-500" />
+                                Strategy Call Booking Link (Cal.com / Calendly)
+                            </label>
+                            <input
+                                type="url"
+                                value={calendarLink}
+                                onChange={(e) => setCalendarLink(e.target.value)}
+                                placeholder="https://cal.com/your-agency/15min or https://calendly.com/your-agency"
+                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-all font-medium"
+                            />
+                            <p className="text-xs text-zinc-500">Embedded directly into your shareable web audit pitch links so leads can instantly schedule calls.</p>
                         </div>
 
                         {/* Logo Upload */}
@@ -147,9 +166,9 @@ export default function SettingsPage() {
                                         type="file"
                                         accept="image/*"
                                         onChange={handleLogoUpload}
-                                        className="w-full p-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-zinc-300 file:text-xs file:font-medium file:bg-zinc-100 file:text-zinc-800 hover:file:bg-zinc-700 cursor-pointer"
+                                        className="w-full p-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-zinc-300 file:text-xs file:font-medium file:bg-zinc-100 file:text-zinc-800 hover:file:bg-zinc-200 cursor-pointer"
                                     />
-                                    <p className="text-[11px] text-zinc-500 mt-1.5">PNG or SVG with transparent background recommended (Max 2MB).</p>
+                                    <p className="text-[11px] text-zinc-500 mt-1.5">PNG or SVG with transparent background recommended (Max 2MB). Shown in header of public audit reports.</p>
                                 </div>
                                 <div className="w-20 h-20 bg-zinc-50 rounded-lg border border-dashed border-zinc-300 flex items-center justify-center shrink-0 overflow-hidden">
                                     {logoUrl ? (
