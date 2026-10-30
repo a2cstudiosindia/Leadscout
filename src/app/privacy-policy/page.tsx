@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
                         </Link>
                         <div className="h-6 w-px bg-gray-200" />
                         <Link href="/" className="flex items-center gap-2">
-                            <div className="p-1.5 bg-teal-400 rounded-lg text-white">
+                            <div className="p-1.5 bg-zinc-900 rounded-lg text-white">
                                 <Zap size={16} fill="currentColor" />
                             </div>
                             <span className="font-bold text-lg text-gray-800">LeadScout</span>
@@ -31,8 +31,8 @@ export default function PrivacyPolicyPage() {
             <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Title Section */}
                 <div className="text-center mb-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-teal-50 rounded-2xl mb-4">
-                        <Shield className="w-8 h-8 text-teal-500" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-zinc-100 rounded-2xl mb-4">
+                        <Shield className="w-8 h-8 text-zinc-800" />
                     </div>
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">Privacy Policy</h1>
                     <p className="text-gray-500">Last updated: January 10, 2026</p>
@@ -125,8 +125,8 @@ export default function PrivacyPolicyPage() {
                     {/* Section 4 */}
                     <section className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-teal-50 rounded-lg">
-                                <Lock className="w-5 h-5 text-teal-500" />
+                            <div className="p-2 bg-zinc-100 rounded-lg">
+                                <Lock className="w-5 h-5 text-zinc-800" />
                             </div>
                             <h2 className="text-xl font-bold text-gray-900">4. Data Security</h2>
                         </div>
@@ -156,7 +156,7 @@ export default function PrivacyPolicyPage() {
                                 <li><strong>Right to Non-Discrimination:</strong> We will not discriminate against you for exercising your privacy rights</li>
                             </ul>
                             <p className="leading-relaxed">
-                                To exercise these rights, please contact us at <a href="mailto:privacy@leadscout.app" className="text-teal-500 hover:underline">privacy@leadscout.app</a>.
+                                To exercise these rights, please contact us at <a href="mailto:privacy@leadscout.app" className="text-zinc-800 hover:underline">privacy@leadscout.app</a>.
                             </p>
                         </div>
                     </section>
@@ -227,8 +227,8 @@ export default function PrivacyPolicyPage() {
                             <p>If you have any questions about this Privacy Policy, please contact us:</p>
                             <div className="bg-gray-50 rounded-xl p-6 mt-4">
                                 <p><strong>LeadScout Inc.</strong></p>
-                                <p>Email: <a href="mailto:privacy@leadscout.app" className="text-teal-500 hover:underline">privacy@leadscout.app</a></p>
-                                <p>Support: <a href="mailto:abhisheksangule6@gmail.com" className="text-teal-500 hover:underline">support@leadscout.app</a></p>
+                                <p>Email: <a href="mailto:privacy@leadscout.app" className="text-zinc-800 hover:underline">privacy@leadscout.app</a></p>
+                                <p>Support: <a href="mailto:abhisheksangule6@gmail.com" className="text-zinc-800 hover:underline">support@leadscout.app</a></p>
                             </div>
                         </div>
                     </section>
@@ -237,7 +237,7 @@ export default function PrivacyPolicyPage() {
 
                 {/* Back to Home */}
                 <div className="text-center mt-12">
-                    <Link href="/" className="text-teal-500 font-bold hover:underline inline-flex items-center gap-2">
+                    <Link href="/" className="text-zinc-800 font-bold hover:underline inline-flex items-center gap-2">
                         <ArrowLeft size={16} />
                         Back to Home
                     </Link>

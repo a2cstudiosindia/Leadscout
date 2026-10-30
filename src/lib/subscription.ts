@@ -9,14 +9,13 @@ import { PLANS, type PlanType, getCurrentPeriod } from '@/lib/plans';
 // Example: TEST_MODE_PLAN=enterprise
 
 // Get user's subscription
-export async function getSubscription() {
+export async function getSubscription(forceSync = false) {
     const user = await getCurrentUser();
     if (!user) return null;
 
     // TEST MODE: Override subscription for testing Pro/Enterprise features
     const testModePlan = process.env.TEST_MODE_PLAN as PlanType | undefined;
     if (testModePlan && (testModePlan === 'pro' || testModePlan === 'enterprise')) {
-        console.log(`[SUBSCRIPTION] TEST MODE: Using ${testModePlan} plan`);
         return {
             plan: testModePlan,
             limits: PLANS[testModePlan],
@@ -34,10 +33,22 @@ export async function getSubscription() {
         console.error('[SUBSCRIPTION] Error fetching subscription:', error);
     }
 
-    // If no subscription or plan is free, attempt direct sync with Polar
-    // This guarantees immediate access in local dev (where webhooks cannot reach localhost)
-    // and handles any webhook delays in production.
-    if (!subscription || subscription.plan === 'free') {
+    // If subscription already exists in DB with a paid plan, return immediately
+    if (subscription && subscription.plan && subscription.plan !== 'free') {
+        return {
+            plan: subscription.plan as PlanType,
+            limits: PLANS[subscription.plan as PlanType],
+            customerId: subscription.polar_customer_id || subscription.stripe_customer_id,
+            subscriptionId: subscription.polar_subscription_id || subscription.stripe_subscription_id,
+            currentPeriodEnd: subscription.current_period_end,
+        };
+    }
+
+    // For free or missing subscription, only check Polar if forceSync is requested or outside cooldown
+    // Remote Polar lookups are slow, so only run on request (post-checkout); webhooks keep the DB current otherwise.
+    const shouldSync = forceSync;
+
+    if (shouldSync) {
         const synced = await syncUserSubscriptionWithPolar(user.id, user.email);
         if (synced) {
             return {
@@ -48,19 +59,14 @@ export async function getSubscription() {
                 currentPeriodEnd: synced.currentPeriodEnd,
             };
         }
-
-        return {
-            plan: 'free' as PlanType,
-            limits: PLANS.free,
-        };
     }
 
     return {
-        plan: subscription.plan as PlanType,
-        limits: PLANS[subscription.plan as PlanType],
-        customerId: subscription.polar_customer_id || subscription.stripe_customer_id,
-        subscriptionId: subscription.polar_subscription_id || subscription.stripe_subscription_id,
-        currentPeriodEnd: subscription.current_period_end,
+        plan: 'free' as PlanType,
+        limits: PLANS.free,
+        customerId: subscription?.polar_customer_id || subscription?.stripe_customer_id,
+        subscriptionId: subscription?.polar_subscription_id || subscription?.stripe_subscription_id,
+        currentPeriodEnd: subscription?.current_period_end,
     };
 }
 
@@ -227,9 +233,11 @@ export async function trackEvent(event: string, metadata?: Record<string, unknow
 }
 
 // Get subscription info for display
-export async function getSubscriptionInfo() {
-    const subscription = await getSubscription();
-    const usage = await getUsage();
+export async function getSubscriptionInfo(forceSync = false) {
+    const [subscription, usage] = await Promise.all([
+        getSubscription(forceSync),
+        getUsage(),
+    ]);
 
     if (!subscription || !usage) {
         return null;

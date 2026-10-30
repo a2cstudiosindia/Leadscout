@@ -1,32 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { getProfile, updateProfile, uploadLogo } from "../actions";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { Save, Building, Upload, CreditCard, LogOut, User, Calendar, ExternalLink } from "lucide-react";
+import { Save, Building, Upload, CreditCard, LogOut, User, Calendar, CheckCircle2 } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
 import { signOut, customerPortal } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { useCached } from "@/lib/use-cached";
 
 export default function SettingsPage() {
     const [agencyName, setAgencyName] = useState("");
     const [logoUrl, setLogoUrl] = useState("");
     const [calendarLink, setCalendarLink] = useState("");
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const router = useRouter();
 
+    const { data: profileData, loading } = useCached("profile", getProfile);
+    const [hydrated, setHydrated] = useState(false);
     useEffect(() => {
-        getProfile().then((data) => {
-            if (data && data.profile) {
-                setAgencyName(data.profile.agency_name || "");
-                setLogoUrl(data.profile.agency_logo_url || "");
-                setCalendarLink(data.profile.calendar_link || "");
-            }
-            setLoading(false);
-        });
-    }, []);
+        if (profileData?.profile && !hydrated) {
+            setAgencyName(profileData.profile.agency_name || "");
+            setLogoUrl(profileData.profile.agency_logo_url || "");
+            setCalendarLink(profileData.profile.calendar_link || "");
+            setHydrated(true);
+        }
+    }, [profileData, hydrated]);
 
     const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -39,9 +40,9 @@ export default function SettingsPage() {
         const result = await uploadLogo(formData);
         if (result.success && result.logoUrl) {
             setLogoUrl(result.logoUrl);
-            toast.success('Logo uploaded successfully!');
+            toast.success('Agency branding logo uploaded');
         } else {
-            toast.error('Failed to upload logo: ' + result.error);
+            toast.error('Logo upload error: ' + (result.error || 'Unknown'));
         }
         setUploading(false);
     };
@@ -54,10 +55,11 @@ export default function SettingsPage() {
             calendar_link: calendarLink,
         });
         setSaving(false);
-        toast.success('Settings saved successfully!');
+        toast.success('Agency settings saved');
     };
 
     const handleLogout = async () => {
+        try { sessionStorage.clear(); } catch {}
         await signOut();
         router.push("/login");
     };
@@ -70,134 +72,164 @@ export default function SettingsPage() {
             } else {
                 toast.error("Failed to open billing portal");
             }
-        } catch (error) {
-            toast.error("Billing portal error");
+        } catch {
+            toast.error("Billing portal unavailable");
         }
     };
 
     if (loading) return (
         <DashboardShell>
-            <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="text-xs font-semibold text-[var(--ink-muted)]">Loading settings...</div>
+            <div className="space-y-6 max-w-4xl mx-auto animate-pulse">
+                <div className="h-8 w-44 bg-zinc-100/60 rounded-md mb-2" />
+                <div className="h-64 bg-white border border-zinc-200 rounded-xl" />
+                <div className="h-40 bg-white border border-zinc-200 rounded-xl" />
             </div>
         </DashboardShell>
     );
 
     return (
         <DashboardShell>
-            <Toaster position="top-right" />
-            <div className="max-w-4xl mx-auto space-y-6 py-2 animate-fade-in">
+            <Toaster position="top-right" toastOptions={{ style: { background: "#18181b", color: "#fafafa", border: "1px solid #3f3f46" } }} />
+            <div className="max-w-4xl mx-auto space-y-8">
                 <div>
-                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--ink-primary)]">Agency Settings</h1>
-                    <p className="text-xs sm:text-sm text-[var(--ink-tertiary)] mt-1">Configure your agency branding, client report white-labeling, and calendar integration.</p>
+                    <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">Agency Settings</h1>
+                    <p className="text-sm text-zinc-500 mt-1">Configure white-label branding details for exports, audit reports, and booking integration</p>
                 </div>
 
-                {/* General Information Card */}
-                <div className="card overflow-hidden">
-                    <div className="p-4 sm:p-5 border-b border-[var(--border)] bg-[var(--canvas)] flex items-center gap-2">
-                        <Building size={18} className="text-[var(--brand-500)]" />
-                        <h2 className="font-semibold text-sm text-[var(--ink-primary)]">
-                            Brand & White-Label Information
+                {/* Subnav Tabs */}
+                <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200 pb-4">
+                    <Link
+                        href="/settings"
+                        className="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-zinc-900 text-white shadow-xs"
+                    >
+                        General Branding
+                    </Link>
+                    <Link
+                        href="/settings/api-keys"
+                        className="px-4 py-2 rounded-xl text-sm font-semibold transition-all text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                    >
+                        API Keys
+                    </Link>
+                    <Link
+                        href="/api/docs"
+                        className="px-4 py-2 rounded-xl text-sm font-semibold transition-all text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                    >
+                        API Documentation
+                    </Link>
+                </div>
+
+                {/* General Agency Information */}
+                <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-xs">
+                    <div className="p-5 border-b border-zinc-200 bg-zinc-50">
+                        <h2 className="font-semibold text-base text-zinc-900 flex items-center gap-2.5">
+                            <Building size={18} className="text-zinc-500" />
+                            General Information & White-Labeling
                         </h2>
                     </div>
 
-                    <div className="p-5 sm:p-6 space-y-5">
+                    <div className="p-6 space-y-6">
                         {/* Agency Name */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-[var(--ink-primary)]">Agency Name</label>
+                            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Agency Name</label>
                             <input
                                 type="text"
                                 value={agencyName}
                                 onChange={(e) => setAgencyName(e.target.value)}
-                                placeholder="e.g. Apex Digital Marketing"
-                                className="input"
+                                placeholder="e.g. Apex Strategic Growth"
+                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-all font-medium"
                             />
-                            <p className="text-[11px] text-[var(--ink-tertiary)]">This name will appear on all client-facing audit reports and AI pitch emails.</p>
+                            <p className="text-xs text-zinc-500">Rendered on client-facing PDF audit summaries, web reports, and cold emails.</p>
                         </div>
 
                         {/* Calendar / Strategy Call Link */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-[var(--ink-primary)]">Strategy Call Booking Link (Cal.com / Calendly)</label>
+                            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
+                                <Calendar size={13} className="text-zinc-500" />
+                                Strategy Call Booking Link (Cal.com / Calendly)
+                            </label>
                             <input
                                 type="url"
                                 value={calendarLink}
                                 onChange={(e) => setCalendarLink(e.target.value)}
                                 placeholder="https://cal.com/your-agency/15min or https://calendly.com/your-agency"
-                                className="input"
+                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 outline-none transition-all font-medium"
                             />
-                            <p className="text-[11px] text-[var(--ink-tertiary)]">Embedded directly into your shareable web audit pitch links so leads can instantly schedule calls.</p>
+                            <p className="text-xs text-zinc-500">Embedded directly into your shareable web audit pitch links so leads can instantly schedule calls.</p>
                         </div>
 
                         {/* Logo Upload */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-[var(--ink-primary)]">Agency Logo</label>
-                            <div className="flex gap-4 items-start pt-1">
-                                <div className="flex-1 space-y-1">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Agency Logo</label>
+                            <div className="flex flex-col sm:flex-row gap-4 items-start">
+                                <div className="flex-1 w-full">
                                     <input
                                         type="file"
                                         accept="image/*"
                                         onChange={handleLogoUpload}
-                                        className="input text-xs file:mr-3 file:py-1 file:px-3 file:rounded-[var(--r-sm)] file:border-0 file:text-xs file:font-semibold file:bg-[var(--brand-50)] file:text-[var(--brand-600)] hover:file:bg-[var(--brand-100)]"
+                                        className="w-full p-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-zinc-300 file:text-xs file:font-medium file:bg-zinc-100 file:text-zinc-800 hover:file:bg-zinc-200 cursor-pointer"
                                     />
-                                    <p className="text-[11px] text-[var(--ink-tertiary)]">PNG or JPG recommended (max 2MB). Shown in header of public audit reports.</p>
+                                    <p className="text-[11px] text-zinc-500 mt-1.5">PNG or SVG with transparent background recommended (Max 2MB). Shown in header of public audit reports.</p>
                                 </div>
-                                <div className="w-20 h-20 bg-[var(--canvas)] rounded-[var(--r-md)] border border-dashed border-[var(--border-strong)] flex items-center justify-center shrink-0 overflow-hidden">
+                                <div className="w-20 h-20 bg-zinc-50 rounded-lg border border-dashed border-zinc-300 flex items-center justify-center shrink-0 overflow-hidden">
                                     {logoUrl ? (
-                                        <img src={logoUrl} alt="Preview" className="w-full h-full object-contain p-1" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                        <img src={logoUrl} alt="Logo preview" className="w-full h-full object-contain p-2" onError={(e) => (e.currentTarget.style.display = 'none')} />
                                     ) : (
-                                        <span className="text-[10px] text-[var(--ink-muted)] font-medium">No Logo</span>
+                                        <span className="text-[10px] text-zinc-500 font-mono">No Logo</span>
                                     )}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-4 bg-[var(--canvas)] border-t border-[var(--border)] flex justify-end">
+                    <div className="p-4 bg-zinc-50 border-t border-zinc-200 flex justify-end">
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="btn btn-primary"
+                            className="inline-flex items-center gap-2 bg-zinc-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors shadow-sm active:scale-[0.99]"
                         >
-                            {saving ? "Saving..." : <><Save size={14} /><span>Save Brand Settings</span></>}
+                            <Save size={16} />
+                            {saving ? "Saving..." : "Save Changes"}
                         </button>
                     </div>
                 </div>
 
                 {/* Billing Settings */}
-                <div className="card overflow-hidden">
-                    <div className="p-4 sm:p-5 border-b border-[var(--border)] bg-[var(--canvas)] flex items-center gap-2">
-                        <CreditCard size={18} className="text-[var(--brand-500)]" />
-                        <h2 className="font-semibold text-sm text-[var(--ink-primary)]">
-                            Subscription & Invoicing
+                <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-xs">
+                    <div className="p-5 border-b border-zinc-200 bg-zinc-50">
+                        <h2 className="font-semibold text-base text-zinc-900 flex items-center gap-2.5">
+                            <CreditCard size={18} className="text-zinc-500" />
+                            Billing & Invoicing
                         </h2>
                     </div>
-                    <div className="p-5 sm:p-6 space-y-3">
-                        <p className="text-xs text-[var(--ink-secondary)]">Manage your billing details, download VAT invoices, or modify your subscription tier.</p>
+                    <div className="p-6 space-y-4">
+                        <p className="text-sm text-zinc-500 leading-relaxed">
+                            Access customer checkout portal to update credit cards, download tax receipts, or modify tier tiers.
+                        </p>
                         <button 
                             onClick={handleManageBilling}
-                            className="btn btn-secondary"
+                            className="inline-flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 text-zinc-800 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-xs"
                         >
-                            Open Billing Portal
+                            Manage Polar Subscription
                         </button>
                     </div>
                 </div>
 
                 {/* Account Settings */}
-                <div className="card overflow-hidden">
-                    <div className="p-4 sm:p-5 border-b border-[var(--border)] bg-[var(--canvas)] flex items-center gap-2">
-                        <User size={18} className="text-rose-500" />
-                        <h2 className="font-semibold text-sm text-[var(--ink-primary)]">
+                <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-xs">
+                    <div className="p-5 border-b border-zinc-200 bg-zinc-50">
+                        <h2 className="font-semibold text-base text-zinc-900 flex items-center gap-2.5">
+                            <User size={18} className="text-zinc-500" />
                             Session & Security
                         </h2>
                     </div>
-                    <div className="p-5 sm:p-6 space-y-3">
-                        <p className="text-xs text-[var(--ink-secondary)]">Sign out of your active agency workspace on this browser.</p>
+                    <div className="p-6 space-y-4">
+                        <p className="text-sm text-zinc-500 leading-relaxed">Terminate active credentials and invalidate session on this browser.</p>
                         <button 
                             onClick={handleLogout}
-                            className="btn btn-secondary text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                            className="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                         >
-                            <LogOut size={14} />
-                            <span>Sign Out</span>
+                            <LogOut size={16} />
+                            Sign Out of LeadScout
                         </button>
                     </div>
                 </div>

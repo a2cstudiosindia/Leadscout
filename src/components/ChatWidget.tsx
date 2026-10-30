@@ -115,7 +115,7 @@ export default function ChatWidget() {
     const [messages, setMessages] = useState<Message[]>([
         {
             role: 'assistant',
-            content: 'Hello! I am LeadScout\'s assistant. How can I help with your lead prospecting, audits, or agency workflow today?'
+            content: "Hello! I am LeadScout's AI assistant. How can I help with your lead prospecting, audits, or agency workflow today?"
         }
     ]);
     const [input, setInput] = useState('');
@@ -188,7 +188,7 @@ export default function ChatWidget() {
             {/* Chat Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-[var(--neutral-900)] hover:bg-black text-white shadow-md transition-all duration-200 hover:scale-105 flex items-center justify-center group border border-white/10"
+                className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-zinc-900 hover:bg-black text-white shadow-lg transition-all duration-200 hover:scale-105 flex items-center justify-center group border border-zinc-700"
                 aria-label={isOpen ? 'Close chat' : 'Open chat'}
             >
                 {isOpen ? (
@@ -196,37 +196,38 @@ export default function ChatWidget() {
                 ) : (
                     <>
                         <MessageCircle className="w-5 h-5" />
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-[var(--brand-500)] rounded-full animate-pulse" />
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-zinc-400 rounded-full animate-pulse" />
                     </>
                 )}
             </button>
 
             {/* Chat Panel */}
             {isOpen && (
-                <div className="fixed bottom-20 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] h-[480px] max-h-[calc(100vh-120px)] bg-[var(--surface)] rounded-[var(--r-xl)] shadow-lg flex flex-col overflow-hidden border border-[var(--border)] animate-fade-in">
+                <div className="fixed bottom-20 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] h-[480px] max-h-[calc(100vh-120px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-zinc-200 animate-fade-in">
                     {/* Header */}
-                    <div className="bg-[var(--neutral-950)] px-4 py-3 flex items-center gap-3 border-b border-[var(--sidebar-border)]">
-                        <div className="w-8 h-8 rounded-[var(--r-md)] bg-[var(--brand-500)] flex items-center justify-center">
-                            <Bot className="w-5 h-5 text-white" />
+                    <div className="bg-zinc-900 px-4 py-3 flex items-center gap-3 border-b border-zinc-800">
+                        <div className="w-8 h-8 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                            <Bot className="w-4 h-4 text-white" />
                         </div>
                         <div className="flex-1">
                             <h3 className="text-white text-xs font-semibold">LeadScout AI Assistant</h3>
-                            <p className="text-white/60 text-[11px]">Agency prospecting & workflow guidance</p>
+                            <p className="text-zinc-400 text-[11px]">Agency prospecting & workflow guidance</p>
                         </div>
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[var(--canvas)]">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-zinc-50">
                         {messages.map((message, index) => (
                             <div
                                 key={index}
                                 className={`flex gap-2 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                             >
                                 <div
-                                    className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs ${message.role === 'user'
-                                        ? 'bg-[var(--neutral-900)] text-white'
-                                        : 'bg-[var(--brand-50)] text-[var(--brand-600)] border border-[var(--border)]'
-                                        }`}
+                                    className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs ${
+                                        message.role === 'user'
+                                            ? 'bg-zinc-900 text-white'
+                                            : 'bg-white text-zinc-900 border border-zinc-200'
+                                    }`}
                                 >
                                     {message.role === 'user' ? (
                                         <User className="w-3.5 h-3.5 text-white" />
@@ -235,10 +236,11 @@ export default function ChatWidget() {
                                     )}
                                 </div>
                                 <div
-                                    className={`max-w-[78%] px-3.5 py-2 rounded-[var(--r-md)] text-xs leading-relaxed ${message.role === 'user'
-                                        ? 'bg-[var(--neutral-900)] text-white'
-                                        : 'bg-[var(--surface)] text-[var(--ink-primary)] shadow-xs border border-[var(--border)]'
-                                        }`}
+                                    className={`max-w-[78%] px-3.5 py-2 rounded-xl text-xs leading-relaxed ${
+                                        message.role === 'user'
+                                            ? 'bg-zinc-900 text-white'
+                                            : 'bg-white text-zinc-900 shadow-xs border border-zinc-200'
+                                    }`}
                                 >
                                     <div className="whitespace-pre-wrap chat-message">
                                         {formatMessage(message.content)}
@@ -250,14 +252,14 @@ export default function ChatWidget() {
                         {/* Typing Indicator */}
                         {isLoading && (
                             <div className="flex gap-2">
-                                <div className="w-7 h-7 rounded-full bg-[var(--brand-50)] text-[var(--brand-600)] border border-[var(--border)] flex items-center justify-center">
+                                <div className="w-7 h-7 rounded-full bg-white text-zinc-900 border border-zinc-200 flex items-center justify-center">
                                     <Bot className="w-3.5 h-3.5" />
                                 </div>
-                                <div className="bg-[var(--surface)] px-3.5 py-2 rounded-[var(--r-md)] border border-[var(--border)] shadow-xs">
+                                <div className="bg-white px-3.5 py-2 rounded-xl border border-zinc-200 shadow-xs">
                                     <div className="flex gap-1 py-1">
-                                        <span className="w-1.5 h-1.5 bg-[var(--ink-muted)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <span className="w-1.5 h-1.5 bg-[var(--ink-muted)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <span className="w-1.5 h-1.5 bg-[var(--ink-muted)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                        <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                        <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                        <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                                     </div>
                                 </div>
                             </div>
@@ -266,7 +268,7 @@ export default function ChatWidget() {
                     </div>
 
                     {/* Input */}
-                    <div className="p-3 bg-[var(--surface)] border-t border-[var(--border)]">
+                    <div className="p-3 bg-white border-t border-zinc-200">
                         <div className="flex gap-2">
                             <input
                                 ref={inputRef}
@@ -275,13 +277,13 @@ export default function ChatWidget() {
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 placeholder="Ask a question..."
-                                className="input flex-1 text-xs py-2"
+                                className="flex-1 px-3.5 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-500"
                                 disabled={isLoading}
                             />
                             <button
                                 onClick={sendMessage}
                                 disabled={!input.trim() || isLoading}
-                                className="btn btn-primary btn-sm flex items-center gap-1.5"
+                                className="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50"
                                 aria-label="Send message"
                             >
                                 {isLoading ? (

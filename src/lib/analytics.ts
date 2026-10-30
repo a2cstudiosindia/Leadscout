@@ -33,17 +33,22 @@ export async function getAnalytics(): Promise<{ success: boolean; data?: Analyti
 
     const supabase = await createClient();
 
-    // Get total leads
-    const { count: totalLeads } = await supabase
-        .from('leads')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
+    // Fetch leads and events in parallel (replaces multiple serial roundtrips)
+    const [leadsRes, eventsRes] = await Promise.all([
+        supabase
+            .from('leads')
+            .select('id, status, value, created_at')
+            .eq('user_id', user.id),
+        supabase
+            .from('events')
+            .select('event, metadata, created_at')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(10),
+    ]);
 
-    // Get leads by status
-    const { data: leads } = await supabase
-        .from('leads')
-        .select('status, value')
-        .eq('user_id', user.id);
+    const leads = leadsRes.data || [];
+    const totalLeads = leads.length;
 
     const leadsByStatus = {
         new: 0,
@@ -53,76 +58,61 @@ export async function getAnalytics(): Promise<{ success: boolean; data?: Analyti
     };
 
     let potentialRevenue = 0;
-    leads?.forEach((lead) => {
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const dateMap = new Map<string, number>();
+    const leadIds: string[] = [];
+
+    // Single-pass computation for counts, revenue, and timeline
+    for (const lead of leads) {
+        leadIds.push(lead.id);
         const status = lead.status as keyof typeof leadsByStatus;
         if (status in leadsByStatus) {
             leadsByStatus[status]++;
         }
         potentialRevenue += lead.value || 0;
-    });
 
-    // Get total audits (reports count)
-    const { data: userLeadIds } = await supabase
-        .from('leads')
-        .select('id')
-        .eq('user_id', user.id);
+        if (lead.created_at) {
+            const createdAtTime = new Date(lead.created_at).getTime();
+            if (createdAtTime >= thirtyDaysAgo) {
+                const date = new Date(lead.created_at).toISOString().split('T')[0];
+                dateMap.set(date, (dateMap.get(date) || 0) + 1);
+            }
+        }
+    }
 
-    const leadIds = userLeadIds?.map(l => l.id) || [];
-
-    const { count: totalAudits } = await supabase
-        .from('reports')
-        .select('*', { count: 'exact', head: true })
-        .in('lead_id', leadIds.length > 0 ? leadIds : ['']);
+    // Calculate total audits if leads exist
+    let totalAudits = 0;
+    if (leadIds.length > 0) {
+        const { count } = await supabase
+            .from('reports')
+            .select('*', { count: 'exact', head: true })
+            .in('lead_id', leadIds);
+        totalAudits = count || 0;
+    }
 
     // Calculate conversion rate (contacted / total)
-    const conversionRate = totalLeads && totalLeads > 0
+    const conversionRate = totalLeads > 0
         ? Math.round((leadsByStatus.contacted / totalLeads) * 100)
         : 0;
 
-    // Get leads over time (last 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const { data: recentLeads } = await supabase
-        .from('leads')
-        .select('created_at')
-        .eq('user_id', user.id)
-        .gte('created_at', thirtyDaysAgo.toISOString())
-        .order('created_at', { ascending: true });
-
-    // Group by date
     const leadsOverTime: AnalyticsData['leadsOverTime'] = [];
-    const dateMap = new Map<string, number>();
-
-    recentLeads?.forEach((lead) => {
-        const date = new Date(lead.created_at).toISOString().split('T')[0];
-        dateMap.set(date, (dateMap.get(date) || 0) + 1);
-    });
-
     dateMap.forEach((count, date) => {
         leadsOverTime.push({ date, count });
     });
-
-    // Get recent events
-    const { data: events } = await supabase
-        .from('events')
-        .select('event, metadata, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
+    leadsOverTime.sort((a, b) => a.date.localeCompare(b.date));
 
     return {
         success: true,
         data: {
             overview: {
-                totalLeads: totalLeads || 0,
-                totalAudits: totalAudits || 0,
+                totalLeads,
+                totalAudits,
                 conversionRate,
                 potentialRevenue,
             },
             leadsByStatus,
             leadsOverTime,
-            recentEvents: events || [],
+            recentEvents: eventsRes.data || [],
         },
     };
 }

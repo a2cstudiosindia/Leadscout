@@ -2,12 +2,13 @@
 
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { cache } from "react";
 
 /**
  * Get the current session from Better-Auth
- * Use this in server components and server actions
+ * Cached per request/action lifecycle using React cache()
  */
-export async function getSession() {
+export const getSession = cache(async () => {
     try {
         const session = await auth.api.getSession({
             headers: await headers()
@@ -17,21 +18,21 @@ export async function getSession() {
         console.error("Error getting session:", error);
         return null;
     }
-}
+});
 
 /**
  * Get the current user from the session
  * Returns null if not authenticated
  */
-export async function getCurrentUser() {
+export const getCurrentUser = cache(async () => {
     const session = await getSession();
     return session?.user || null;
-}
+});
 
 /**
  * Check if user is authenticated
  */
-export async function isAuthenticated() {
+export const isAuthenticated = cache(async () => {
     const session = await getSession();
     return !!session;
-}
+});

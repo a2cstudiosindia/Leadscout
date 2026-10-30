@@ -1,334 +1,167 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import { Zap, Search, BarChart3, FileText, Users, ArrowRight, Star, Shield, Menu, X, Briefcase, Globe2, Layers, CheckCircle2, DollarSign } from "lucide-react";
+import { redirect } from "next/navigation";
+import {
+  Search, Gauge, FileText, Layers, Mail, Cpu, ArrowRight, Zap,
+} from "lucide-react";
+import { TiltedGridHero } from "@/components/ui/tilted-grid-hero";
+import { CircuitHero } from "@/components/ui/circuit-hero";
+import { SiteNav } from "@/components/layout/SiteNav";
+import { getSession } from "@/lib/auth-session";
 
-export default function LandingPage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+export const dynamic = 'force-dynamic';
+
+const SHOWCASE_IMAGES = [
+  "photo-1551288049-bebda4e38f71", "photo-1460925895917-afdab827c52f",
+  "photo-1507238691740-187a5b1d37b8", "photo-1558494949-ef010cbdcc31",
+  "photo-1531403009284-440f080d1e12", "photo-1526374965328-7f61d4dc18c5",
+  "photo-1551836022-d5d88e9218df", "photo-1486406146926-c627a92ad1ab",
+].map((id) => ({ src: `https://images.unsplash.com/${id}?q=80&w=1200&auto=format&fit=crop`, alt: "Website audit preview" }));
+
+const features = [
+  { icon: Search, title: "Discover", text: "Search any niche in any city through Google Places and surface businesses with weak websites." },
+  { icon: Gauge, title: "Audit", text: "Headless browser scans for SSL, speed, mobile viewport, analytics and content freshness." },
+  { icon: FileText, title: "Report", text: "White-label PDF reports carrying your agency name and logo, ready for the first call." },
+  { icon: Layers, title: "Pipeline", text: "A built-in CRM with list and kanban views, notes, and deal values on every lead." },
+  { icon: Mail, title: "Outreach", text: "Cold emails written from real audit findings, so every message is specific." },
+  { icon: Cpu, title: "API", text: "Trigger scans and sync leads into your own tools with a clean REST API." },
+];
+
+const steps = [
+  ["01", "Find the prospects", "Pick a niche and a city. Get names, phones and URLs in seconds."],
+  ["02", "Run the audit", "One click scans the site and scores it against seven benchmarks."],
+  ["03", "Close the deal", "Send a branded report and a tailored email that proves the problem."],
+];
+
+const reviews = [
+  ["We stopped sending generic pitches. An audit PDF took our reply rate from 4% to 22%.", "James Davis", "CEO, GrowthScale"],
+  ["Clients see their own broken mobile tags before we even book a call. Closing feels natural.", "Sarah Mitchell", "Founder, WebPro"],
+  ["The API put leads straight into our dashboards and saved reps fifteen hours a week.", "Raj Kumar", "Director, TechScale"],
+];
+
+export default async function LandingPage() {
+  const session = await getSession();
+  if (session?.user) {
+    redirect("/dashboard");
+  }
 
   return (
-    <div className="min-h-screen bg-[var(--surface)] text-[var(--ink-primary)] relative overflow-hidden">
-      {/* Subtle landing gradient glow */}
-      <div className="landing-gradient z-0" />
+    <div className="min-h-screen bg-white font-sans text-[#1d1d1f]">
+      <SiteNav />
 
-      {/* Navbar */}
-      <nav className="p-4 max-w-7xl mx-auto flex justify-between items-center relative z-10 border-b border-[var(--border)]" role="navigation" aria-label="Main navigation">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="LeadScout Home">
-          <div className="w-8 h-8 bg-[var(--brand-500)] rounded-[var(--r-md)] text-white flex items-center justify-center shadow-xs">
-            <Zap size={16} fill="currentColor" aria-hidden="true" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-base text-[var(--ink-primary)] tracking-tight leading-none">LeadScout</span>
-            <span className="text-[10px] font-semibold text-[var(--brand-600)] uppercase tracking-wider mt-0.5">Central Hub</span>
-          </div>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6 text-xs font-semibold text-[var(--ink-secondary)]">
-          <a href="#features" className="hover:text-[var(--brand-600)] transition-colors">Features</a>
-          <a href="#workflow" className="hover:text-[var(--brand-600)] transition-colors">Workflow</a>
-          <a href="#testimonials" className="hover:text-[var(--brand-600)] transition-colors">Testimonials</a>
-          <Link href="/pricing" className="hover:text-[var(--brand-600)] transition-colors">Pricing</Link>
-          <Link href="/api/docs" className="hover:text-[var(--brand-600)] transition-colors">API Docs</Link>
-        </div>
-
-        {/* Desktop CTA */}
-        <div className="hidden md:flex items-center gap-2.5">
-          <Link href="/login" className="btn btn-secondary btn-sm">Log in</Link>
-          <Link href="/login" className="btn btn-primary btn-sm">Get Started Free</Link>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden p-2 rounded-[var(--r-sm)] hover:bg-[var(--neutral-100)] text-[var(--ink-secondary)]"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-expanded={mobileMenuOpen}
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-        >
-          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </nav>
-
-      {/* Mobile Navigation Menu */}
-      {mobileMenuOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-[var(--surface)] z-50 pt-20 px-6 animate-fade-in flex flex-col justify-between pb-8"
-          role="dialog"
-          aria-modal="true"
-        >
-          <button
-            className="absolute top-4 right-4 p-2 text-[var(--ink-secondary)]"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-label="Close menu"
-          >
-            <X size={22} />
-          </button>
-          <nav className="flex flex-col gap-4 text-sm font-semibold">
-            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-[var(--border)]">Features</a>
-            <a href="#workflow" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-[var(--border)]">Workflow</a>
-            <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-[var(--border)]">Testimonials</a>
-            <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-[var(--border)]">Pricing</Link>
-          </nav>
-          <div className="flex flex-col gap-2">
-            <Link href="/login" className="btn btn-secondary w-full justify-center">Log in</Link>
-            <Link href="/login" className="btn btn-primary w-full justify-center">Get Started Free</Link>
-          </div>
-        </div>
-      )}
-
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 py-16 md:py-24 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-          {/* Left Column - Text Content */}
-          <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 bg-[var(--brand-50)] text-[var(--brand-600)] px-3 py-1.5 rounded-full text-xs font-semibold mb-6 border border-[var(--border)]">
-              <Zap size={13} />
-              <span>The Central Growth Platform for Digital Agencies</span>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-5 leading-[1.12] text-[var(--ink-primary)]">
-              Find Qualified Leads. <br />
-              <span className="text-[var(--brand-500)]">Manage Client Retainers.</span>
-            </h1>
-
-            <p className="text-sm md:text-base text-[var(--ink-secondary)] max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed font-normal">
-              LeadScout automates the end-to-end client acquisition lifecycle for agencies: uncover local businesses with broken websites, share instant interactive audit pitch links, track deals in Kanban, and monetize referrals in the B2B Exchange.
-            </p>
-
-            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-3">
-              <Link href="/login" className="btn btn-primary btn-lg">
-                <span>Start Free Trial</span>
-                <ArrowRight size={16} />
-              </Link>
-              <Link href="/pricing" className="btn btn-secondary btn-lg">
-                View Agency Plans
-              </Link>
-            </div>
-            
-            <p className="text-[11px] text-[var(--ink-muted)] mt-3">No credit card required • Instant workspace setup in 30 seconds</p>
-          </div>
-
-          {/* Right Column - Tech Circuit Animation */}
-          <div className="flex justify-center">
-            <div className="circuit-board w-full max-w-md aspect-square relative bg-[var(--neutral-950)] border border-[var(--border-strong)] shadow-lg rounded-[var(--r-xl)]">
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 400" fill="none">
-                {/* Circuit Grid Lines */}
-                <line x1="200" y1="200" x2="50" y2="200" stroke="#6366f1" strokeWidth="2" opacity="0.25" />
-                <line x1="200" y1="200" x2="350" y2="200" stroke="#6366f1" strokeWidth="2" opacity="0.25" />
-                <path d="M 200 200 L 120 200 L 80 160 L 30 160" stroke="#6366f1" strokeWidth="2" fill="none" opacity="0.2" />
-                <path d="M 200 200 L 280 200 L 320 160 L 370 160" stroke="#6366f1" strokeWidth="2" fill="none" opacity="0.2" />
-                <path d="M 200 200 L 120 200 L 80 240 L 30 240" stroke="#6366f1" strokeWidth="2" fill="none" opacity="0.2" />
-                <path d="M 200 200 L 280 200 L 320 240 L 370 240" stroke="#6366f1" strokeWidth="2" fill="none" opacity="0.2" />
-                <line x1="200" y1="200" x2="200" y2="60" stroke="#6366f1" strokeWidth="2" opacity="0.2" />
-                <line x1="200" y1="200" x2="200" y2="340" stroke="#6366f1" strokeWidth="2" opacity="0.2" />
-
-                {/* Animated Waves */}
-                <line x1="200" y1="200" x2="50" y2="200" stroke="url(#indigoGradH)" strokeWidth="3" strokeLinecap="round">
-                  <animate attributeName="stroke-dasharray" values="0 150;150 0;0 150" dur="2s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" />
-                </line>
-                <line x1="200" y1="200" x2="350" y2="200" stroke="url(#indigoGradH)" strokeWidth="3" strokeLinecap="round">
-                  <animate attributeName="stroke-dasharray" values="0 150;150 0;0 150" dur="2s" repeatCount="indefinite" begin="0.5s" />
-                  <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" begin="0.5s" />
-                </line>
-
-                <defs>
-                  <linearGradient id="indigoGradH" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity="0" />
-                    <stop offset="50%" stopColor="#818cf8" stopOpacity="1" />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-              </svg>
-
-              {/* Node Pulses */}
-              <div className="circuit-node" style={{ top: '38%', left: '7%', animationDelay: '0s' }} />
-              <div className="circuit-node" style={{ top: '38%', right: '7%', animationDelay: '0.5s' }} />
-              <div className="circuit-node" style={{ bottom: '38%', left: '7%', animationDelay: '1s' }} />
-              <div className="circuit-node" style={{ bottom: '38%', right: '7%', animationDelay: '1.5s' }} />
-
-              {/* Center Brand Icon */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="circuit-icon-container">
-                  <Zap size={48} className="text-white drop-shadow-[0_0_20px_rgba(99,102,241,0.8)]" fill="white" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* KPI Proof Numbers */}
-      <section className="bg-[var(--neutral-50)] py-10 border-y border-[var(--border)]">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div>
-              <div className="text-2xl md:text-3xl font-bold text-[var(--ink-primary)] tabular-nums">50,000+</div>
-              <div className="text-xs text-[var(--ink-tertiary)] mt-1 font-medium">Local Businesses Scored</div>
-            </div>
-            <div>
-              <div className="text-2xl md:text-3xl font-bold text-[var(--ink-primary)] tabular-nums">500+</div>
-              <div className="text-xs text-[var(--ink-tertiary)] mt-1 font-medium">Digital Agencies Scaled</div>
-            </div>
-            <div>
-              <div className="text-2xl md:text-3xl font-bold text-emerald-600 tabular-nums">40%</div>
-              <div className="text-xs text-[var(--ink-tertiary)] mt-1 font-medium">Average Close Rate Lift</div>
-            </div>
-            <div>
-              <div className="text-2xl md:text-3xl font-bold text-[var(--brand-600)] tabular-nums">10%</div>
-              <div className="text-xs text-[var(--ink-tertiary)] mt-1 font-medium">Referral Fee on Deal Close</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5-Step Agency Workflow Section */}
-      <section id="workflow" className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-14 max-w-2xl mx-auto">
-          <span className="text-[11px] font-semibold text-[var(--brand-600)] uppercase tracking-wider block mb-1">
-            End-To-End Architecture
-          </span>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--ink-primary)]">
-            How Top Agencies Move From Cold Lead to Retainer
-          </h2>
-          <p className="text-xs md:text-sm text-[var(--ink-tertiary)] mt-1.5 leading-relaxed">
-            Five synchronized tools in one single workspace. No messy spreadsheets or disconnected software.
+      {/* Hero: copy left, original circuit animation right */}
+      <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 pb-20 pt-16 md:px-8 md:pt-24 lg:grid-cols-2">
+        <div>
+          <p className="mb-5 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Lead intelligence for agencies</p>
+          <h1 className="text-5xl font-extrabold leading-[1.02] text-zinc-900 sm:text-6xl lg:text-7xl">
+            Find clients who need you.
+            <span className="mt-2 block bg-gradient-to-b from-zinc-700 to-zinc-400 bg-clip-text text-transparent">Close faster.</span>
+          </h1>
+          <p className="mt-7 max-w-xl text-xl leading-relaxed text-zinc-600">
+            LeadScout finds local businesses with underperforming websites, audits them in seconds, and hands you a report that wins the meeting.
           </p>
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-full bg-black px-8 py-4 text-base font-semibold text-white transition-transform hover:scale-[1.03] hover:bg-zinc-800">
+              Start free trial <ArrowRight size={18} />
+            </Link>
+            <Link href="/pricing" className="inline-flex items-center justify-center rounded-full border border-zinc-300 bg-white px-8 py-4 text-base font-semibold text-zinc-900 transition-colors hover:border-black">
+              View pricing
+            </Link>
+          </div>
+          <p className="mt-5 text-sm text-zinc-500">No credit card required. 14-day full access.</p>
         </div>
+        <div className="mx-auto w-full max-w-lg">
+          <CircuitHero />
+        </div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {[
-            {
-              step: "01",
-              title: "Discover",
-              icon: Search,
-              desc: "Target local niches & cities via Google Places. Detect missing SSL, slow speed, and zero mobile responsiveness."
-            },
-            {
-              step: "02",
-              title: "Audit & Link",
-              icon: Zap,
-              desc: "Generate interactive public web pitch links branded with your agency name and embedded Cal.com scheduling."
-            },
-            {
-              step: "03",
-              title: "Pipeline",
-              icon: Layers,
-              desc: "Track prospect stages in Kanban from Outreached to Call Booked to Proposal to Closed Won."
-            },
-            {
-              step: "04",
-              title: "Clients Hub",
-              icon: Briefcase,
-              desc: "Manage monthly retainers ($/mo), contract deliverables, renewal schedules, and recurring MRR."
-            },
-            {
-              step: "05",
-              title: "B2B Exchange",
-              icon: Globe2,
-              desc: "Post leads outside your service specialty to peer agencies for a 10% commission, and claim hot inbound deals."
-            },
-          ].map((item) => (
-            <div key={item.step} className="card p-5 space-y-3 relative hover:border-[var(--border-strong)] transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[var(--brand-600)] tabular-nums">{item.step}</span>
-                <div className="p-1.5 bg-[var(--brand-50)] text-[var(--brand-600)] rounded-[var(--r-sm)]">
-                  <item.icon size={14} />
-                </div>
-              </div>
-              <h3 className="font-semibold text-sm text-[var(--ink-primary)]">{item.title}</h3>
-              <p className="text-xs text-[var(--ink-secondary)] leading-relaxed font-normal">{item.desc}</p>
+      {/* Stats */}
+      <section className="bg-[#f5f5f7] py-16">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-10 px-5 text-center md:grid-cols-4 md:px-8">
+          {[["10K+", "Leads discovered"], ["500+", "Agencies onboarded"], ["<3.5s", "Average audit time"], ["99.8%", "API uptime"]].map(([n, l]) => (
+            <div key={l}>
+              <div className="text-5xl font-extrabold tracking-tight text-zinc-900 md:text-6xl">{n}</div>
+              <div className="mt-2 text-base font-medium text-zinc-600">{l}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="bg-[var(--neutral-50)] py-16 border-t border-[var(--border)]">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--ink-primary)]">Built for Professional Agency Operators</h2>
-            <p className="text-xs sm:text-sm text-[var(--ink-tertiary)] mt-1">See how boutique agencies convert cold audits into recurring clients.</p>
-          </div>
+      {/* Tilted grid showcase on black */}
+      <section className="bg-black px-5 py-24 md:px-8">
+        <div className="mx-auto max-w-7xl">
+          <h2 className="mx-auto max-w-3xl text-center text-4xl font-extrabold leading-tight text-white md:text-6xl">Every site, scored at a glance.</h2>
+          <p className="mx-auto mt-5 max-w-2xl text-center text-lg text-zinc-400">A live feed of audits flowing through your pipeline, from first scan to finished report.</p>
+          <TiltedGridHero images={SHOWCASE_IMAGES} speed={4.5} curve={75} tileHeight={30} className="mx-auto mt-12 h-[420px] w-full max-w-6xl md:h-[520px]" />
+        </div>
+      </section>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="card p-6 space-y-4">
-              <div className="flex gap-1 text-amber-500">
-                {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
-              </div>
-              <p className="text-xs text-[var(--ink-secondary)] leading-relaxed">
-                &quot;The interactive web audit links have completely replaced our manual PDF audits. Prospects open the link, see their score, and book directly onto our calendar.&quot;
-              </p>
-              <div className="pt-2 border-t border-[var(--border)]">
-                <div className="font-semibold text-xs text-[var(--ink-primary)]">James Davis</div>
-                <div className="text-[11px] text-[var(--ink-muted)]">CEO, Apex Growth Media</div>
-              </div>
+      {/* Features */}
+      <section id="features" className="mx-auto max-w-7xl px-5 py-28 md:px-8">
+        <h2 className="max-w-3xl text-4xl font-extrabold leading-tight text-zinc-900 md:text-6xl">One platform from first search to signed retainer.</h2>
+        <div className="mt-14 grid gap-5 md:grid-cols-3">
+          {features.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="group card-lift rounded-3xl border border-zinc-200 bg-[#fafafa] p-8">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black text-white"><Icon size={22} /></span>
+              <h3 className="hover-title mt-6 text-2xl font-bold text-zinc-800">{title}</h3>
+              <p className="mt-3 text-base leading-relaxed text-zinc-600">{text}</p>
             </div>
+          ))}
+        </div>
+      </section>
 
-            <div className="card p-6 space-y-4">
-              <div className="flex gap-1 text-amber-500">
-                {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
+      {/* Workflow */}
+      <section id="workflow" className="bg-[#f5f5f7] py-28">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <h2 className="max-w-3xl text-4xl font-extrabold leading-tight text-zinc-900 md:text-6xl">Three steps. No busywork.</h2>
+          <div className="mt-14 grid gap-5 md:grid-cols-3">
+            {steps.map(([n, t, d]) => (
+              <div key={n} className="group card-lift rounded-3xl bg-white p-8 ring-1 ring-zinc-200">
+                <span className="font-mono text-sm font-semibold text-zinc-400">{n}</span>
+                <h3 className="hover-title mt-3 text-2xl font-bold text-zinc-800">{t}</h3>
+                <p className="mt-3 text-base leading-relaxed text-zinc-600">{d}</p>
               </div>
-              <p className="text-xs text-[var(--ink-secondary)] leading-relaxed">
-                &quot;The B2B Exchange let us monetize 12 leads last month that asked for Shopify custom development, which we don&apos;t do. We earned referral fees without writing code.&quot;
-              </p>
-              <div className="pt-2 border-t border-[var(--border)]">
-                <div className="font-semibold text-xs text-[var(--ink-primary)]">Sarah Mitchell</div>
-                <div className="text-[11px] text-[var(--ink-muted)]">Founder, WebCraft Studio</div>
-              </div>
-            </div>
-
-            <div className="card p-6 space-y-4">
-              <div className="flex gap-1 text-amber-500">
-                {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
-              </div>
-              <p className="text-xs text-[var(--ink-secondary)] leading-relaxed">
-                &quot;Managing our pipeline from audit to active retainer in one clean dashboard has doubled our agency efficiency. Extremely fast, clean, and reliable software.&quot;
-              </p>
-              <div className="pt-2 border-t border-[var(--border)]">
-                <div className="font-semibold text-xs text-[var(--ink-primary)]">Raj Kumar</div>
-                <div className="text-[11px] text-[var(--ink-muted)]">Director, Pulse Digital</div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Bottom CTA Banner */}
-      <section className="bg-[var(--neutral-950)] text-white py-16 border-t border-[var(--sidebar-border)]">
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-5">
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
-            Ready to Accelerate Your Agency&apos;s Client Acquisition?
-          </h2>
-          <p className="text-xs sm:text-sm text-white/70 max-w-xl mx-auto leading-relaxed">
-            Join hundreds of digital marketing and web agencies uncovering leads and managing client retainers with LeadScout.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
-            <Link href="/login" className="btn btn-primary btn-lg">
-              <span>Start Free Agency Trial</span>
-              <ArrowRight size={16} />
-            </Link>
-            <Link href="/pricing" className="btn btn-secondary btn-lg bg-white/10 hover:bg-white/15 text-white border-white/20">
-              Explore Plans
-            </Link>
-          </div>
+      {/* Reviews */}
+      <section id="reviews" className="mx-auto max-w-7xl px-5 py-28 md:px-8">
+        <h2 className="max-w-3xl text-4xl font-extrabold leading-tight text-zinc-900 md:text-6xl">Trusted by growing agencies.</h2>
+        <div className="mt-14 grid gap-5 md:grid-cols-3">
+          {reviews.map(([q, n, r]) => (
+            <figure key={n} className="card-lift flex flex-col justify-between rounded-3xl border border-zinc-200 bg-white p-8">
+              <blockquote className="text-xl font-medium leading-snug text-zinc-900">&ldquo;{q}&rdquo;</blockquote>
+              <figcaption className="mt-8 flex items-center gap-3 border-t border-zinc-100 pt-5">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-sm font-bold text-white">{n.split(" ").map((w) => w[0]).join("")}</span>
+                <span>
+                  <span className="block text-base font-semibold text-zinc-900">{n}</span>
+                  <span className="block text-sm text-zinc-500">{r}</span>
+                </span>
+              </figcaption>
+            </figure>
+          ))}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-[var(--neutral-950)] text-white py-12 border-t border-white/10 text-xs">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-white/50">
-          <div className="flex items-center gap-2 text-white">
-            <Zap size={14} className="fill-[var(--brand-400)] text-[var(--brand-400)]" />
-            <span className="font-bold">LeadScout Central Hub</span>
+      {/* CTA */}
+      <section className="px-5 pb-24 md:px-8">
+        <div className="mx-auto max-w-7xl rounded-[2.5rem] bg-black px-8 py-20 text-center">
+          <h2 className="mx-auto max-w-3xl text-4xl font-extrabold leading-tight text-white md:text-6xl">Ready to fill your pipeline?</h2>
+          <p className="mx-auto mt-5 max-w-xl text-lg text-zinc-400">Start your free trial and run your first audit in under a minute.</p>
+          <Link href="/login" className="mt-9 inline-flex items-center gap-2 rounded-full bg-white px-9 py-4 text-base font-semibold text-black transition-transform hover:scale-[1.04]">
+            Get started free <ArrowRight size={18} />
+          </Link>
+        </div>
+      </section>
+
+      <footer className="border-t border-zinc-200 py-10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 text-sm text-zinc-500 md:flex-row md:px-8">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-black text-white"><Zap size={14} fill="currentColor" /></span>
+            <span className="font-bold text-zinc-900">LeadScout</span>
           </div>
-          <div>&copy; {new Date().getFullYear()} LeadScout Inc. All rights reserved.</div>
-          <div className="flex gap-4">
-            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
-            <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
-          </div>
+          <p>&copy; {new Date().getFullYear()} LeadScout Inc. All rights reserved.</p>
         </div>
       </footer>
     </div>
